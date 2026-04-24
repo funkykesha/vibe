@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prompt Engineer — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0f0e0c; color: #f6efe8; font-family: 'Inter', sans-serif; }
+
+.section { padding: 48px 40px; border-bottom: 1px solid #2a2318; }
+.section:last-child { border-bottom: none; }
+.section-title { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #6b5a45; margin-bottom: 6px; }
+.section-name { font-size: 22px; font-weight: 300; color: #f6efe8; margin-bottom: 32px; letter-spacing: -0.02em; }
+
+.grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+.label { font-size: 11px; color: #7a6050; width: 120px; flex-shrink: 0; }
+.mono { font-family: 'Courier New', monospace; font-size: 11px; color: #c1b2a3; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="padding: 40px 40px 32px; border-bottom: 1px solid #2a2318; display: flex; align-items: center; gap: 12px;">
+  <div style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></div>
+  <div>
+    <div style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #f59e0b; margin-bottom: 4px;">Design System</div>
+    <div style="font-size: 18px; font-weight: 300; letter-spacing: -0.02em;">Prompt Engineer</div>
+  </div>
+</div>
+
+<!-- THEMES -->
+<div class="section">
+  <div class="section-title">01</div>
+  <div class="section-name">Цветовые темы</div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 900px;">
+
+    <!-- DARK -->
+    <div style="background: #161311; border: 1px solid #3a322c; border-radius: 10px; overflow: hidden;">
+      <div style="padding: 16px 18px; border-bottom: 1px solid #3a322c; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; font-weight: 500; color: #f6efe8;">Янтарная (dark)</span>
+        <span style="font-size: 10px; color: #f59e0b; letter-spacing: 0.1em;">DEFAULT</span>
+      </div>
+      <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px;">
+        ${[
+          ["bg",           "#161311"],
+          ["surface",      "#1e1a17"],
+          ["surface-2",    "#26211d"],
+          ["border",       "#3a322c"],
+          ["text",         "#f6efe8"],
+          ["muted",        "#c1b2a3"],
+          ["dim",          "#5a4a3a"],
+          ["accent",       "#f59e0b"],
+          ["accent-hover", "#fbbf24"],
+          ["accent-soft",  "rgba(245,158,11,0.12)"],
+        ].map(([name, hex]) => `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 28px; height: 28px; border-radius: 5px; background: ${hex}; border: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;"></div>
+          <div>
+            <div style="font-size: 11px; font-weight: 500; color: #c1b2a3;">${name}</div>
+            <div style="font-size: 10px; color: #5a4a3a; font-family: 'Courier New', monospace;">${hex}</div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- LIGHT -->
+    <div style="background: #fdf6ee; border: 1px solid #e8c9a0; border-radius: 10px; overflow: hidden;">
+      <div style="padding: 16px 18px; border-bottom: 1px solid #e8c9a0; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; font-weight: 500; color: #1e1410;">Коралловая (light)</span>
+        <span style="font-size: 10px; color: #c84b1a; letter-spacing: 0.1em;">LIGHT</span>
+      </div>
+      <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px;">
+        ${[
+          ["bg",           "#fdf6ee"],
+          ["surface",      "#ffffff"],
+          ["surface-2",    "#fff0d9"],
+          ["border",       "#e8c9a0"],
+          ["text",         "#1e1410"],
+          ["muted",        "#7a5840"],
+          ["dim",          "#b89070"],
+          ["accent",       "#c84b1a"],
+          ["accent-hover", "#e05520"],
+          ["accent-soft",  "rgba(200,75,26,0.10)"],
+        ].map(([name, hex]) => `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 28px; height: 28px; border-radius: 5px; background: ${hex}; border: 1px solid rgba(0,0,0,0.08); flex-shrink: 0;"></div>
+          <div>
+            <div style="font-size: 11px; font-weight: 500; color: #7a5840;">${name}</div>
+            <div style="font-size: 10px; color: #b89070; font-family: 'Courier New', monospace;">${hex}</div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TYPOGRAPHY -->
+<div class="section">
+  <div class="section-title">02</div>
+  <div class="section-name">Типографика</div>
+
+  <div style="display: flex; flex-direction: column; gap: 28px; max-width: 700px;">
+
+    <div style="border-left: 2px solid #f59e0b; padding-left: 20px;">
+      <div style="font-size: 11px; color: #6b5a45; margin-bottom: 8px;">Display / H1 — Inter 300, −0.03em</div>
+      <div style="font-size: 42px; font-weight: 300; letter-spacing: -0.03em; color: #f6efe8; line-height: 1.1;">Генератор промптов</div>
+    </div>
+
+    <div style="border-left: 2px solid #3a322c; padding-left: 20px;">
+      <div style="font-size: 11px; color: #6b5a45; margin-bottom: 8px;">Editorial serif — Instrument Serif italic</div>
+      <div style="font-family: 'Instrument Serif', serif; font-style: italic; font-size: 48px; font-weight: 400; letter-spacing: -0.04em; color: #f6efe8; line-height: 0.95;">Prompt<br /><span style="color: #f59e0b;">Engineer</span></div>
+    </div>
+
+    <div style="border-left: 2px solid #3a322c; padding-left: 20px;">
+      <div style="font-size: 11px; color: #6b5a45; margin-bottom: 8px;">Label / Badge — Inter, 0.2em spacing, uppercase</div>
+      <div style="font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #f59e0b;">Prompt Engineer v1.0</div>
+    </div>
+
+    <div style="border-left: 2px solid #3a322c; padding-left: 20px;">
+      <div style="font-size: 11px; color: #6b5a45; margin-bottom: 8px;">Body — Inter 400, 13px</div>
+      <div style="font-size: 13px; color: #c1b2a3; line-height: 1.65;">Опиши задачу — получи промпт для мощной модели. Восемь категорий, уточняющие вопросы, готовый результат.</div>
+    </div>
+
+    <div style="border-left: 2px solid #3a322c; padding-left: 20px;">
+      <div style="font-size: 11px; color: #6b5a45; margin-bottom: 8px;">Code comment — Inter, dim color, // prefix</div>
+      <div style="font-size: 12px; color: rgb(176,156,130); letter-spacing: 0.1em;">// выберите тип задачи</div>
+    </div>
+
+    <div style="border-left: 2px solid #3a322c; padding-left: 20px;">
+      <div style="font-size: 11px; color: #6b5a45; margin-bottom: 8px;">Card label — Inter 500, 12px</div>
+      <div style="font-size: 12px; font-weight: 500; color: #f6efe8;">Написание текста</div>
+      <div style="font-size: 10px; color: #c1b2a3; margin-top: 3px;">Статьи, письма, посты, эссе</div>
+    </div>
+
+    <div style="border-left: 2px solid #3a322c; padding-left: 20px;">
+      <div style="font-size: 11px; color: #6b5a45; margin-bottom: 8px;">Tag — Inter 9px, 0.13em spacing, uppercase</div>
+      <div style="font-size: 9px; letter-spacing: 0.13em; color: #5a4a3a;">WRITE</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COMPONENTS: CARDS -->
+<div class="section">
+  <div class="section-title">03</div>
+  <div class="section-name">Карточка категории</div>
+
+  <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px;">
+
+    <!-- Default state -->
+    <div>
+      <div style="font-size: 10px; color: #6b5a45; margin-bottom: 8px; letter-spacing: 0.1em;">DEFAULT</div>
+      <div style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.38); border-radius: 6px; padding: 14px; width: 160px; min-height: 96px; display: flex; flex-direction: column; cursor: pointer;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 12px; font-weight: 500; color: #f6efe8;">Написание</span>
+          <span style="font-size: 14px; opacity: 0.3; color: #f59e0b; margin-left: 6px;">✍</span>
+        </div>
+        <div style="font-size: 10px; color: #c1b2a3; line-height: 1.5; flex: 1;">Статьи, письма, посты</div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 10px; gap: 4px;">
+          <span style="font-size: 9px; letter-spacing: 0.13em; color: #5a4a3a;">WRITE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hover state -->
+    <div>
+      <div style="font-size: 10px; color: #6b5a45; margin-bottom: 8px; letter-spacing: 0.1em;">HOVER</div>
+      <div style="background: transparent; border: 1px solid #3a322c; border-radius: 6px; padding: 14px; width: 160px; min-height: 96px; display: flex; flex-direction: column; cursor: pointer;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px;">
+          <span style="font-size: 12px; font-weight: 500; color: #f6efe8;">Написание</span>
+          <span style="font-size: 14px; opacity: 0.5; color: #f59e0b; margin-left: 6px;">✍</span>
+        </div>
+        <div style="font-size: 10px; color: #c1b2a3; line-height: 1.5; flex: 1;">Статьи, письма, посты</div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 10px; gap: 4px;">
+          <span style="font-size: 9px; letter-spacing: 0.13em; color: #f59e0b;">WRITE</span>
+          <span style="font-size: 9px; color: #f59e0b;">→</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Specs -->
+  <div style="background: #1e1a17; border: 1px solid #3a322c; border-radius: 8px; padding: 16px 20px; max-width: 500px;">
+    <div style="font-size: 10px; color: #6b5a45; margin-bottom: 12px; letter-spacing: 0.1em;">СПЕЦИФИКАЦИЯ</div>
+    ${[
+      ["padding",         "14px"],
+      ["border-radius",   "6px"],
+      ["min-height",      "96px"],
+      ["grid",            "repeat(auto-fill, minmax(190px, 1fr))"],
+      ["gap",             "8px"],
+      ["transition",      "background 0.15s, border 0.15s"],
+      ["default bg",      "th.accentSoft"],
+      ["default border",  "1px solid th.accent + 60% opacity"],
+      ["hover bg",        "transparent"],
+      ["hover border",    "1px solid th.border"],
+    ].map(([k, v]) => `
+    <div style="display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid #26211d;">
+      <span style="font-size: 11px; color: #7a6050; width: 120px; flex-shrink: 0;">${k}</span>
+      <span style="font-size: 11px; color: #c1b2a3; font-family: 'Courier New', monospace;">${v}</span>
+    </div>`).join('')}
+  </div>
+</div>
+
+<!-- LAYOUT VARIANTS -->
+<div class="section">
+  <div class="section-title">04</div>
+  <div class="section-name">Варианты макета</div>
+
+  <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+    ${[
+      { name: "Terminal", desc: "Сетка 48px, радиальный glow, карточки auto-fill", tag: "DEFAULT" },
+      { name: "Editorial", desc: "Serif italic заголовок, список с hover-трансформацией шрифта", tag: "" },
+      { name: "Grid", desc: "Dot-паттерн, 4×2 фиксированная сетка, топ-бар", tag: "" },
+    ].map(v => `
+    <div style="background: #1e1a17; border: 1px solid #3a322c; border-radius: 8px; padding: 16px 18px; width: 220px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 13px; font-weight: 500; color: #f6efe8;">${v.name}</span>
+        ${v.tag ? `<span style="font-size: 9px; color: #f59e0b; letter-spacing: 0.1em;">${v.tag}</span>` : ''}
+      </div>
+      <div style="font-size: 11px; color: #7a6050; line-height: 1.55;">${v.desc}</div>
+    </div>`).join('')}
+  </div>
+</div>
+
+<!-- BACKGROUND EFFECTS -->
+<div class="section">
+  <div class="section-title">05</div>
+  <div class="section-name">Фоновые эффекты</div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; max-width: 600px;">
+    ${[
+      ["Сетка (Terminal)",     "linear-gradient(gridLine 1px, transparent 1px) 48×48px"],
+      ["Glow сверху",          "radial-gradient ellipse 800×600px, glow → transparent"],
+      ["Header glow",          "radial-gradient 80%×100% at 30% 50%, accentSoft → transparent"],
+      ["Grid glow",            "radial-gradient 90%×80% at 50% 50%, accentSoft → transparent"],
+      ["Dot-паттерн (Grid)",   "radial-gradient circle, accentSoft 1px, transparent — 32×32px"],
+      ["Accent bar (Editorial)","linear-gradient vertical, transparent → accent → transparent, 3px wide"],
+    ].map(([name, val]) => `
+    <div style="display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #26211d;">
+      <span style="font-size: 11px; font-weight: 500; color: #c1b2a3; width: 180px; flex-shrink: 0;">${name}</span>
+      <span style="font-size: 11px; color: #7a6050; line-height: 1.5; font-family: 'Courier New', monospace;">${val}</span>
+    </div>`).join('')}
+  </div>
+</div>
+
+<!-- ANIMATIONS -->
+<div class="section">
+  <div class="section-title">06</div>
+  <div class="section-name">Анимации</div>
+
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    ${[
+      { name: "fadeUp", spec: "0.55s both, translateY 14px → 0, stagger +0.05s per child" },
+      { name: "pulse",  spec: "2.5s infinite, opacity 1→0.4→1 (status dot)" },
+    ].map(a => `
+    <div style="background: #1e1a17; border: 1px solid #3a322c; border-radius: 8px; padding: 14px 16px; width: 280px;">
+      <div style="font-size: 12px; font-weight: 500; color: #f59e0b; margin-bottom: 6px; font-family: 'Courier New', monospace;">@keyframes ${a.name}</div>
+      <div style="font-size: 11px; color: #7a6050; line-height: 1.6;">${a.spec}</div>
+    </div>`).join('')}
+  </div>
+</div>
+
+</body>
+</html>

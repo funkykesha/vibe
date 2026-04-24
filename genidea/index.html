@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #161311;
+      --surface:     #1e1a17;
+      --surface-2:   #26211d;
+      --border:      #3a322c;
+      --text:        #f6efe8;
+      --muted:       #c1b2a3;
+      --dim:         #7a6a5a;
+      --accent:      #f59e0b;
+      --accent-hover:#fbbf24;
+      --accent-soft: rgba(245,158,11,0.12);
+    }
+
+    :root[data-theme="light"] {
+      --bg:          #faf8f5;
+      --surface:     #f3efe9;
+      --surface-2:   #ebe5dc;
+      --border:      #d5c9ba;
+      --text:        #1a1008;
+      --muted:       #6b5744;
+      --dim:         #a08878;
+      --accent:      #d97706;
+      --accent-hover:#b45309;
+      --accent-soft: rgba(217,119,6,0.10);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    #root { min-height: 100vh; }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled { cursor: not-allowed; opacity: 0.4; }
+
+    textarea {
+      font-family: inherit;
+      color-scheme: dark;
+      resize: vertical;
+      outline: none;
+    }
+    textarea::placeholder { color: var(--dim); }
+
+    select {
+      font-family: inherit;
+      color-scheme: dark;
+      outline: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.4s both; }
+    .fade-up-stagger > * { animation: fadeUp 0.4s both; }
+    .fade-up-stagger > :nth-child(1) { animation-delay: 0.04s; }
+    .fade-up-stagger > :nth-child(2) { animation-delay: 0.08s; }
+    .fade-up-stagger > :nth-child(3) { animation-delay: 0.12s; }
+    .fade-up-stagger > :nth-child(4) { animation-delay: 0.16s; }
+    .fade-up-stagger > :nth-child(5) { animation-delay: 0.20s; }
+    .fade-up-stagger > :nth-child(6) { animation-delay: 0.24s; }
+    .fade-up-stagger > :nth-child(7) { animation-delay: 0.28s; }
+    .fade-up-stagger > :nth-child(8) { animation-delay: 0.32s; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    // ── Config ────────────────────────────────────────────────────────────────
+
+    const MODEL_LIST = [
+      { id: 'claude-sonnet',  label: 'Claude Sonnet',   provider: 'anthropic' },
+      { id: 'gpt-4o',         label: 'GPT-4o',          provider: 'openai'    },
+      { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro',  provider: 'google'    },
+    ];
+
+    const QUESTIONS_COMMON = [
+      { q: 'Для кого этот результат?',  hint: 'Аудитория, площадка, уровень подготовки читателя' },
+      { q: 'Какой тон и стиль?',         hint: 'Формальный / дружелюбный / экспертный / продающий / нейтральный', chips: ['Формальный', 'Дружелюбный', 'Экспертный', 'Продающий', 'Нейтральный', 'Технический'] },
+      { q: 'Какой формат вывода?',       hint: 'Длина, структура, секции, наличие заголовков', chips: ['Список', 'Параграфы', 'Markdown', 'JSON', 'Короткий текст', 'Таблица'] },
+      { q: 'Что точно НЕ нужно?',        hint: 'Исключения, ограничения, нежелательные подходы' },
+    ];
+
+    const QUESTIONS_5 = {
+      content: { q: 'Есть ли примеры или референсы?',              hint: 'Ссылки, тексты, стиль которому следовать' },
+      code:    { q: 'Язык/стек? Архитектурные ограничения?',       hint: 'Python, TypeScript, Go; паттерны, производительность' },
+      report:  { q: 'Есть шаблон или стандарт оформления?',        hint: 'ГОСТ 7.32, APA, внутренний шаблон компании' },
+    };
+
+    const XML_TAGS = ['role', 'context', 'task', 'format', 'constraints', 'examples'];
+
+    const TRANSFORM_CARDS = [
+      { id: 'xml',      icon: '📋', label: 'Добавить XML-структуру' },
+      { id: 'compress', icon: '🗜️', label: 'Сжать / упростить'      },
+      { id: 'tone',     icon: '🎯', label: 'Сменить тон/стиль'      },
+      { id: 'detailed', icon: '✨', label: 'Улучшить детализацию'   },
+    ];
+
+    // ── Mock API ──────────────────────────────────────────────────────────────
+
+    const MOCK_PROMPTS = {
+      content: `Ты опытный контент-редактор и копирайтер.
+
+Контекст: {context}
+
+Твоя задача: {task}
+
+Требования к результату:
+— Аудитория: {audience}
+— Тон: {tone}
+— Формат: {format}
+— Ограничения: {constraints}
+
+Пиши чётко, структурированно, без воды. Каждое предложение должно нести смысл.`,
+      code: `Ты senior-разработчик с экспертизой в {stack}.
+
+Контекст проекта: {context}
+
+Задача: {task}
+
+Требования:
+— Язык/стек: {stack}
+— Ожидаемый результат: {format}
+— Ограничения и требования к стилю: {constraints}
+
+Пиши чистый, читаемый код. Добавляй комментарии там, где логика неочевидна. Следуй best practices.`,
+      report: `Ты аналитик и технический писатель.
+
+Контекст: {context}
+
+Задача: {task}
+
+Требования к отчёту:
+— Аудитория: {audience}
+— Структура: {format}
+— Стандарт оформления: {standard}
+— Что исключить: {constraints}
+
+Пиши точно, опирайся на факты, делай чёткие выводы.`,
+    };
+
+    const callModel = async (system, user, model) => {
+      await new Promise(r => setTimeout(r, 1500 + Math.random() * 600));
+      const base = MOCK_PROMPTS[system] || MOCK_PROMPTS.content;
+      return base
+        .replace('{context}', user.includes('наработки') ? 'имеющиеся материалы и наработки пользователя' : 'задача поставлена с нуля')
+        .replace(/{task}/g, 'выполнить задачу пользователя максимально точно')
+        .replace(/{audience}/g, 'целевая аудитория, указанная пользователем')
+        .replace(/{tone}/g, 'профессиональный, ясный')
+        .replace(/{format}/g, 'структурированный текст с чёткими секциями')
+        .replace(/{constraints}/g, 'без лишних отступлений, по делу')
+        .replace(/{stack}/g, 'выбранный стек технологий')
+        .replace(/{standard}/g, 'принятый стандарт оформления');
+    };
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    const INITIAL_STATE = {
+      branch: null,
+      step: 'mode',
+      a: { mode: null, type: null, notes: '', task: '', questionIndex: 0, answers: ['','','','',''] },
+      b: { inputPrompt: '', xmlBlocks: [], transformCards: [], transformCustom: '' },
+      result: { text: '', isEditing: false },
+      selectedModel: 'claude-sonnet',
+      loading: false,
+      loadingMsg: '',
+    };
+
+    const buildPromptA = (a) => {
+      const q5 = QUESTIONS_5[a.type] || QUESTIONS_5.content;
+      return `Тип задачи: ${a.type}
+Режим: ${a.mode}
+Наработки: ${a.notes || 'нет'}
+Задача: ${a.task}
+${QUESTIONS_COMMON[0].q}: ${a.answers[0] || '—'}
+${QUESTIONS_COMMON[1].q}: ${a.answers[1] || '—'}
+${QUESTIONS_COMMON[2].q}: ${a.answers[2] || '—'}
+${QUESTIONS_COMMON[3].q}: ${a.answers[3] || '—'}
+${q5.q}: ${a.answers[4] || '—'}`;
+    };
+
+    const buildPromptB2b = (b) => {
+      const cards = b.transformCards.join(', ');
+      return `Исходный промпт:\n${b.inputPrompt}\n\nИнструкция: ${cards}${b.transformCustom ? `. ${b.transformCustom}` : ''}`;
+    };
+
+    const buildPromptB2a = (inputPrompt) =>
+      `Разбери следующий промпт на смысловые блоки. Используй теги: role, context, task, format, constraints, examples. Верни ТОЛЬКО JSON массив: [{"tag":"...","content":"..."}]. Без markdown, без преамбулы.\n\n${inputPrompt}`;
+
+    const buildRefinementPrompt = (original, refinement) =>
+      `Исходный промпт:\n${original}\n\nЧто изменить: ${refinement}\n\nПереработай промпт с учётом правок. Верни только текст промпта.`;
+
+    const parseXMLBlocks = (raw) => {
+      try {
+        const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        return JSON.parse(cleaned).map((b, i) => ({ ...b, id: `block-${i}-${Date.now()}` }));
+      } catch {
+        return [];
+      }
+    };
+
+    // ── UI components ──────────────────────────────────────────────────────────
+
+    const Card = ({ onClick, selected, children, style = {} }) => (
+      <div
+        onClick={onClick}
+        className="fade-up"
+        style={{
+          background: selected ? 'var(--accent-soft)' : 'var(--surface)',
+          border: `1px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
+          borderRadius: '10px',
+          padding: '20px',
+          cursor: onClick ? 'pointer' : 'default',
+          transition: 'all 0.18s',
+          ...style,
+        }}
+        onMouseEnter={onClick ? e => {
+          e.currentTarget.style.borderColor = 'var(--accent)';
+          e.currentTarget.style.background = 'var(--accent-soft)';
+        } : undefined}
+        onMouseLeave={onClick ? e => {
+          e.currentTarget.style.borderColor = selected ? 'var(--accent)' : 'var(--border)';
+          e.currentTarget.style.background = selected ? 'var(--accent-soft)' : 'var(--surface)';
+        } : undefined}
+      >
+        {children}
+      </div>
+    );
+
+    const PrimaryBtn = ({ onClick, disabled, children, style = {} }) => (
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        style={{
+          background: disabled ? 'var(--surface)' : 'var(--accent)',
+          color: disabled ? 'var(--dim)' : '#1a1008',
+          fontWeight: 600,
+          fontSize: '14px',
+          padding: '11px 22px',
+          borderRadius: '8px',
+          border: `1px solid ${disabled ? 'var(--border)' : 'transparent'}`,
+          ...style,
+        }}
+        onMouseEnter={!disabled ? e => e.currentTarget.style.background = 'var(--accent-hover)' : undefined}
+        onMouseLeave={!disabled ? e => e.currentTarget.style.background = 'var(--accent)' : undefined}
+      >
+        {children}
+      </button>
+    );
+
+    const GhostBtn = ({ onClick, children, style = {} }) => (
+      <button
+        onClick={onClick}
+        style={{
+          background: 'transparent',
+          color: 'var(--text)',
+          fontSize: '13px',
+          padding: '10px 16px',
+          borderRadius: '8px',
+          border: '1px solid var(--muted)',
+          ...style,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--text)'; e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--muted)'; e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'transparent'; }}
+      >
+        {children}
+      </button>
+    );
+
+    const Textarea = ({ value, onChange, placeholder, rows = 4, autoFocus, style = {} }) => (
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        rows={rows}
+        autoFocus={autoFocus}
+        style={{
+          width: '100%',
+          background: 'var(--surface-2)',
+          border: '1px solid var(--border)',
+          borderRadius: '8px',
+          color: 'var(--text)',
+          padding: '12px 14px',
+          fontSize: '14px',
+          lineHeight: '1.6',
+          transition: 'border-color 0.15s',
+          ...style,
+        }}
+        onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+        onBlur={e => e.target.style.borderColor = 'var(--border)'}
+      />
+    );
+
+    const SectionLabel = ({ children }) => (
+      <p style={{ fontSize: '11px', letterSpacing: '0.12em', color: 'var(--dim)', textTransform: 'uppercase', marginBottom: '16px' }}>
+        {children}
+      </p>
+    );
+
+    const Spinner = ({ message }) => (
+      <div style={{ textAlign: 'center', padding: '80px 0' }}>
+        <div style={{ width: '36px', height: '36px', margin: '0 auto 16px', border: '2px solid var(--border)', borderTop: '2px solid var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>{message}</p>
+      </div>
+    );
+
+    // ── Header ─────────────────────────────────────────────────────────────────
+
+    const Header = ({ selectedModel, onSelectModel, onReset, theme, onThemeChange }) => (
+      <header style={{ borderBottom: '1px solid var(--border)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ flex: 1 }}>
+          <span style={{ fontFamily: '"Instrument Serif", serif', fontStyle: 'italic', fontSize: '20px', color: 'var(--accent)', letterSpacing: '-0.01em' }}>
+            Prompt Engineer
+          </span>
+        </div>
+        <select
+          value={selectedModel}
+          onChange={e => onSelectModel(e.target.value)}
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '7px',
+            color: 'var(--muted)',
+            padding: '7px 12px',
+            fontSize: '13px',
+          }}
+        >
+          {MODEL_LIST.map(m => (
+            <option key={m.id} value={m.id}>{m.label}</option>
+          ))}
+        </select>
+        <GhostBtn onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')} style={{ fontSize: '12px', padding: '7px 14px' }}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </GhostBtn>
+        <GhostBtn onClick={onReset} style={{ fontSize: '12px', padding: '7px 14px' }}>↺ Сначала</GhostBtn>
+      </header>
+    );
+
+    // ── Screens ────────────────────────────────────────────────────────────────
+
+    const ModeScreen = ({ setState }) => (
+      <div className="fade-up">
+        <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '32px', lineHeight: '1.6' }}>
+          Создайте промпт с нуля или улучшите существующий.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <Card onClick={() => setState(s => ({ ...s, branch: 'A', step: 'A1' }))}>
+            <div style={{ fontSize: '28px', marginBottom: '12px' }}>✦</div>
+            <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '6px' }}>Создать промпт</div>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: '1.5' }}>
+              Опишите задачу — соберём структурированный промпт шаг за шагом
+            </div>
+          </Card>
+          <Card onClick={() => setState(s => ({ ...s, branch: 'B', step: 'B1' }))}>
+            <div style={{ fontSize: '28px', marginBottom: '12px' }}>↺</div>
+            <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '6px' }}>Улучшить промпт</div>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: '1.5' }}>
+              Вставьте готовый промпт — разберём по структуре или трансформируем
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+
+    // A1 — Новое / Продолжить
+    const A1_Screen = ({ state, setState }) => (
+      <div className="fade-up">
+        <SectionLabel>Режим работы</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <Card
+            onClick={() => setState(s => ({ ...s, a: { ...s.a, mode: 'new' }, step: 'A2' }))}
+            selected={state.a.mode === 'new'}
+          >
+            <div style={{ fontSize: '24px', marginBottom: '10px' }}>🆕</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>С нуля</div>
+            <div style={{ fontSize: '13px', color: 'var(--muted)' }}>Новая задача, нет наработок</div>
+          </Card>
+          <Card
+            onClick={() => setState(s => ({ ...s, a: { ...s.a, mode: 'continue' }, step: 'A2' }))}
+            selected={state.a.mode === 'continue'}
+          >
+            <div style={{ fontSize: '24px', marginBottom: '10px' }}>🔁</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>Продолжить</div>
+            <div style={{ fontSize: '13px', color: 'var(--muted)' }}>Есть черновик, материалы, контекст</div>
+          </Card>
+        </div>
+        <div style={{ marginTop: '24px' }}>
+          <GhostBtn onClick={() => setState(s => ({ ...s, step: 'mode', branch: null }))}>← Назад</GhostBtn>
+        </div>
+      </div>
+    );
+
+    // A2 — Тип результата
+    const A2_Screen = ({ state, setState }) => (
+      <div className="fade-up">
+        <SectionLabel>Тип результата</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
+          {[
+            { id: 'content', icon: '✍️', label: 'Контент', desc: 'Текст, посты, письма, статьи' },
+            { id: 'code',    icon: '⌨️', label: 'Код',     desc: 'Разработка, дебаггинг, рефакторинг' },
+            { id: 'report',  icon: '📄', label: 'Отчёт',   desc: 'Документ, анализ, ВКР, доклад' },
+          ].map(t => (
+            <Card
+              key={t.id}
+              onClick={() => setState(s => ({
+                ...s,
+                a: { ...s.a, type: t.id },
+                step: s.a.mode === 'continue' ? 'A3' : 'A4',
+              }))}
+              selected={state.a.type === t.id}
+            >
+              <div style={{ fontSize: '22px', marginBottom: '8px' }}>{t.icon}</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '4px' }}>{t.label}</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.desc}</div>
+            </Card>
+          ))}
+        </div>
+        <div style={{ marginTop: '24px' }}>
+          <GhostBtn onClick={() => setState(s => ({ ...s, step: 'A1' }))}>← Назад</GhostBtn>
+        </div>
+      </div>
+    );
+
+    // A3 — Наработки
+    const A3_Screen = ({ state, setState }) => (
+      <div className="fade-up">
+        <SectionLabel>Наработки и контекст</SectionLabel>
+        <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '14px', lineHeight: '1.6' }}>
+          Что уже есть — черновик, данные, ссылки, ограничения. Необязательно.
+        </p>
+        <Textarea
+          value={state.a.notes}
+          onChange={e => setState(s => ({ ...s, a: { ...s.a, notes: e.target.value } }))}
+          placeholder={'Например:\n— Есть литобзор и данные эксперимента\n— Стек: Python + FastAPI\n— Научрук требует оформление по ГОСТ 7.32'}
+          rows={7}
+          autoFocus
+        />
+        <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+          <PrimaryBtn onClick={() => setState(s => ({ ...s, step: 'A4' }))}>Далее →</PrimaryBtn>
+          <GhostBtn onClick={() => setState(s => ({ ...s, step: 'A2' }))}>← Назад</GhostBtn>
+        </div>
+      </div>
+    );
+
+    // A4 — Задача
+    const A4_Screen = ({ state, setState }) => {
+      const len = state.a.task.trim().length;
+      const canProceed = len >= 20;
+      return (
+        <div className="fade-up">
+          <SectionLabel>Задача</SectionLabel>
+          <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '14px', lineHeight: '1.6' }}>
+            Опишите задачу своими словами. Чем точнее — тем лучше промпт.
+          </p>
+          <Textarea
+            value={state.a.task}
+            onChange={e => setState(s => ({ ...s, a: { ...s.a, task: e.target.value } }))}
+            placeholder={'Например:\n— Написать письмо инвестору о раунде A\n— Отрефакторить функцию парсинга CSV\n— Составить план диссертации по нейросетям'}
+            rows={6}
+            autoFocus
+          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '12px', color: canProceed ? 'var(--accent)' : 'var(--dim)' }}>
+              {len} симв.{!canProceed && len > 0 ? ` (нужно ещё ${20 - len})` : ''}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
+            <PrimaryBtn onClick={() => setState(s => ({ ...s, step: 'A5' }))} disabled={!canProceed}>
+              Далее →
+            </PrimaryBtn>
+            <GhostBtn onClick={() => setState(s => ({ ...s, step: state.a.mode === 'continue' ? 'A3' : 'A2' }))}>← Назад</GhostBtn>
+          </div>
+        </div>
+      );
+    };
+
+    // A5 — Вопросы по одному
+    const A5_Screen = ({ state, setState, onGenerate }) => {
+      const qi = state.a.questionIndex;
+      const allQ = [...QUESTIONS_COMMON, QUESTIONS_5[state.a.type] || QUESTIONS_5.content];
+      const current = allQ[qi];
+      const next = allQ[qi + 1];
+      const isLast = qi === 4;
+
+      const setAnswer = (val) =>
+        setState(s => {
+          const answers = [...s.a.answers];
+          answers[qi] = val;
+          return { ...s, a: { ...s.a, answers } };
+        });
+
+      const goNext = () => {
+        if (isLast) { onGenerate(); return; }
+        setState(s => ({ ...s, a: { ...s.a, questionIndex: qi + 1 } }));
+      };
+
+      const goBack = () => {
+        if (qi === 0) setState(s => ({ ...s, step: 'A4' }));
+        else setState(s => ({ ...s, a: { ...s.a, questionIndex: qi - 1 } }));
+      };
+
+      return (
+        <div>
+          {/* Progress */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', alignItems: 'center' }}>
+            {allQ.map((_, i) => (
+              <div key={i} style={{
+                width: i === qi ? '28px' : '8px',
+                height: '8px',
+                borderRadius: '4px',
+                background: i < qi ? 'var(--accent)' : i === qi ? 'var(--accent)' : 'var(--border)',
+                transition: 'all 0.25s',
+                opacity: i > qi ? 0.4 : 1,
+              }} />
+            ))}
+            <span style={{ fontSize: '11px', color: 'var(--dim)', marginLeft: '4px' }}>{qi + 1} / 5</span>
+          </div>
+
+          {/* Current question */}
+          <div className="fade-up" key={qi}>
+            <SectionLabel>Вопрос {qi + 1}</SectionLabel>
+            <p style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text)', marginBottom: '8px' }}>{current.q}</p>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '14px' }}>{current.hint}</p>
+            {current.chips && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                {current.chips.map(chip => (
+                  <span
+                    key={chip}
+                    onClick={() => {
+                      const cur = state.a.answers[qi];
+                      setAnswer(cur ? cur + ', ' + chip : chip);
+                    }}
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--accent)',
+                      background: 'var(--accent-soft)',
+                      border: '1px solid rgba(245,158,11,0.2)',
+                      borderRadius: '6px',
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      userSelect: 'none',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.22)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent-soft)'; }}
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            )}
+            <Textarea
+              value={state.a.answers[qi]}
+              onChange={e => setAnswer(e.target.value)}
+              placeholder={'Необязательно — можно пропустить'}
+              rows={4}
+              autoFocus
+            />
+          </div>
+
+          {/* Preview next */}
+          {next && (
+            <div style={{ marginTop: '20px', padding: '12px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', opacity: 0.55 }}>
+              <p style={{ fontSize: '11px', color: 'var(--dim)', marginBottom: '2px' }}>Следующий вопрос</p>
+              <p style={{ fontSize: '13px', color: 'var(--muted)' }}>{next.q}</p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <PrimaryBtn onClick={goNext}>
+              {isLast ? 'Сгенерировать →' : 'Далее →'}
+            </PrimaryBtn>
+            {qi > 0 && (
+              <GhostBtn onClick={() => onGenerate()} style={{ color: 'var(--accent)', borderColor: 'rgba(245,158,11,0.3)' }}>
+                ⚡ Генерировать сейчас
+              </GhostBtn>
+            )}
+            <GhostBtn onClick={goBack}>← Назад</GhostBtn>
+          </div>
+        </div>
+      );
+    };
+
+    // B1 — Вставка промпта
+    const B1_Screen = ({ state, setState, onParseXML, onTransform }) => {
+      const hasInput = state.b.inputPrompt.trim().length > 0;
+      return (
+        <div className="fade-up">
+          <SectionLabel>Вставьте ваш промпт</SectionLabel>
+          <Textarea
+            value={state.b.inputPrompt}
+            onChange={e => setState(s => ({ ...s, b: { ...s.b, inputPrompt: e.target.value } }))}
+            placeholder={'Вставьте готовый промпт для улучшения или разбора...'}
+            rows={10}
+            autoFocus
+          />
+          <p style={{ fontSize: '12px', color: 'var(--dim)', marginTop: '6px' }}>
+            {state.b.inputPrompt.length} симв.
+          </p>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+            <PrimaryBtn onClick={onParseXML} disabled={!hasInput}>
+              🔍 Разобрать по тегам
+            </PrimaryBtn>
+            <GhostBtn onClick={onTransform} style={hasInput ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : {}}>
+              ✏️ Преобразовать
+            </GhostBtn>
+            <GhostBtn onClick={() => setState(s => ({ ...s, step: 'mode', branch: null }))}>← Назад</GhostBtn>
+          </div>
+        </div>
+      );
+    };
+
+    // B2a — XML редактор
+    const B2a_Screen = ({ state, setState }) => {
+      const blocks = state.b.xmlBlocks;
+      const dragOver = useRef(null);
+
+      const updateBlock = (id, field, val) =>
+        setState(s => ({ ...s, b: { ...s.b, xmlBlocks: s.b.xmlBlocks.map(b => b.id === id ? { ...b, [field]: val } : b) } }));
+
+      const deleteBlock = (id) =>
+        setState(s => ({ ...s, b: { ...s.b, xmlBlocks: s.b.xmlBlocks.filter(b => b.id !== id) } }));
+
+      const copyBlock = (b) =>
+        navigator.clipboard.writeText(`<${b.tag}>\n${b.content}\n</${b.tag}>`);
+
+      const copyAll = () => {
+        const xml = blocks.map(b => `<${b.tag}>\n${b.content}\n</${b.tag}>`).join('\n\n');
+        navigator.clipboard.writeText(xml);
+      };
+
+      const missing = XML_TAGS.filter(tag => !blocks.find(b => b.tag === tag));
+
+      const handleDragStart = (e, id) => { e.dataTransfer.setData('blockId', id); };
+      const handleDragOver = (e, id) => { e.preventDefault(); dragOver.current = id; };
+      const handleDrop = (e, targetId) => {
+        e.preventDefault();
+        const dragId = e.dataTransfer.getData('blockId');
+        if (dragId === targetId) return;
+        setState(s => {
+          const arr = [...s.b.xmlBlocks];
+          const from = arr.findIndex(b => b.id === dragId);
+          const to = arr.findIndex(b => b.id === targetId);
+          const [item] = arr.splice(from, 1);
+          arr.splice(to, 0, item);
+          return { ...s, b: { ...s.b, xmlBlocks: arr } };
+        });
+      };
+
+      if (blocks.length === 0 && !state.loading) {
+        return (
+          <div className="fade-up" style={{ textAlign: 'center', padding: '60px 0' }}>
+            <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>Не удалось разобрать промпт на блоки.</p>
+            <GhostBtn onClick={() => setState(s => ({ ...s, step: 'B1' }))}>← Вернуться</GhostBtn>
+          </div>
+        );
+      }
+
+      return (
+        <div className="fade-up">
+          <SectionLabel>XML-структура</SectionLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+            {blocks.map(block => (
+              <div
+                key={block.id}
+                draggable
+                onDragStart={e => handleDragStart(e, block.id)}
+                onDragOver={e => handleDragOver(e, block.id)}
+                onDrop={e => handleDrop(e, block.id)}
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+                  <span style={{ cursor: 'grab', color: 'var(--dim)', fontSize: '14px' }}>↕</span>
+                  <code style={{ flex: 1, fontSize: '12px', color: 'var(--accent)', fontFamily: 'Courier New, monospace' }}>&lt;{block.tag}&gt;</code>
+                  <button onClick={() => copyBlock(block)} style={{ background: 'none', color: 'var(--dim)', fontSize: '12px', padding: '2px 6px' }} title="Копировать тег">📋</button>
+                  <button onClick={() => deleteBlock(block.id)} style={{ background: 'none', color: 'var(--dim)', fontSize: '12px', padding: '2px 6px' }} title="Удалить">🗑</button>
+                </div>
+                <textarea
+                  value={block.content}
+                  onChange={e => updateBlock(block.id, 'content', e.target.value)}
+                  rows={3}
+                  style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text)', padding: '10px 12px', fontSize: '13px', fontFamily: 'Courier New, monospace', lineHeight: '1.6', outline: 'none', resize: 'vertical' }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {missing.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ fontSize: '12px', color: 'var(--dim)', marginBottom: '8px' }}>⚠️ Не найдено:</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {missing.map(tag => (
+                  <span key={tag} style={{ fontSize: '11px', color: 'var(--accent)', background: 'var(--accent-soft)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '4px', padding: '2px 8px', fontFamily: 'Courier New, monospace' }}>
+                    &lt;{tag}&gt;
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <PrimaryBtn onClick={copyAll}>📋 Скопировать весь XML</PrimaryBtn>
+            <GhostBtn onClick={() => setState(s => ({ ...s, step: 'B1' }))}>← Промпт</GhostBtn>
+          </div>
+        </div>
+      );
+    };
+
+    // B2b — Карточки трансформации
+    const B2b_Screen = ({ state, setState, onTransform }) => {
+      const selected = state.b.transformCards;
+      const canGo = selected.length > 0 || state.b.transformCustom.trim().length > 0;
+
+      const toggle = (id) =>
+        setState(s => ({
+          ...s,
+          b: { ...s.b, transformCards: s.b.transformCards.includes(id) ? s.b.transformCards.filter(x => x !== id) : [...s.b.transformCards, id] }
+        }));
+
+      return (
+        <div className="fade-up">
+          <SectionLabel>Выберите трансформацию</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: '10px', marginBottom: '20px' }} className="fade-up-stagger">
+            {TRANSFORM_CARDS.map(card => {
+              const sel = selected.includes(card.id);
+              return (
+                <div
+                  key={card.id}
+                  onClick={() => toggle(card.id)}
+                  style={{
+                    background: sel ? 'var(--accent-soft)' : 'var(--surface)',
+                    border: `1px solid ${sel ? 'var(--accent)' : 'var(--border)'}`,
+                    borderRadius: '10px',
+                    padding: '16px 14px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { if (!sel) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-soft)'; } }}
+                  onMouseLeave={e => { if (!sel) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface)'; } }}
+                >
+                  <div style={{ fontSize: '20px', marginBottom: '8px' }}>{card.icon}</div>
+                  <div style={{ fontSize: '12px', fontWeight: sel ? 600 : 400, color: sel ? 'var(--accent)' : 'var(--text)', lineHeight: '1.4' }}>{card.label}</div>
+                </div>
+              );
+            })}
+          </div>
+          <SectionLabel>Или напишите своё</SectionLabel>
+          <Textarea
+            value={state.b.transformCustom}
+            onChange={e => setState(s => ({ ...s, b: { ...s.b, transformCustom: e.target.value } }))}
+            placeholder={'Например: «переведи на деловой английский и добавь примеры»'}
+            rows={3}
+          />
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', alignItems: 'center' }}>
+            <PrimaryBtn onClick={onTransform} disabled={!canGo}>Преобразовать →</PrimaryBtn>
+            <GhostBtn onClick={() => setState(s => ({ ...s, step: 'B1' }))}>← Промпт</GhostBtn>
+            {!canGo && <span style={{ fontSize: '12px', color: 'var(--dim)' }}>выберите карточку или заполните поле</span>}
+          </div>
+        </div>
+      );
+    };
+
+    // ResultScreen
+    const ResultScreen = ({ state, setState, onReset, onRefine }) => {
+      const [copied, setCopied] = useState(false);
+      const [translated, setTranslated] = useState(false);
+      const [translating, setTranslating] = useState(false);
+      const [refineText, setRefineText] = useState('');
+      const [refineOpen, setRefineOpen] = useState(false);
+      const text = state.result.text;
+
+      const copy = () => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      };
+
+      const translateEN = async () => {
+        setTranslating(true);
+        await callModel('content', buildRefinementPrompt(text, 'Переведи на английский язык'), state.selectedModel);
+        setTranslated(true);
+        setTranslating(false);
+      };
+
+      const doRefine = () => {
+        if (!refineText.trim()) return;
+        onRefine(refineText);
+        setRefineText('');
+        setRefineOpen(false);
+      };
+
+      const backStep = state.branch === 'A' ? 'A5' : 'B2b';
+
+      return (
+        <div className="fade-up">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <SectionLabel style={{ margin: 0 }}>Готовый промпт</SectionLabel>
+            <span style={{ marginLeft: 'auto', fontSize: '11px', color: 'var(--dim)' }}>{text.length} симв.</span>
+          </div>
+
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '20px', minHeight: '160px' }}>
+            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '13px', lineHeight: '1.75', color: 'var(--muted)', fontFamily: 'Courier New, monospace' }}>
+              {text}
+            </pre>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
+            <PrimaryBtn onClick={copy}>
+              {copied ? '✓ Скопировано' : '📋 Копировать'}
+            </PrimaryBtn>
+            <GhostBtn onClick={translateEN}>
+              {translating ? '⏳ Перевожу...' : translated ? '🌍 Переведено' : '🌍 → EN'}
+            </GhostBtn>
+            <GhostBtn onClick={() => setRefineOpen(v => !v)} >
+              ↺ Уточнить
+            </GhostBtn>
+            <GhostBtn onClick={() => setState(s => ({ ...s, step: backStep }))}>← Изменить</GhostBtn>
+            <GhostBtn onClick={onReset}>🔄 Сначала</GhostBtn>
+          </div>
+
+          {refineOpen && (
+            <div style={{ marginTop: '16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '16px' }}>
+              <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '10px' }}>Что изменить?</p>
+              <Textarea
+                value={refineText}
+                onChange={e => setRefineText(e.target.value)}
+                placeholder={'Например: «сделай короче», «добавь JSON-формат», «более строгий тон»'}
+                rows={3}
+                autoFocus
+              />
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <PrimaryBtn onClick={doRefine} disabled={!refineText.trim()}>Применить →</PrimaryBtn>
+                <GhostBtn onClick={() => setRefineOpen(false)}>Отмена</GhostBtn>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // ── App ────────────────────────────────────────────────────────────────────
+
+    function App() {
+      const [state, setState] = useState(INITIAL_STATE);
+      const [theme, setTheme] = React.useState('dark');
+      React.useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+      }, [theme]);
+
+      const resetAll = () => setState(INITIAL_STATE);
+      const setModel = (m) => setState(s => ({ ...s, selectedModel: m }));
+
+      const startLoading = (msg) => setState(s => ({ ...s, loading: true, loadingMsg: msg }));
+      const stopLoading = () => setState(s => ({ ...s, loading: false, loadingMsg: '' }));
+
+      const showResult = (text) => setState(s => ({ ...s, step: 'result', result: { text, isEditing: false }, loading: false }));
+
+      const handleGenerate = async () => {
+        startLoading('Собираю промпт...');
+        setState(s => ({ ...s, step: 'result' }));
+        try {
+          const text = await callModel(state.a.type || 'content', buildPromptA(state.a), state.selectedModel);
+          showResult(text);
+        } catch {
+          showResult('Ошибка генерации. Попробуйте ещё раз.');
+        }
+      };
+
+      const handleParseXML = async () => {
+        startLoading('Разбираю структуру...');
+        setState(s => ({ ...s, step: 'B2a' }));
+        try {
+          const raw = await callModel('content', buildPromptB2a(state.b.inputPrompt), state.selectedModel);
+          const blocks = parseXMLBlocks(raw);
+          setState(s => ({ ...s, b: { ...s.b, xmlBlocks: blocks.length ? blocks : [{ id: 'b0', tag: 'task', content: state.b.inputPrompt }] }, loading: false }));
+        } catch {
+          setState(s => ({ ...s, b: { ...s.b, xmlBlocks: [] }, loading: false }));
+        }
+      };
+
+      const handleTransformB2b = async () => {
+        startLoading('Преобразую промпт...');
+        setState(s => ({ ...s, step: 'result' }));
+        try {
+          const text = await callModel('content', buildPromptB2b(state.b), state.selectedModel);
+          showResult(text);
+        } catch {
+          showResult('Ошибка преобразования. Попробуйте ещё раз.');
+        }
+      };
+
+      const handleRefine = async (refinement) => {
+        startLoading('Уточняю...');
+        setState(s => ({ ...s, loading: true }));
+        try {
+          const text = await callModel('content', buildRefinementPrompt(state.result.text, refinement), state.selectedModel);
+          showResult(text);
+        } catch {
+          stopLoading();
+        }
+      };
+
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <Header selectedModel={state.selectedModel} onSelectModel={setModel} onReset={resetAll} theme={theme} onThemeChange={setTheme} />
+          <div style={{ flex: 1, maxWidth: '720px', margin: '0 auto', width: '100%', padding: '44px 24px 80px' }}>
+
+            {/* Page title */}
+            <div style={{ marginBottom: '36px' }}>
+              <h1 style={{ fontFamily: '"Instrument Serif", serif', fontStyle: 'italic', fontSize: 'clamp(26px,4vw,38px)', fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '8px' }}>
+                Генератор промптов
+              </h1>
+              <p style={{ color: 'var(--dim)', fontSize: '14px' }}>Опиши задачу — получи промпт для мощной AI-модели</p>
+            </div>
+
+            {state.loading && <Spinner message={state.loadingMsg} />}
+
+            {!state.loading && (
+              <>
+                {state.step === 'mode'  && <ModeScreen setState={setState} />}
+                {state.branch === 'A' && state.step === 'A1' && <A1_Screen state={state} setState={setState} />}
+                {state.branch === 'A' && state.step === 'A2' && <A2_Screen state={state} setState={setState} />}
+                {state.branch === 'A' && state.step === 'A3' && <A3_Screen state={state} setState={setState} />}
+                {state.branch === 'A' && state.step === 'A4' && <A4_Screen state={state} setState={setState} />}
+                {state.branch === 'A' && state.step === 'A5' && <A5_Screen state={state} setState={setState} onGenerate={handleGenerate} />}
+                {state.branch === 'B' && state.step === 'B1'  && <B1_Screen state={state} setState={setState} onParseXML={handleParseXML} onTransform={() => setState(s => ({ ...s, step: 'B2b' }))} />}
+                {state.branch === 'B' && state.step === 'B2a' && <B2a_Screen state={state} setState={setState} />}
+                {state.branch === 'B' && state.step === 'B2b' && <B2b_Screen state={state} setState={setState} onTransform={handleTransformB2b} />}
+                {state.step === 'result' && <ResultScreen state={state} setState={setState} onReset={resetAll} onRefine={handleRefine} />}
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

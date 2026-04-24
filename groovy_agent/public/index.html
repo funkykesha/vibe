@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Groovy AI Agent</title>
+
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+
+  <style>
+    /* ── Reset ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Theme variables ───────────────────────────────────────────── */
+    :root {
+      color-scheme: dark;
+      --bg:        #1c1c1c;
+      --bg2:       #252526;
+      --bg3:       #2d2d30;
+      --bg4:       #3c3c3c;
+      --border:    #3c3c3c;
+      --text:      #cccccc;
+      --text2:     #858585;
+      --text3:     #5a5a5a;
+      --accent:    #0098ff;
+      --accent-h:  #007acc;
+      --ok:        #4ec9b0;
+      --err:       #f48771;
+      --warn:      #cca700;
+      --added:     rgba(78,201,176,.15);
+      --changed:   rgba(204,167,0,.15);
+    }
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg:        #ffffff;
+      --bg2:       #f3f3f3;
+      --bg3:       #e8e8e8;
+      --bg4:       #d4d4d4;
+      --border:    #e0e0e0;
+      --text:      #333333;
+      --text2:     #767676;
+      --text3:     #a0a0a0;
+      --accent:    #0066cc;
+      --accent-h:  #004fa3;
+      --ok:        #14866d;
+      --err:       #c5000f;
+      --warn:      #7d6200;
+      --added:     rgba(20,134,109,.12);
+      --changed:   rgba(125,98,0,.12);
+    }
+
+    /* ── Base ──────────────────────────────────────────────────────── */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg2);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────── */
+    .header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 8px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: .01em;
+    }
+    .header-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+      min-width: 0;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    /* ── Inputs & Controls ─────────────────────────────────────────── */
+    input[type="text"], input[type="search"], select, textarea {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color .12s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    select { cursor: pointer; }
+
+    button {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text2);
+      padding: 4px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      transition: background .1s, color .1s, border-color .1s;
+      white-space: nowrap;
+      line-height: 1.4;
+    }
+    button:hover { background: var(--bg3); color: var(--text); border-color: var(--border); }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 500;
+    }
+    button.primary:hover { background: var(--accent-h); border-color: var(--accent-h); }
+    button.run {
+      background: var(--ok);
+      color: #fff;
+      border-color: var(--ok);
+      font-weight: 500;
+    }
+    button.run:hover { filter: brightness(.9); }
+    button.icon {
+      padding: 4px 7px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+    button.danger:hover { background: var(--err); color: #fff; border-color: var(--err); }
+
+    /* ── Model selector area ───────────────────────────────────────── */
+    .model-filters {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .model-filters select {
+      height: 22px;
+      font-size: 11px;
+      padding: 0 4px;
+    }
+    .model-filters input {
+      width: 120px;
+      height: 22px;
+      font-size: 11px;
+    }
+    .model-select-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .model-select-row select {
+      max-width: 300px;
+    }
+    #model-test-btn {
+      padding: 3px 7px;
+      font-size: 11px;
+    }
+    #model-status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text3);
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+    #model-status-dot.ok  { background: var(--ok); }
+    #model-status-dot.err { background: var(--err); }
+    #model-status-dot.checking { background: var(--warn); animation: pulse .8s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── Theme toggle ──────────────────────────────────────────────── */
+    #theme-btn { font-size: 14px; padding: 3px 7px; }
+
+    /* ── Layout ────────────────────────────────────────────────────── */
+    .main {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Chat Panel ────────────────────────────────────────────────── */
+    .chat-panel {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--bg2);
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 10px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .msg {
+      padding: 8px 10px;
+      border-radius: 6px;
+      line-height: 1.55;
+      word-break: break-word;
+      max-width: 100%;
+      font-size: 12.5px;
+    }
+    .msg.user {
+      background: var(--bg3);
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+    .msg.assistant {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+    .msg.assistant p { margin: 3px 0; }
+    .msg.assistant p:first-child { margin-top: 0; }
+    .msg.assistant p:last-child { margin-bottom: 0; }
+    .msg.assistant code {
+      background: var(--bg3);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 11px;
+    }
+    .msg.assistant pre {
+      background: var(--bg3);
+      border-radius: 4px;
+      padding: 7px;
+      overflow-x: auto;
+      margin: 5px 0;
+    }
+    .msg.assistant pre code { background: none; padding: 0; }
+    .msg.assistant ul, .msg.assistant ol { padding-left: 16px; margin: 3px 0; }
+    .msg.assistant em { color: var(--text2); font-style: normal; font-size: 11px; }
+    .msg.system-note {
+      background: none;
+      border: 1px dashed var(--border);
+      color: var(--text2);
+      font-size: 11px;
+      align-self: center;
+      text-align: center;
+      padding: 4px 10px;
+    }
+
+    .thinking {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      align-self: flex-start;
+      background: var(--bg);
+    }
+    .dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: bounce 1.3s infinite ease-in-out;
+    }
+    .dot:nth-child(2) { animation-delay: .18s; }
+    .dot:nth-child(3) { animation-delay: .36s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(.5); opacity: .4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .chat-footer {
+      border-top: 1px solid var(--border);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--bg2);
+    }
+    .chat-footer textarea {
+      resize: none;
+      min-height: 68px;
+      line-height: 1.5;
+      background: var(--bg);
+      border-color: var(--border);
+      font-size: 12.5px;
+      border-radius: 5px;
+      padding: 6px 9px;
+    }
+    .chat-footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-hint { color: var(--text3); font-size: 10px; }
+    .chat-status { color: var(--text2); font-size: 10px; }
+
+    /* ── Editor Panel ──────────────────────────────────────────────── */
+    .editor-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .code-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .toolbar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      height: 32px;
+    }
+    .toolbar-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .toolbar-actions { display: flex; gap: 4px; align-items: center; }
+
+    .code-wrap { flex: 1; overflow: hidden; position: relative; }
+    .code-wrap .CodeMirror {
+      height: 100%;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* ── Data Panels ───────────────────────────────────────────────── */
+    .data-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 200px;
+      flex-shrink: 0;
+    }
+    .data-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+    .data-panel:last-child { border-right: none; }
+    .data-panel .CodeMirror {
+      flex: 1;
+      height: 100%;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+    }
+    .output-scroll {
+      flex: 1;
+      overflow: auto;
+      padding: 7px 10px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.5;
+      color: var(--text2);
+    }
+    .output-scroll.ok  { color: var(--ok); }
+    .output-scroll.err { color: var(--err); }
+
+    /* ── Auto-run toggle ───────────────────────────────────────────── */
+    .auto-run-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text2);
+      cursor: pointer;
+      user-select: none;
+    }
+    .auto-run-wrap input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 12px; height: 12px;
+      cursor: pointer;
+    }
+
+    /* ── Diff highlighting ─────────────────────────────────────────── */
+    .cm-added   { background: var(--added)   !important; }
+    .cm-changed { background: var(--changed) !important; }
+
+    /* ── Scrollbars ────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    /* ── Modal ─────────────────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .modal-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-head h2 { font-size: 13px; font-weight: 600; color: var(--text); }
+    .close-btn {
+      background: none; border: none; color: var(--text2);
+      font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1;
+    }
+    .close-btn:hover { color: var(--text); background: none; border-color: transparent; }
+    .modal-body { flex: 1; overflow: hidden; }
+    .modal-foot {
+      padding: 9px 16px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 6px;
+    }
+
+    /* ── Knowledge Modal ───────────────────────────────────────────── */
+    #knowledge-modal .modal { width: 700px; max-width: 94vw; height: 500px; max-height: 90vh; }
+    .kb-layout { display: grid; grid-template-columns: 180px 1fr; height: 100%; }
+    .kb-list-wrap { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .kb-list-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .kb-list-header span { font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; }
+    .kb-list-header button { padding: 2px 6px; font-size: 13px; }
+    .kb-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .kb-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 7px; border-radius: 4px; cursor: pointer; gap: 3px;
+    }
+    .kb-item:hover { background: var(--bg3); }
+    .kb-item.active { background: var(--bg3); color: var(--accent); }
+    .kb-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+    .kb-del {
+      background: none; border: none; color: var(--err);
+      opacity: 0; cursor: pointer; padding: 0 3px; font-size: 13px; line-height: 1;
+    }
+    .kb-item:hover .kb-del { opacity: 1; }
+    .kb-del:hover { background: none; border: none; opacity: 1; }
+    .kb-editor { display: flex; flex-direction: column; padding: 10px; gap: 7px; overflow: hidden; }
+    .kb-editor input { font-size: 12px; }
+    .kb-editor textarea {
+      flex: 1; resize: none;
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      padding: 7px; border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.5;
+    }
+    .kb-editor textarea:focus { border-color: var(--accent); outline: none; }
+
+    /* ── Rules Modal ───────────────────────────────────────────── */
+    #rules-modal .modal { width: 500px; max-width: 94vw; max-height: 80vh; }
+    .rules-body { padding: 12px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; max-height: 380px; }
+    .rule-row { display: flex; gap: 6px; align-items: center; }
+    .rule-row input { flex: 1; font-size: 12px; }
+    .rules-add-row { padding: 6px 16px 0; }
+
+    /* ── Status bar ────────────────────────────────────────────────── */
+    .statusbar {
+      padding: 2px 12px;
+      font-size: 10.5px; color: var(--text2);
+      background: var(--bg2); border-top: 1px solid var(--border);
+      flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
+      height: 22px;
+    }
+
+    /* ── CodeMirror theme override for light mode ──────────────────── */
+    :root[data-theme="light"] .CodeMirror {
+      background: var(--bg) !important;
+      color: #333 !important;
+    }
+    :root[data-theme="light"] .CodeMirror-gutters {
+      background: var(--bg2) !important;
+      border-right: 1px solid var(--border) !important;
+    }
+    :root[data-theme="light"] .CodeMirror-linenumber { color: var(--text2) !important; }
+    :root[data-theme="light"] .CodeMirror-cursor { border-left-color: #333 !important; }
+    :root[data-theme="light"] .CodeMirror-selected { background: rgba(0,102,204,.15) !important; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-left">
+    <span class="header-title">Groovy AI</span>
+  </div>
+
+  <div class="header-center">
+    <!-- Filter controls -->
+    <div class="model-filters">
+      <select id="model-sort" title="Сортировка по цене токенов">
+        <option value="">↕ цена</option>
+        <option value="output_tokens">↑ output</option>
+        <option value="input_tokens">↑ input</option>
+        <option value="input_cache_read_tokens">↑ cache read</option>
+      </select>
+      <select id="model-provider-filter" title="Фильтр по провайдеру">
+        <option value="">все provider</option>
+      </select>
+      <select id="model-family-filter" title="Фильтр по семейству">
+        <option value="">все family</option>
+      </select>
+      <input type="search" id="model-search" placeholder="Поиск модели..." title="Фильтровать по id, названию, provider или family">
+    </div>
+    <!-- Model select row -->
+    <div class="model-select-row">
+      <select id="model-select" title="Модель">
+        <option value="">— загрузка —</option>
+      </select>
+      <div id="model-status-dot" title="Статус модели"></div>
+      <button id="model-test-btn" onclick="testCurrentModel()" title="Проверить доступность модели">Test</button>
+      <span id="model-count" style="font-size:10.5px;color:var(--text2)"></span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button onclick="openRules()">Правила</button>
+    <button onclick="openKnowledge()">База знаний</button>
+    <button id="theme-btn" class="icon" onclick="cycleTheme()" title="Сменить тему">◑</button>
+  </div>
+</header>
+
+<!-- ── Main Layout ─────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Chat Panel -->
+  <aside class="chat-panel">
+    <div class="chat-messages" id="messages">
+      <div class="msg system-note">Groovy AI готов.<br>Опишите задачу трансформации JSON.</div>
+    </div>
+    <div class="chat-footer">
+      <textarea id="chat-input" placeholder="Опишите задачу...&#10;⌘Enter / Ctrl+Enter — отправить"></textarea>
+      <div class="chat-footer-actions">
+        <span class="chat-status" id="chat-status"></span>
+        <div style="display:flex;gap:5px">
+          <button onclick="clearChat()" title="Очистить историю">Очистить</button>
+          <button class="primary" id="send-btn" onclick="sendMessage()">↑ Отправить</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Editor + Data -->
+  <section class="editor-panel">
+
+    <!-- Code Editor -->
+    <div class="code-section">
+      <div class="toolbar">
+        <span class="toolbar-label">Groovy Code</span>
+        <div class="toolbar-actions">
+          <span id="diff-badge" style="color:var(--warn);font-size:10.5px;display:none"></span>
+          <button onclick="formatCode()" title="Форматировать">Format</button>
+          <button onclick="clearCode()">Clear</button>
+          <button class="run" onclick="executeCode()" id="run-btn" title="F5">▶ Run</button>
+        </div>
+      </div>
+      <div class="code-wrap" id="code-wrap"></div>
+    </div>
+
+    <!-- Input / Output -->
+    <div class="data-panels">
+      <div class="data-panel">
+        <div class="toolbar">
+          <span class="toolbar-label">Input JSON</span>
+          <div class="toolbar-actions">
+            <label class="auto-run-wrap" title="Авто-запуск при изменении">
+              <input type="checkbox" id="auto-run-chk"> Авто
+            </label>
+            <button onclick="formatInput()">Format</button>
+            <button onclick="clearInput()">Clear</button>
+          </div>
+        </div>
+        <div id="input-wrap" style="flex:1;overflow:hidden;position:relative;min-height:0"></div>
+      </div>
+      <div class="data-panel">
+        <div class="toolbar">
+          <span class="toolbar-label">Output</span>
+          <div class="toolbar-actions">
+            <button onclick="copyOutput()">Copy</button>
+          </div>
+        </div>
+        <div class="output-scroll" id="output">Запустите скрипт для получения результата</div>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<!-- ── Status bar ──────────────────────────────────────────────────────────── -->
+<div class="statusbar">
+  <span id="status-left">Готов</span>
+  <span id="status-right"></span>
+</div>
+
+<!-- ── Rules Modal ─────────────────────────────────────────────────────────── -->
+<div class="overlay" id="rules-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Правила агента</h2>
+      <button class="close-btn" onclick="closeRules()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="rules-body" id="rules-list"></div>
+      <div class="rules-add-row">
+        <button onclick="addRuleRow()">+ Добавить правило</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeRules()">Отмена</button>
+      <button class="primary" onclick="saveRules()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Knowledge Modal ─────────────────────────────────────────────────────── -->
+<div class="overlay" id="knowledge-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>База знаний</h2>
+      <button class="close-btn" onclick="closeKnowledge()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="kb-layout">
+        <div class="kb-list-wrap">
+          <div class="kb-list-header">
+            <span>Документы</span>
+            <button onclick="newKbDoc()" title="Новый документ">+</button>
+          </div>
+          <div class="kb-list" id="kb-list"></div>
+        </div>
+        <div class="kb-editor">
+          <input type="text" id="kb-name" placeholder="Название (латиницей)">
+          <textarea id="kb-content" placeholder="Содержимое в формате Markdown..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeKnowledge()">Закрыть</button>
+      <button class="primary" onclick="saveKbDoc()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ─────────────────────────────────────────────────────────────── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/groovy/groovy.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+
+<script>
+// ── Default code ─────────────────────────────────────────────────────────────
+const DEFAULT_CODE = `import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+// Входной JSON доступен через System.in
+def input = new JsonSlurper().parseText(System.in.text ?: '{}')
+
+// Ваша трансформация
+def result = input
+
+println JsonOutput.prettyPrint(JsonOutput.toJson(result))
+`;
+
+// ── State ────────────────────────────────────────────────────────────────────
+let conversationHistory = [];
+let codeEditor = null;
+let inputEditor = null;
+let diffMarkers = [];
+let isSending = false;
+let currentKbDoc = null;
+let allModels = [];        // full list from API: [{id, title, developer, namespace, prices, provider, family}]
+let activeProvider = '';
+let activeFamily = '';
+let activeSort = '';
+let autoRunTimer = null;
+
+function formatFamilyLabel(family) {
+  return family
+    .split('-')
+    .map(part => part ? part.charAt(0).toUpperCase() + part.slice(1) : part)
+    .join(' ');
+}
+
+// ── Theme ────────────────────────────────────────────────────────────────────
+const THEMES = ['system', 'dark', 'light'];
+let themeIdx = THEMES.indexOf(localStorage.getItem('theme') || 'system');
+if (themeIdx < 0) themeIdx = 0;
+
+function applyTheme() {
+  const theme = THEMES[themeIdx];
+  const root = document.documentElement;
+  if (theme === 'system') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+  } else {
+    root.setAttribute('data-theme', theme);
+  }
+  refreshEditorTheme();
+  const icons = ['◑', '🌙', '☀'];
+  document.getElementById('theme-btn').textContent = icons[themeIdx];
+  document.getElementById('theme-btn').title = ['Системная', 'Тёмная', 'Светлая'][themeIdx];
+}
+
+function cycleTheme() {
+  themeIdx = (themeIdx + 1) % THEMES.length;
+  localStorage.setItem('theme', THEMES[themeIdx]);
+  applyTheme();
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (THEMES[themeIdx] === 'system') applyTheme();
+});
+
+function getEditorTheme() {
+  const t = document.documentElement.getAttribute('data-theme');
+  return t === 'light' ? 'default' : 'dracula';
+}
+
+function refreshEditorTheme() {
+  const t = getEditorTheme();
+  if (codeEditor) codeEditor.setOption('theme', t);
+  if (inputEditor) inputEditor.setOption('theme', t);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme();
+  // Load dracula theme CSS lazily
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css';
+  document.head.appendChild(link);
+
+  initEditors();
+  loadModels();
+  setupShortcuts();
+  setStatus('Готов');
+});
+
+function initEditors() {
+  const edTheme = getEditorTheme();
+
+  codeEditor = CodeMirror(document.getElementById('code-wrap'), {
+    value: DEFAULT_CODE,
+    mode: 'groovy',
+    theme: edTheme,
+    lineNumbers: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    lineWrapping: false,
+    extraKeys: { 'F5': executeCode }
+  });
+
+  inputEditor = CodeMirror(document.getElementById('input-wrap'), {
+    value: '{}',
+    mode: { name: 'javascript', json: true },
+    theme: edTheme,
+    lineNumbers: true,
+    lineWrapping: true,
+  });
+
+  codeEditor.setSize('100%', '100%');
+  inputEditor.setSize('100%', '100%');
+
+  // Auto-run on input change (debounced)
+  inputEditor.on('change', () => {
+    if (!document.getElementById('auto-run-chk').checked) return;
+    clearTimeout(autoRunTimer);
+    autoRunTimer = setTimeout(executeCode, 900);
+  });
+}
+
+// ── Models ───────────────────────────────────────────────────────────────────
+async function loadModels() {
+  const countEl = document.getElementById('model-count');
+  const select = document.getElementById('model-select');
+  select.disabled = true;
+
+  try {
+    const res = await fetch('/api/models');
+    const data = await res.json();
+
+    if (data.pending) {
+      allModels = [];
+      countEl.textContent = 'проверяются';
+      select.innerHTML = '<option value="">— проверка моделей —</option>';
+      setStatus('Список моделей еще формируется фоновым тестом');
+      return;
+    }
+
+    if (data.error) {
+      countEl.textContent = 'ошибка';
+      select.innerHTML = '<option value="">— ошибка загрузки —</option>';
+      return;
+    }
+
+    // Normalise: server may return objects or legacy string IDs
+    allModels = (data.models || []).map(m =>
+      typeof m === 'string' ? { id: m, title: '', developer: '', namespace: '', prices: {} } : m
+    );
+
+    const providers = [...new Set(allModels.map(m => m.provider).filter(Boolean))].sort();
+    const providerSelect = document.getElementById('model-provider-filter');
+    providerSelect.innerHTML = '<option value="">все provider</option>' +
+      providers.map(provider => `<option value="${escapeAttr(provider)}">${escapeHtml(provider)}</option>`).join('');
+
+    const families = [...new Set(allModels.map(m => m.family).filter(Boolean))].sort();
+    const familySelect = document.getElementById('model-family-filter');
+    familySelect.innerHTML = '<option value="">все family</option>' +
+      families.map(family => `<option value="${escapeAttr(family)}">${escapeHtml(formatFamilyLabel(family))}</option>`).join('');
+
+    const saved = localStorage.getItem('eliza-model');
+    applyFiltersAndSort(saved);
+    select.disabled = allModels.length === 0;
+  } catch {
+    countEl.textContent = 'нет связи';
+    select.innerHTML = '<option value="">— нет связи —</option>';
+  }
+
+  select.addEventListener('change', () => {
+    localStorage.setItem('eliza-model', select.value);
+    setStatus(`Модель: ${select.value}`);
+    resetModelDot();
+  });
+
+  document.getElementById('model-search').addEventListener('input', () => {
+    applyFiltersAndSort(select.value);
+  });
+  document.getElementById('model-provider-filter').addEventListener('change', (e) => {
+    activeProvider = e.target.value;
+    applyFiltersAndSort(select.value);
+  });
+  document.getElementById('model-family-filter').addEventListener('change', (e) => {
+    activeFamily = e.target.value;
+    applyFiltersAndSort(select.value);
+  });
+  document.getElementById('model-sort').addEventListener('change', (e) => {
+    activeSort = e.target.value;
+    applyFiltersAndSort(select.value);
+  });
+}
+
+function applyFiltersAndSort(savedOrCurrent) {
+  const q = document.getElementById('model-search').value.trim().toLowerCase();
+  const countEl = document.getElementById('model-count');
+
+  let filtered = allModels;
+  if (activeProvider) filtered = filtered.filter(m => m.provider === activeProvider);
+  if (activeFamily) filtered = filtered.filter(m => m.family === activeFamily);
+  if (q) filtered = filtered.filter(m =>
+    m.id.toLowerCase().includes(q) ||
+    (m.title && m.title.toLowerCase().includes(q)) ||
+    (m.provider && m.provider.toLowerCase().includes(q)) ||
+    (m.family && m.family.toLowerCase().includes(q))
+  );
+
+  if (activeSort) {
+    filtered = [...filtered].sort((a, b) => {
+      const pa = parseFloat(a.prices[activeSort] || '999999');
+      const pb = parseFloat(b.prices[activeSort] || '999999');
+      return pa - pb;
+    });
+  }
+
+  renderModelSelect(filtered, savedOrCurrent);
+  const total = allModels.length;
+  const shown = filtered.length;
+  countEl.textContent = shown === total ? `${total} моделей` : `${shown} / ${total}`;
+}
+
+function renderModelSelect(models, savedOrCurrent) {
+  const select = document.getElementById('model-select');
+  select.innerHTML = models.map(m => {
+    const label = m.title ? m.title : m.id;
+    const providerPrefix = m.provider ? `[${m.provider}] ` : '';
+    return `<option value="${escapeAttr(m.id)}"${m.id === savedOrCurrent ? ' selected' : ''} title="${escapeAttr(m.id)}">${escapeHtml(providerPrefix + label)}</option>`;
+  }).join('');
+  if (savedOrCurrent && !models.some(m => m.id === savedOrCurrent) && models.length > 0) {
+    select.value = models[0].id;
+  }
+}
+
+function resetModelDot() {
+  const dot = document.getElementById('model-status-dot');
+  dot.className = '';
+  dot.title = 'Статус не проверен';
+}
+
+async function testCurrentModel() {
+  const model = document.getElementById('model-select').value;
+  if (!model) return;
+  const dot = document.getElementById('model-status-dot');
+  const btn = document.getElementById('model-test-btn');
+  dot.className = 'checking';
+  dot.title = 'Проверяю...';
+  btn.disabled = true;
+  setStatus(`Проверяю ${model}...`);
+
+  try {
+    const res = await fetch('/api/models/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model }),
+    });
+    const data = await res.json();
+    if (data.available) {
+      dot.className = 'ok';
+      dot.title = `Доступна (${data.latency}ms)`;
+      setStatus(`✓ ${model} — доступна (${data.latency}ms)`, 'ok');
+    } else {
+      dot.className = 'err';
+      dot.title = `Недоступна: ${data.error || data.status}`;
+      setStatus(`✗ ${model} — недоступна`, 'err');
+    }
+  } catch (err) {
+    dot.className = 'err';
+    dot.title = `Ошибка: ${err.message}`;
+    setStatus(`Ошибка проверки: ${err.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Shortcuts ────────────────────────────────────────────────────────────────
+function setupShortcuts() {
+  // Cmd/Ctrl+Enter in chat input
+  document.getElementById('chat-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendMessage(); }
+  });
+  // Cmd/Ctrl+Enter in KB content textarea
+  document.getElementById('kb-content').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveKbDoc(); }
+  });
+  // F5 global
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'F5') { e.preventDefault(); executeCode(); }
+  });
+  // Escape closes modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeRules(); closeKnowledge(); }
+  });
+}
+
+// ── Chat ─────────────────────────────────────────────────────────────────────
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || isSending) return;
+
+  isSending = true;
+  setSending(true);
+  input.value = '';
+  appendMsg('user', escapeHtml(text));
+  conversationHistory.push({ role: 'user', content: text });
+
+  const thinkEl = appendThinking();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: conversationHistory,
+        currentCode: codeEditor.getValue(),
+        inputData: inputEditor.getValue(),
+        model: document.getElementById('model-select').value,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+    let buffer = '';
+
+    thinkEl.remove();
+    const msgEl = appendMsg('assistant', '');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const chunk = line.slice(6).trim();
+        if (chunk === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(chunk);
+          if (parsed.error) throw new Error(parsed.error);
+          if (parsed.text) {
+            fullContent += parsed.text;
+            msgEl.innerHTML = renderStreaming(fullContent);
+            scrollChat();
+          }
+        } catch (e) {
+          if (e.message && !e.message.includes('JSON')) throw e;
+        }
+      }
+    }
+
+    const processed = processResponse(fullContent);
+    msgEl.innerHTML = processed.html;
+    scrollChat();
+    conversationHistory.push({ role: 'assistant', content: fullContent });
+
+    if (processed.code) {
+      const oldCode = codeEditor.getValue();
+      codeEditor.setValue(processed.code);
+      showDiff(oldCode, processed.code);
+      setStatus('Код обновлён агентом', 'ok');
+    }
+
+  } catch (err) {
+    thinkEl?.remove();
+    appendMsg('system-note', `Ошибка: ${err.message}`);
+    setStatus(`Ошибка: ${err.message}`, 'err');
+  } finally {
+    isSending = false;
+    setSending(false);
+  }
+}
+
+function processResponse(content) {
+  const allBlocks = [...content.matchAll(/```(?:groovy|java|)\n([\s\S]*?)```/g)];
+  let code = null;
+  if (allBlocks.length > 0) {
+    const largest = allBlocks.reduce((a, b) => b[1].length > a[1].length ? b : a);
+    code = largest[1].trim();
+  }
+  let explanation = content;
+  if (code) {
+    explanation = content.replace(/```(?:groovy|java|)\n[\s\S]*?```/g, (match) => {
+      const lines = match.split('\n').length - 2;
+      return `\n*[Код обновлён — ${lines} строк]*\n`;
+    });
+  }
+  return { code, html: marked.parse(explanation.trim()) };
+}
+
+function renderStreaming(content) {
+  return `<div style="white-space:pre-wrap;font-size:12.5px">${escapeHtml(content)}</div>`;
+}
+
+function appendMsg(type, html) {
+  const wrap = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${type}`;
+  div.innerHTML = html;
+  wrap.appendChild(div);
+  scrollChat();
+  return div;
+}
+
+function appendThinking() {
+  const wrap = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'thinking';
+  div.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  wrap.appendChild(div);
+  scrollChat();
+  return div;
+}
+
+function scrollChat() {
+  const wrap = document.getElementById('messages');
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function clearChat() {
+  document.getElementById('messages').innerHTML =
+    '<div class="msg system-note">История очищена.</div>';
+  conversationHistory = [];
+}
+
+function setSending(flag) {
+  document.getElementById('send-btn').disabled = flag;
+  document.getElementById('chat-status').textContent = flag ? 'Генерация...' : '';
+}
+
+// ── Code Editor ──────────────────────────────────────────────────────────────
+function clearCode() {
+  clearDiff();
+  codeEditor.setValue(DEFAULT_CODE);
+  setStatus('Код сброшен');
+}
+
+function formatCode() {
+  const total = codeEditor.lineCount();
+  for (let i = 0; i < total; i++) codeEditor.indentLine(i, 'smart');
+}
+
+// ── Diff ─────────────────────────────────────────────────────────────────────
+function showDiff(oldCode, newCode) {
+  clearDiff();
+  const oldLines = oldCode.split('\n');
+  const newLines = newCode.split('\n');
+  let count = 0;
+  for (let i = 0; i < newLines.length; i++) {
+    if (i >= oldLines.length) {
+      codeEditor.addLineClass(i, 'background', 'cm-added');
+      diffMarkers.push({ line: i, cls: 'cm-added' }); count++;
+    } else if (oldLines[i] !== newLines[i]) {
+      codeEditor.addLineClass(i, 'background', 'cm-changed');
+      diffMarkers.push({ line: i, cls: 'cm-changed' }); count++;
+    }
+  }
+  if (count > 0) {
+    const badge = document.getElementById('diff-badge');
+    badge.textContent = `~${count} строк`;
+    badge.style.display = '';
+    setTimeout(clearDiff, 6000);
+  }
+}
+
+function clearDiff() {
+  diffMarkers.forEach(({ line, cls }) => {
+    try { codeEditor.removeLineClass(line, 'background', cls); } catch {}
+  });
+  diffMarkers = [];
+  document.getElementById('diff-badge').style.display = 'none';
+}
+
+// ── Execute ──────────────────────────────────────────────────────────────────
+async function executeCode() {
+  const code = codeEditor.getValue().trim();
+  const inputData = inputEditor.getValue().trim();
+  const out = document.getElementById('output');
+
+  out.textContent = 'Выполняется...';
+  out.className = 'output-scroll';
+  setStatus('Выполнение...');
+
+  try {
+    const res = await fetch('/api/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, inputData }),
+    });
+    const data = await res.json();
+
+    if (data.error && !data.output) {
+      out.textContent = data.error;
+      out.className = 'output-scroll err';
+      setStatus('Ошибка выполнения', 'err');
+    } else {
+      const rawOut = (data.output || '').trim();
+      try { out.textContent = JSON.stringify(JSON.parse(rawOut), null, 2); }
+      catch { out.textContent = rawOut || '(нет вывода)'; }
+      out.className = 'output-scroll ok';
+      if (data.error) out.textContent += '\n\n⚠ Stderr:\n' + data.error;
+      setStatus('Выполнено успешно', 'ok');
+    }
+  } catch (err) {
+    out.textContent = `Ошибка: ${err.message}`;
+    out.className = 'output-scroll err';
+    setStatus(`Ошибка: ${err.message}`, 'err');
+  }
+}
+
+// ── Input JSON ───────────────────────────────────────────────────────────────
+function formatInput() {
+  try {
+    inputEditor.setValue(JSON.stringify(JSON.parse(inputEditor.getValue()), null, 2));
+  } catch { setStatus('Невалидный JSON', 'err'); }
+}
+
+function clearInput() { inputEditor.setValue('{}'); }
+
+// ── Output ───────────────────────────────────────────────────────────────────
+function copyOutput() {
+  navigator.clipboard.writeText(document.getElementById('output').textContent)
+    .then(() => setStatus('Скопировано'));
+}
+
+// ── Status bar ───────────────────────────────────────────────────────────────
+function setStatus(msg, type) {
+  const el = document.getElementById('status-left');
+  el.textContent = msg;
+  el.style.color = type === 'err' ? 'var(--err)' : type === 'ok' ? 'var(--ok)' : 'var(--text2)';
+  const m = document.getElementById('model-select').value;
+  if (m) document.getElementById('status-right').textContent = m;
+}
+
+// ── Rules Modal ──────────────────────────────────────────────────────────────
+async function openRules() {
+  const res = await fetch('/api/rules');
+  const data = await res.json();
+  renderRules(data.rules || []);
+  document.getElementById('rules-modal').classList.add('open');
+}
+
+function renderRules(rules) {
+  const list = document.getElementById('rules-list');
+  list.innerHTML = '';
+  rules.forEach((rule, i) => {
+    const row = document.createElement('div');
+    row.className = 'rule-row';
+    row.innerHTML = `
+      <input type="text" value="${escapeAttr(rule)}" placeholder="Правило ${i + 1}">
+      <button class="danger" onclick="this.closest('.rule-row').remove()">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function addRuleRow() {
+  const list = document.getElementById('rules-list');
+  const row = document.createElement('div');
+  row.className = 'rule-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Новое правило">
+    <button class="danger" onclick="this.closest('.rule-row').remove()">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+async function saveRules() {
+  const inputs = document.querySelectorAll('#rules-list .rule-row input');
+  const rules = [...inputs].map(i => i.value.trim()).filter(Boolean);
+  await fetch('/api/rules', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rules }),
+  });
+  closeRules();
+  setStatus('Правила сохранены', 'ok');
+}
+
+function closeRules() { document.getElementById('rules-modal').classList.remove('open'); }
+
+// ── Knowledge Modal ──────────────────────────────────────────────────────────
+let kbDocs = [];
+
+async function openKnowledge() {
+  kbDocs = await fetch('/api/knowledge').then(r => r.json()).catch(() => []);
+  renderKbList();
+  if (kbDocs.length > 0) selectKbDoc(kbDocs[0].name);
+  else newKbDoc();
+  document.getElementById('knowledge-modal').classList.add('open');
+}
+
+function renderKbList() {
+  const list = document.getElementById('kb-list');
+  list.innerHTML = '';
+  kbDocs.forEach((doc) => {
+    const div = document.createElement('div');
+    div.className = 'kb-item' + (doc.name === currentKbDoc ? ' active' : '');
+    div.innerHTML = `
+      <span class="kb-item-name" onclick="selectKbDoc('${escapeAttr(doc.name)}')">${escapeHtml(doc.name)}</span>
+      <button class="kb-del" onclick="deleteKbDoc('${escapeAttr(doc.name)}')" title="Удалить">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+function selectKbDoc(name) {
+  currentKbDoc = name;
+  const doc = kbDocs.find(d => d.name === name);
+  if (!doc) return;
+  document.getElementById('kb-name').value = doc.name;
+  document.getElementById('kb-content').value = doc.content;
+  renderKbList();
+}
+
+function newKbDoc() {
+  currentKbDoc = null;
+  document.getElementById('kb-name').value = '';
+  document.getElementById('kb-content').value = '';
+  document.getElementById('kb-name').focus();
+  renderKbList();
+}
+
+async function saveKbDoc() {
+  const name = document.getElementById('kb-name').value.trim();
+  const content = document.getElementById('kb-content').value;
+  if (!name) { alert('Укажите название документа'); return; }
+  const res = await fetch('/api/knowledge', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content }),
+  });
+  const data = await res.json();
+  currentKbDoc = data.name;
+  kbDocs = await fetch('/api/knowledge').then(r => r.json()).catch(() => kbDocs);
+  renderKbList();
+  setStatus(`Документ «${data.name}» сохранён`, 'ok');
+}
+
+async function deleteKbDoc(name) {
+  if (!confirm(`Удалить «${name}»?`)) return;
+  await fetch(`/api/knowledge/${encodeURIComponent(name)}`, { method: 'DELETE' });
+  kbDocs = await fetch('/api/knowledge').then(r => r.json()).catch(() => []);
+  if (currentKbDoc === name) {
+    kbDocs.length > 0 ? selectKbDoc(kbDocs[0].name) : newKbDoc();
+  }
+  renderKbList();
+  setStatus(`Документ «${name}» удалён`);
+}
+
+function closeKnowledge() { document.getElementById('knowledge-modal').classList.remove('open'); }
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function escapeAttr(str) {
+  return String(str).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
+</script>
+
+</body>
+</html>

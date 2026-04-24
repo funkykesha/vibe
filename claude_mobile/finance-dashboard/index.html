@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Финансовый помощник</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #09090b; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    window.storage = {
+      get: async (key) => {
+        try {
+          const value = localStorage.getItem(key);
+          return value ? { value } : null;
+        } catch(e) { return null; }
+      },
+      set: async (key, value) => {
+        try { localStorage.setItem(key, value); } catch(e) {}
+      }
+    };
+  </script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const fmt = (n) => {
+      if (n === null || n === undefined || isNaN(n) || n === "") return "—";
+      return new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n));
+    };
+
+    const parse = (s) => {
+      if (s === "" || s === null || s === undefined) return 0;
+      const c = String(s).replace(/[\s  ]/g, "").replace(",", ".");
+      const n = parseFloat(c);
+      return isNaN(n) ? 0 : n;
+    };
+
+    const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь",
+      "Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+
+    const INIT_CATS = [
+      { id: 1,  name: "НЗ",                 pct: "15"   },
+      { id: 2,  name: "Новый дом",           pct: "0"    },
+      { id: 3,  name: "Сын / учёба",         pct: "5"    },
+      { id: 4,  name: "Ипотека",             pct: "32.4" },
+      { id: 5,  name: "ЖКХ / страх / инет", pct: "8"    },
+      { id: 6,  name: "Шмотки",             pct: "2"    },
+      { id: 7,  name: "Здоровье",            pct: "2.5"  },
+      { id: 8,  name: "Мотоцикл",            pct: "2"    },
+      { id: 9,  name: "Фикс платежи",        pct: "1.5"  },
+      { id: 10, name: "Свободный поток",     pct: "5"    },
+      { id: 11, name: "Кредитка Тани",       pct: "18.6" },
+      { id: 12, name: "На семью",            pct: "4"    },
+      { id: 13, name: "На себя",             pct: "4"    },
+    ];
+
+    const INIT_DEDS = [
+      { id: 1, name: "Бейдж",          val: ""        },
+      { id: 2, name: "НДФЛ",           val: ""        },
+      { id: 3, name: "ДМС Тани",       val: "1601.72" },
+      { id: 4, name: "Страховка Тани", val: "203.84"  },
+      { id: 5, name: "Перерасход",     val: ""        },
+    ];
+
+    const INIT_ACCS = [
+      { id: 101, bank: "Тинькоф", name: "НЗ",                  type: "Счет",   cat: "Быстрые",   val: "" },
+      { id: 102, bank: "Тинькоф", name: "НЗ (накопит.)",       type: "Счет",   cat: "Быстрые",   val: "" },
+      { id: 103, bank: "Тинькоф", name: "Свободный поток",     type: "Счет",   cat: "На что то", val: "" },
+      { id: 104, bank: "Тинькоф", name: "Шмотки",              type: "Счет",   cat: "На что то", val: "" },
+      { id: 105, bank: "Тинькоф", name: "ЖКХ + Страх + инет", type: "Счет",   cat: "Ипотека",   val: "" },
+      { id: 106, bank: "Тинькоф", name: "Здоровье",            type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 107, bank: "Тинькоф", name: "Мотоцикл",            type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 108, bank: "Тинькоф", name: "Фикс платежи",        type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 109, bank: "Тинькоф", name: "Личные",              type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 110, bank: "Тинькоф", name: "Семья",               type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 111, bank: "Тинькоф", name: "Дебетовый",           type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 112, bank: "Тинькоф", name: "Семейный счет",       type: "Счет",   cat: "Семейные",  val: "" },
+      { id: 113, bank: "Тинькоф", name: "Семейный накоп.",     type: "Счет",   cat: "Семейные",  val: "" },
+      { id: 114, bank: "Тинькоф", name: "Вклад Тихон",         type: "Вклад",  cat: "Сын",       val: "" },
+      { id: 115, bank: "Тинькоф", name: "ИИС (НЗ)",            type: "ИИС",    cat: "Инвест",    val: "" },
+      { id: 116, bank: "Тинькоф", name: "Брокерский (Актив.)", type: "Брокер", cat: "Быстрые",   val: "" },
+      { id: 201, bank: "Яндекс",    name: "Брокер (Тихон)",    type: "Брокер", cat: "Сын",       val: "" },
+      { id: 202, bank: "Яндекс",    name: "Дебетовый",         type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 301, bank: "ДОМ РФ",   name: "НЗ вклад 1",         type: "Вклад",  cat: "Быстрые",   val: "" },
+      { id: 302, bank: "ДОМ РФ",   name: "НЗ вклад 2",         type: "Вклад",  cat: "Быстрые",   val: "" },
+      { id: 303, bank: "ДОМ РФ",   name: "НЗ вклад 3",         type: "Вклад",  cat: "Быстрые",   val: "" },
+      { id: 304, bank: "ДОМ РФ",   name: "Семейный вклад 1",   type: "Вклад",  cat: "Семейные",  val: "" },
+      { id: 305, bank: "ДОМ РФ",   name: "Семейный вклад 2",   type: "Вклад",  cat: "Семейные",  val: "" },
+      { id: 306, bank: "ДОМ РФ",   name: "Ипотечный буфер",    type: "Счет",   cat: "Ипотека",   val: "" },
+      { id: 307, bank: "ДОМ РФ",   name: "Кредитное плечо",    type: "Счет",   cat: "Жизнь",     val: "" },
+      { id: 401, bank: "Финуслуги", name: "Семейный 07.05",    type: "Вклад",  cat: "Семейные",  val: "" },
+      { id: 402, bank: "Финуслуги", name: "Семейный 05.08",    type: "Вклад",  cat: "Семейные",  val: "" },
+      { id: 501, bank: "ФридФин",   name: "Баксы",             type: "Счет",   cat: "Валюта",    val: "", currency: "USD" },
+      { id: 601, bank: "Наличка",   name: "Баксы",             type: "Наличка",cat: "Валюта",    val: "", currency: "USD" },
+      { id: 701, bank: "Долги",     name: "За окна",           type: "Долг",   cat: "Долги",     val: "-200000" },
+    ];
+
+    const BANK_ORDER = ["Тинькоф","Яндекс","ДОМ РФ","Финуслуги","ФридФин","Наличка","Долги"];
+    const BANK_COLORS = {
+      "Тинькоф":   "#ffdd2d",
+      "Яндекс":    "#fc3f1d",
+      "ДОМ РФ":   "#00a0e3",
+      "Финуслуги": "#9b87ff",
+      "ФридФин":   "#2b9c38",
+      "Наличка":   "#9ca3af",
+      "Долги":     "#ef4444",
+    };
+
+    function NumInput({ value, onChange, placeholder = "0", right = false, large = false, className = "" }) {
+      return (
+        <input
+          type="text"
+          inputMode="decimal"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`bg-zinc-900 border border-zinc-700 text-white rounded focus:border-amber-500 focus:outline-none transition-colors ${large ? "text-xl px-4 py-3" : "text-sm px-3 py-2"} ${right ? "text-right tabular-nums" : ""} ${className}`}
+        />
+      );
+    }
+
+    function App() {
+      const now = new Date();
+      const [tab, setTab]           = useState("zp");
+      const [month, setMonth]       = useState(now.getMonth());
+      const [year, setYear]         = useState(now.getFullYear() % 100);
+      const [payDay, setPayDay]     = useState("5");
+      const [gross, setGross]       = useState("");
+      const [cats, setCats]         = useState(INIT_CATS);
+      const [deds, setDeds]         = useState(INIT_DEDS);
+      const [accs, setAccs]         = useState(INIT_ACCS);
+      const [usdRate, setUsdRate]   = useState("80.33");
+      const [mortgage, setMortgage] = useState("11948583");
+      const [flash, setFlash]       = useState("");
+      const [loading, setLoading]   = useState(true);
+      const [expanded, setExpanded] = useState(
+        Object.fromEntries(BANK_ORDER.map(b => [b, true]))
+      );
+
+      useEffect(() => {
+        (async () => {
+          try {
+            const r = await window.storage.get("fin-v3");
+            if (r) {
+              const d = JSON.parse(r.value);
+              if (d.cats)     setCats(d.cats);
+              if (d.deds)     setDeds(d.deds);
+              if (d.accs)     setAccs(d.accs);
+              if (d.usdRate)  setUsdRate(d.usdRate);
+              if (d.mortgage) setMortgage(d.mortgage);
+            }
+          } catch(e) {}
+          setLoading(false);
+        })();
+      }, []);
+
+      useEffect(() => {
+        if (loading) return;
+        window.storage.set("fin-v3", JSON.stringify({ cats, deds, accs, usdRate, mortgage })).catch(() => {});
+      }, [cats, deds, accs, usdRate, mortgage, loading]);
+
+      const totalDeds = useMemo(() => deds.reduce((s, d) => s + parse(d.val), 0), [deds]);
+      const net       = useMemo(() => Math.max(0, parse(gross) - totalDeds), [gross, totalDeds]);
+      const totalPct  = useMemo(() => cats.reduce((s, c) => s + parse(c.pct), 0), [cats]);
+      const dist      = useMemo(() => cats.map(c => ({ ...c, amount: net * parse(c.pct) / 100 })), [cats, net]);
+      const pctOk     = Math.abs(totalPct - 100) < 0.05;
+
+      const rate = useMemo(() => parse(usdRate) || 80, [usdRate]);
+
+      const accsF = useMemo(() => accs.map(a => {
+        const raw = parse(a.val);
+        const final = a.currency === "USD" ? raw * rate : raw;
+        return { ...a, raw, final };
+      }), [accs, rate]);
+
+      const totalFact    = useMemo(() => accsF.filter(a => a.type !== "Долг").reduce((s,a) => s+a.final, 0), [accsF]);
+      const totalCapital = useMemo(() => accsF.reduce((s,a) => s+a.final, 0), [accsF]);
+      const rychlye      = useMemo(() => accsF.filter(a => a.cat === "Быстрые").reduce((s,a)=>s+a.final,0), [accsF]);
+      const semejnye     = useMemo(() => accsF.filter(a => a.cat === "Семейные").reduce((s,a)=>s+a.final,0), [accsF]);
+      const syn          = useMemo(() => accsF.filter(a => a.cat === "Сын").reduce((s,a)=>s+a.final,0), [accsF]);
+      const invest       = useMemo(() => accsF.filter(a => a.type === "ИИС").reduce((s,a)=>s+a.final,0), [accsF]);
+      const withMortgage = useMemo(() => totalCapital - parse(mortgage), [totalCapital, mortgage]);
+
+      const copy = (text) => {
+        navigator.clipboard.writeText(text).catch(() => {});
+        setFlash("Скопировано!");
+        setTimeout(() => setFlash(""), 1800);
+      };
+
+      const copyDist = () => {
+        const rows = dist.map(d => `${d.name}\t${fmt(d.amount)}`).join("\n");
+        copy(`${MONTHS[month]} ${year}, ${payDay} число\n${rows}\n\nЧистыми: ${fmt(net)}\nВычеты: ${fmt(totalDeds)}`);
+      };
+
+      const copyCapital = () => {
+        const rows = accsF.map(a => `${a.bank} / ${a.name}\t${fmt(a.final)}`).join("\n");
+        const sum = `\n\nВесь капитал (факт)\t${fmt(totalFact)}\nКапитал (с долгами)\t${fmt(totalCapital)}\nБыстрые\t${fmt(rychlye)}\nСемейные\t${fmt(semejnye)}\nСын\t${fmt(syn)}\nИИС\t${fmt(invest)}\nС ипотекой\t${fmt(withMortgage)}\nКурс $\t${rate}`;
+        copy(rows + sum);
+      };
+
+      if (loading) return (
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500 text-sm">
+          Загрузка…
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen bg-zinc-950 text-zinc-100" style={{ fontFamily: "'IBM Plex Mono', 'Courier New', monospace" }}>
+          {flash && (
+            <div className="fixed top-4 right-4 z-50 bg-amber-400 text-zinc-950 text-xs font-bold px-4 py-2 rounded shadow-lg">
+              {flash}
+            </div>
+          )}
+
+          <div className="border-b border-zinc-800 px-5 py-4">
+            <div className="text-amber-400 text-xs tracking-widest uppercase mb-0.5">Финансовый помощник</div>
+            <h1 className="text-white text-base font-bold">ЗП → Распределение · Капитал</h1>
+          </div>
+
+          <div className="flex border-b border-zinc-800 px-4">
+            {[
+              { id: "zp",       label: "Раскидать ЗП" },
+              { id: "capital",  label: "Капитал" },
+              { id: "settings", label: "Настройки" },
+            ].map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`px-4 py-3 text-xs tracking-widest uppercase border-b-2 transition-all ${
+                  tab === t.id ? "border-amber-400 text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-300"
+                }`}
+              >{t.label}</button>
+            ))}
+          </div>
+
+          <div className="max-w-lg mx-auto p-4 space-y-4">
+
+            {/* ═══ ЗП ═══ */}
+            {tab === "zp" && (
+              <>
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Месяц</div>
+                    <select value={month} onChange={e => setMonth(+e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:border-amber-500 focus:outline-none">
+                      {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Год</div>
+                    <input type="number" value={year} onChange={e => setYear(+e.target.value)}
+                      className="w-14 bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-2 py-2 focus:border-amber-500 focus:outline-none" />
+                  </div>
+                  <div>
+                    <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Выплата</div>
+                    <div className="flex gap-1">
+                      {["5","20"].map(d => (
+                        <button key={d} onClick={() => setPayDay(d)}
+                          className={`px-3 py-2 text-xs rounded transition-all ${
+                            payDay === d ? "bg-amber-400 text-zinc-950 font-bold" : "bg-zinc-900 border border-zinc-700 text-zinc-400"
+                          }`}>{d}-е</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Начислено (до вычетов) ₽</div>
+                  <NumInput value={gross} onChange={setGross} placeholder="133 267,46" right large className="w-full" />
+                </div>
+
+                <div className="border border-zinc-800 rounded">
+                  <div className="flex justify-between items-center px-4 py-2 border-b border-zinc-800 bg-zinc-900/60">
+                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Вычеты</span>
+                    <span className="text-red-400 text-xs tabular-nums">−{fmt(totalDeds)} ₽</span>
+                  </div>
+                  <div className="p-3 grid grid-cols-2 gap-2">
+                    {deds.map(d => (
+                      <div key={d.id}>
+                        <div className="text-zinc-600 text-xs mb-1">{d.name}</div>
+                        <NumInput value={d.val} onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))} right className="w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={`rounded border flex justify-between items-center px-4 py-3 ${net > 0 ? "border-amber-500/40 bg-amber-500/5" : "border-zinc-800"}`}>
+                  <span className="text-zinc-400 text-xs uppercase tracking-wider">Чистыми на руки</span>
+                  <span className={`text-xl tabular-nums font-bold ${net > 0 ? "text-amber-300" : "text-zinc-600"}`}>
+                    {net > 0 ? fmt(net) : "—"} ₽
+                  </span>
+                </div>
+
+                <div className="border border-zinc-800 rounded overflow-hidden">
+                  <div className="flex justify-between items-center px-4 py-2 border-b border-zinc-800 bg-zinc-900/60">
+                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Распределение</span>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs tabular-nums ${pctOk ? "text-green-500" : "text-orange-400"}`}>
+                        Σ {fmt(totalPct)}% {pctOk ? "✓" : "⚠"}
+                      </span>
+                      {net > 0 && (
+                        <button onClick={copyDist} className="text-xs bg-amber-400 text-zinc-950 font-bold px-3 py-1 rounded hover:bg-amber-300 transition-colors">
+                          Копировать
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {net === 0 ? (
+                    <div className="px-4 py-8 text-center text-zinc-600 text-xs">Введите сумму начисления</div>
+                  ) : (
+                    <>
+                      {dist.map((d, i) => (
+                        <div key={d.id} className={`flex items-center px-4 py-2 ${i%2===0?"":"bg-zinc-900/30"}`}>
+                          <span className="flex-1 text-sm text-zinc-200">{d.name}</span>
+                          <span className="text-zinc-600 text-xs w-10 text-right tabular-nums">{d.pct}%</span>
+                          <span className={`text-sm tabular-nums w-36 text-right ml-4 ${d.amount>0?"text-white font-medium":"text-zinc-700"}`}>
+                            {fmt(d.amount)} ₽
+                          </span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between px-4 py-2.5 border-t border-zinc-700 bg-zinc-900/60">
+                        <span className="text-zinc-400 text-xs uppercase tracking-wider">Итого</span>
+                        <span className="text-white font-bold tabular-nums text-sm">{fmt(dist.reduce((s,d)=>s+d.amount,0))} ₽</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* ═══ КАПИТАЛ ═══ */}
+            {tab === "capital" && (
+              <>
+                <div className="flex items-center gap-3 border border-zinc-800 rounded px-4 py-3">
+                  <span className="flex-1 text-zinc-400 text-xs uppercase tracking-wider">Курс $ / ₽</span>
+                  <NumInput value={usdRate} onChange={setUsdRate} right className="w-24" />
+                </div>
+
+                {BANK_ORDER.map(bank => {
+                  const bankAccs = accsF.filter(a => a.bank === bank);
+                  if (!bankAccs.length) return null;
+                  const bankTotal = bankAccs.reduce((s,a) => s+a.final, 0);
+                  const color = BANK_COLORS[bank] || "#9ca3af";
+                  const isOpen = expanded[bank];
+                  return (
+                    <div key={bank} className="border border-zinc-800 rounded overflow-hidden">
+                      <button
+                        onClick={() => setExpanded(p => ({...p, [bank]: !p[bank]}))}
+                        className="w-full flex items-center justify-between px-4 py-2.5 bg-zinc-900/80 hover:bg-zinc-800/60 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                          <span className="text-xs font-bold uppercase tracking-wider" style={{ color }}>{bank}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs tabular-nums ${bank === "Долги" ? "text-red-400" : "text-zinc-300"}`}>
+                            {bankTotal < 0 ? "−" : ""}{fmt(Math.abs(bankTotal))} ₽
+                          </span>
+                          <span className="text-zinc-600 text-xs">{isOpen ? "▲" : "▼"}</span>
+                        </div>
+                      </button>
+                      {isOpen && bankAccs.map(a => (
+                        <div key={a.id} className="flex items-center px-4 py-2.5 border-t border-zinc-800/60 hover:bg-zinc-900/20 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-zinc-200 truncate">{a.name}</div>
+                            <div className="text-zinc-600 text-xs">{a.type} · {a.cat}</div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-3">
+                            <NumInput
+                              value={a.val}
+                              onChange={v => setAccs(p => p.map(x => x.id === a.id ? {...x, val: v} : x))}
+                              right className="w-36"
+                              placeholder="0"
+                            />
+                            <span className="text-zinc-600 text-xs w-6">{a.currency === "USD" ? "$" : "₽"}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+
+                <div className="flex items-center gap-3 border border-zinc-800 rounded px-4 py-3">
+                  <span className="flex-1 text-zinc-400 text-xs uppercase tracking-wider">Остаток ипотеки ₽</span>
+                  <NumInput value={mortgage} onChange={setMortgage} right className="w-40" />
+                </div>
+
+                <div className="border border-amber-500/20 bg-amber-500/5 rounded overflow-hidden">
+                  <div className="px-4 py-2 border-b border-amber-500/10">
+                    <span className="text-amber-400 text-xs uppercase tracking-wider">Итоги</span>
+                  </div>
+                  {[
+                    { label: "Весь капитал (факт)",  val: totalFact,    usd: true,  bold: true                    },
+                    { label: "Капитал с долгами",     val: totalCapital, usd: true,  bold: false                   },
+                    { label: "└ Быстрые",             val: rychlye,      usd: false, indent: true                  },
+                    { label: "└ Семейные",            val: semejnye,     usd: false, indent: true                  },
+                    { label: "└ Сын",                 val: syn,          usd: false, indent: true                  },
+                    { label: "└ ИИС",                 val: invest,       usd: false, indent: true                  },
+                    { label: "С ипотекой",            val: withMortgage, usd: true,  red: withMortgage < 0         },
+                  ].map(r => (
+                    <div key={r.label} className={`flex justify-between items-center px-4 py-2 border-b border-amber-500/5 last:border-0 ${r.indent?"bg-zinc-950/30":""}`}>
+                      <span className={`text-xs uppercase tracking-wider ${r.indent?"text-zinc-600 pl-2":"text-zinc-400"}`}>{r.label}</span>
+                      <div className="text-right">
+                        <div className={`tabular-nums text-sm ${r.bold?"text-amber-300 font-bold text-base":r.red?"text-red-400":"text-zinc-200"}`}>
+                          {fmt(r.val)} ₽
+                        </div>
+                        {r.usd && rate > 0 && <div className="text-zinc-600 text-xs tabular-nums">${fmt(r.val / rate)}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button onClick={copyCapital}
+                  className="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold py-3 rounded text-xs uppercase tracking-widest transition-colors">
+                  Скопировать для таблицы
+                </button>
+              </>
+            )}
+
+            {/* ═══ НАСТРОЙКИ ═══ */}
+            {tab === "settings" && (
+              <>
+                <div className="border border-zinc-800 rounded overflow-hidden">
+                  <div className="flex justify-between items-center px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/60">
+                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Категории и %</span>
+                    <span className={`text-xs tabular-nums ${pctOk ? "text-green-500" : "text-orange-400"}`}>
+                      Σ {fmt(totalPct)}% {pctOk ? "✓" : `→ ${fmt(100 - totalPct)}%`}
+                    </span>
+                  </div>
+                  {cats.map(c => (
+                    <div key={c.id} className="flex items-center px-3 py-2 gap-2 border-b border-zinc-800/40 last:border-0">
+                      <input type="text" value={c.name}
+                        onChange={e => setCats(p => p.map(x => x.id===c.id?{...x,name:e.target.value}:x))}
+                        className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:border-amber-500 focus:outline-none" />
+                      <input type="number" value={c.pct} step="0.1"
+                        onChange={e => setCats(p => p.map(x => x.id===c.id?{...x,pct:e.target.value}:x))}
+                        className="w-20 bg-zinc-900 border border-zinc-700 text-amber-300 text-sm rounded px-2 py-1.5 text-right tabular-nums focus:border-amber-500 focus:outline-none" />
+                      <span className="text-zinc-600 text-xs">%</span>
+                      <button onClick={() => setCats(p => p.filter(x => x.id!==c.id))} className="text-zinc-700 hover:text-red-400 text-lg w-5 transition-colors">×</button>
+                    </div>
+                  ))}
+                  <div className="px-4 py-2 border-t border-zinc-800">
+                    <button onClick={() => setCats(p => [...p, {id: Date.now(), name: "Новая", pct: "0"}])}
+                      className="text-amber-400 hover:text-amber-300 text-xs transition-colors">
+                      + Добавить категорию
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border border-zinc-800 rounded overflow-hidden">
+                  <div className="px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/60">
+                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Вычеты (дефолтные значения)</span>
+                  </div>
+                  {deds.map(d => (
+                    <div key={d.id} className="flex items-center px-3 py-2 gap-2 border-b border-zinc-800/40 last:border-0">
+                      <input type="text" value={d.name}
+                        onChange={e => setDeds(p => p.map(x => x.id===d.id?{...x,name:e.target.value}:x))}
+                        className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:border-amber-500 focus:outline-none" />
+                      <NumInput value={d.val} onChange={v => setDeds(p => p.map(x => x.id===d.id?{...x,val:v}:x))} right className="w-28" />
+                      <button onClick={() => setDeds(p => p.filter(x => x.id!==d.id))} className="text-zinc-700 hover:text-red-400 text-lg w-5 transition-colors">×</button>
+                    </div>
+                  ))}
+                  <div className="px-4 py-2 border-t border-zinc-800">
+                    <button onClick={() => setDeds(p => [...p, {id: Date.now(), name: "Новый", val: ""}])}
+                      className="text-amber-400 hover:text-amber-300 text-xs transition-colors">
+                      + Добавить вычет
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-zinc-600 text-xs text-center py-2">Всё сохраняется автоматически</div>
+              </>
+            )}
+
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
