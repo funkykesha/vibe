@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="МотоБардачок">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>МотоБардачок</title>
+
+  <style>
+    /* ===== CSS RESET & BASE ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #141414;
+      --bg-card: #1c1c1e;
+      --bg-card-hover: #2c2c2e;
+      --text-primary: #ffffff;
+      --text-secondary: #aeaeb2;
+      --text-muted: #636366;
+      --accent-vu: #3a7bd5;
+      --accent-vu-bg: #1a2a4a;
+      --accent-sts: #e8622a;
+      --accent-sts-bg: #3a1a0a;
+      --accent-osago: #2ecc71;
+      --accent-osago-bg: #0a2a1a;
+      --accent-pts: #9b59b6;
+      --accent-pts-bg: #1a0a2a;
+      --border-color: #2c2c2e;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== APP CONTAINER ===== */
+    #app {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+    }
+
+    /* ===== SCREENS ===== */
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* ===== ГЛАВНЫЙ ЭКРАН ===== */
+    #screen-home {
+      background: var(--bg-primary);
+    }
+
+    .home-grid {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    .doc-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      position: relative;
+      transition: filter 0.15s ease;
+      -webkit-user-select: none;
+      user-select: none;
+      gap: 8px;
+    }
+
+    .doc-btn:active {
+      filter: brightness(0.75);
+    }
+
+    .doc-btn-vu {
+      background: linear-gradient(135deg, #1a2a4a 0%, #0d1a30 100%);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .doc-btn-sts {
+      background: linear-gradient(135deg, #3a1a0a 0%, #250f05 100%);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .doc-btn-osago {
+      background: linear-gradient(135deg, #0a2a1a 0%, #051a0f 100%);
+    }
+
+    .doc-btn-label {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    .doc-btn-vu .doc-btn-label { color: var(--accent-vu); }
+    .doc-btn-sts .doc-btn-label { color: var(--accent-sts); }
+    .doc-btn-osago .doc-btn-label { color: var(--accent-osago); }
+
+    .doc-btn-sublabel {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .doc-btn-status {
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .status-filled {
+      background: rgba(46, 204, 113, 0.2);
+      color: #2ecc71;
+    }
+
+    .status-empty {
+      background: rgba(99, 99, 102, 0.2);
+      color: var(--text-muted);
+    }
+
+    /* Кнопка настроек */
+    .btn-settings {
+      position: absolute;
+      top: calc(var(--safe-top) + 12px);
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(44, 44, 46, 0.9);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: transform 0.15s ease;
+    }
+
+    .btn-settings:active {
+      transform: scale(0.9);
+    }
+
+    /* FAB кнопка ПТС */
+    .fab-pts {
+      position: absolute;
+      bottom: calc(var(--safe-bottom) + 24px);
+      right: 20px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6c3483, #9b59b6);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      box-shadow: 0 4px 20px rgba(155, 89, 182, 0.5);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      gap: 2px;
+    }
+
+    .fab-pts:active {
+      transform: scale(0.9);
+      box-shadow: 0 2px 10px rgba(155, 89, 182, 0.4);
+    }
+
+    .fab-pts-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: 1px;
+    }
+
+    .fab-pts-sub {
+      font-size: 9px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== ЭКРАН ДОКУМЕНТА ===== */
+    #screen-doc {
+      background: var(--bg-primary);
+    }
+
+    .doc-header {
+      display: flex;
+      align-items: center;
+      padding: calc(var(--safe-top) + 8px) 16px 8px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      min-height: calc(var(--safe-top) + 56px);
+      flex-shrink: 0;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px 0;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .btn-back:active {
+      opacity: 0.6;
+    }
+
+    .btn-back-arrow {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .doc-header-title {
+      flex: 1;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .doc-header-edit {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+
+    .doc-header-edit:active {
+      opacity: 0.6;
+    }
+
+    .doc-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 16px;
+      padding-bottom: calc(var(--safe-bottom) + 20px);
+    }
+
+    .doc-text-block {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .doc-text-block-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .doc-text-value {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .doc-text-empty {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .doc-photos-block {
+      margin-bottom: 20px;
+    }
+
+    .doc-photos-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .doc-photos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .doc-photo-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 3/2;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s ease;
+    }
+
+    .doc-photo-card:active {
+      transform: scale(0.97);
+    }
+
+    .doc-photo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .doc-photo-card-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 6px 10px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+      letter-spacing: 0.5px;
+    }
+
+    .doc-photo-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .doc-photo-empty-icon {
+      font-size: 28px;
+    }
+
+    .doc-photo-empty-text {
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* ===== FULLSCREEN PHOTO VIEWER ===== */
+    #photo-viewer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #photo-viewer.active {
+      display: flex;
+    }
+
+    #photo-viewer-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transform-origin: center center;
+      touch-action: none;
+      pointer-events: none;
+    }
+
+    .photo-viewer-close {
+      position: absolute;
+      top: calc(var(--safe-top) + 16px);
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(44, 44, 46, 0.8);
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* ===== ЭКРАН НАСТРОЕК / ОНБОРДИНГА ===== */
+    #screen-settings, #screen-onboarding {
+      background: var(--bg-primary);
+    }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      padding: calc(var(--safe-top) + 8px) 16px 8px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      min-height: calc(var(--safe-top) + 56px);
+      flex-shrink: 0;
+    }
+
+    .settings-title {
+      flex: 1;
+      font-size: 17px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .settings-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 16px;
+      padding-bottom: calc(var(--safe-bottom) + 20px);
+    }
+
+    /* Онбординг */
+    .onboarding-header {
+      padding: calc(var(--safe-top) + 24px) 24px 16px;
+      flex-shrink: 0;
+    }
+
+    .onboarding-step-indicator {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .step-dot {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border-color);
+      flex: 1;
+      transition: background 0.3s ease;
+    }
+
+    .step-dot.active {
+      background: var(--accent-vu);
+    }
+
+    .step-dot.done {
+      background: var(--accent-osago);
+    }
+
+    .onboarding-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .onboarding-subtitle {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .onboarding-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0 24px;
+      padding-bottom: calc(var(--safe-bottom) + 100px);
+    }
+
+    .onboarding-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 24px calc(var(--safe-bottom) + 16px);
+      background: linear-gradient(transparent, var(--bg-primary) 30%);
+    }
+
+    /* Форма документа */
+    .form-section {
+      margin-bottom: 24px;
+    }
+
+    .form-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .form-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .doc-text {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 16px;
+      font-family: inherit;
+      padding: 16px;
+      min-height: 120px;
+      resize: none;
+      line-height: 1.6;
+    }
+
+    .doc-text::placeholder {
+      color: var(--text-muted);
+    }
+
+    .photo-upload-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .photo-upload-area:active {
+      background: var(--bg-card-hover);
+    }
+
+    .photo-upload-area + .photo-upload-area {
+      border-top: 1px solid var(--border-color);
+    }
+
+    .photo-upload-preview {
+      width: 56px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photo-upload-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo-upload-preview-icon {
+      font-size: 20px;
+      color: var(--text-muted);
+    }
+
+    .photo-upload-info {
+      flex: 1;
+    }
+
+    .photo-upload-label {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .photo-upload-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .photo-upload-arrow {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    /* Кнопки */
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: var(--accent-vu);
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-primary:active {
+      opacity: 0.8;
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      font-family: inherit;
+      margin-top: 10px;
+    }
+
+    .btn-secondary:active {
+      background: var(--bg-card);
+    }
+
+    /* Секция шорткатов */
+    .shortcuts-section {
+      margin-bottom: 24px;
+    }
+
+    .shortcuts-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .shortcuts-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .shortcut-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-card);
+      border: none;
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 8px;
+      text-align: left;
+      font-family: inherit;
+      transition: background 0.15s ease;
+    }
+
+    .shortcut-btn:active {
+      background: var(--bg-card-hover);
+    }
+
+    .shortcut-btn-icon {
+      font-size: 22px;
+    }
+
+    .shortcut-btn-text {
+      flex: 1;
+    }
+
+    .shortcut-btn-arrow {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Генератор иконки */
+    .icon-generator {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .icon-generator-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .icon-generator-hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .icon-generator-result {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .icon-generator-result.visible {
+      display: flex;
+    }
+
+    .icon-generator-result img {
+      width: 120px;
+      height: 120px;
+      border-radius: 24px;
+      border: 2px solid var(--border-color);
+    }
+
+    .icon-generator-instruction {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.5;
+      background: rgba(58, 123, 213, 0.1);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    /* Навигация по документам в настройках */
+    .settings-doc-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+    }
+
+    .settings-doc-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .settings-doc-tab {
+      flex-shrink: 0;
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .settings-doc-tab.active {
+      background: var(--accent-vu);
+      border-color: var(--accent-vu);
+      color: white;
+    }
+
+    /* Разделитель */
+    .divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 20px 0;
+    }
+
+    /* Тост уведомление */
+    #toast {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 24px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(44, 44, 46, 0.95);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Лоадер */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .loader-logo {
+      font-size: 48px;
+    }
+
+    .loader-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: 2px;
+    }
+
+    .loader-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent-vu);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Скрытый canvas для обработки изображений */
+    #processing-canvas {
+      display: none;
+    }
+
+    /* Акцентные цвета для заголовков документов */
+    .accent-vu { color: var(--accent-vu); }
+    .accent-sts { color: var(--accent-sts); }
+    .accent-osago { color: var(--accent-osago); }
+    .accent-pts { color: var(--accent-pts); }
+
+    /* Анимация появления экрана */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .screen.active {
+      animation: fadeIn 0.2s ease;
+    }
+
+    /* Стили для онбординга */
+    .welcome-emoji {
+      font-size: 64px;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .welcome-text {
+      font-size: 16px;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .feature-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .feature-text strong {
+      color: var(--text-primary);
+      display: block;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===== ЛОАДЕР ===== -->
+  <div id="loader">
+    <div class="loader-logo">🏍️</div>
+    <div class="loader-title">МотоБардачок</div>
+    <div class="loader-spinner"></div>
+  </div>
+
+  <!-- ===== ГЛАВНЫЙ ЭКРАН ===== -->
+  <div id="screen-home" class="screen">
+    <div class="home-grid">
+      <button class="doc-btn doc-btn-vu" onclick="navigate('vu')">
+        <span class="doc-btn-status status-empty" id="status-vu">Не заполнено</span>
+        <span class="doc-btn-label">ВУ</span>
+        <span class="doc-btn-sublabel">Водительское удостоверение</span>
+      </button>
+      <button class="doc-btn doc-btn-sts" onclick="navigate('sts')">
+        <span class="doc-btn-status status-empty" id="status-sts">Не заполнено</span>
+        <span class="doc-btn-label">СТС</span>
+        <span class="doc-btn-sublabel">Свидетельство о регистрации</span>
+      </button>
+      <button class="doc-btn doc-btn-osago" onclick="navigate('osago')">
+        <span class="doc-btn-status status-empty" id="status-osago">Не заполнено</span>
+        <span class="doc-btn-label">ОСАГО</span>
+        <span class="doc-btn-sublabel">Страховой полис</span>
+      </button>
+    </div>
+    <button class="btn-settings" onclick="navigate('settings')">⚙️</button>
+    <button class="fab-pts" onclick="navigate('pts')">
+      <span class="fab-pts-label">ПТС</span>
+      <span class="fab-pts-sub">Паспорт ТС</span>
+    </button>
+  </div>
+
+  <!-- ===== ЭКРАН ДОКУМЕНТА ===== -->
+  <div id="screen-doc" class="screen">
+    <div class="doc-header">
+      <button class="btn-back" onclick="navigate('')">
+        <span class="btn-back-arrow">←</span>
+        <span>НАЗАД</span>
+      </button>
+      <div class="doc-header-title" id="doc-title">ДОКУМЕНТ</div>
+      <button class="doc-header-edit" onclick="editCurrentDoc()">Изменить</button>
+    </div>
+    <div class="doc-content">
+      <div class="doc-text-block">
+        <div class="doc-text-block-label">Текстовые данные</div>
+        <div class="doc-text-value" id="doc-text">Документ не заполнен</div>
+      </div>
+      <div class="doc-photos-block">
+        <div class="doc-photos-label">Фотографии</div>
+        <div class="doc-photos-grid">
+          <div class="doc-photo-card" onclick="openPhotoViewer('front')">
+            <div class="doc-photo-empty" id="photo-front-empty">
+              <span class="doc-photo-empty-icon">📷</span>
+              <span class="doc-photo-empty-text">Лицевая</span>
+            </div>
+            <img id="photo-front-img" style="display: none;">
+            <div class="doc-photo-card-label">Лицевая</div>
+          </div>
+          <div class="doc-photo-card" onclick="openPhotoViewer('back')">
+            <div class="doc-photo-empty" id="photo-back-empty">
+              <span class="doc-photo-empty-icon">📷</span>
+              <span class="doc-photo-empty-text">Оборотная</span>
+            </div>
+            <img id="photo-back-img" style="display: none;">
+            <div class="doc-photo-card-label">Оборотная</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FULLSCREEN PHOTO VIEWER ===== -->
+  <div id="photo-viewer">
+    <button class="photo-viewer-close" onclick="closePhotoViewer()">✕</button>
+    <img id="photo-viewer-img" src="" alt="">
+  </div>
+
+  <!-- ===== ЭКРАН НАСТРОЕК ===== -->
+  <div id="screen-settings" class="screen">
+    <div class="settings-header">
+      <button class="btn-back" onclick="navigate('')">
+        <span class="btn-back-arrow">←</span>
+        <span>НАЗАД</span>
+      </button>
+      <div class="settings-title">Настройки</div>
+      <div style="width: 60px;"></div>
+    </div>
+    <div class="settings-content">
+      <div class="settings-doc-tabs">
+        <button class="settings-doc-tab active" onclick="selectSettingsDoc('vu')">ВУ</button>
+        <button class="settings-doc-tab" onclick="selectSettingsDoc('sts')">СТС</button>
+        <button class="settings-doc-tab" onclick="selectSettingsDoc('osago')">ОСАГО</button>
+        <button class="settings-doc-tab" onclick="selectSettingsDoc('pts')">ПТС</button>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Текстовые данные</div>
+        <div class="form-card">
+          <textarea class="doc-text" id="settings-doc-text" placeholder="Введите данные документа..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Фотографии</div>
+        <div class="form-card">
+          <div class="photo-upload-area" onclick="document.getElementById('photo-front-input').click()">
+            <div class="photo-upload-preview" id="settings-photo-front-preview">
+              <span class="photo-upload-preview-icon">📷</span>
+            </div>
+            <div class="photo-upload-info">
+              <div class="photo-upload-label">Лицевая сторона</div>
+              <div class="photo-upload-hint">Нажмите для выбора фото</div>
+            </div>
+            <span class="photo-upload-arrow">→</span>
+          </div>
+          <div class="photo-upload-area" onclick="document.getElementById('photo-back-input').click()">
+            <div class="photo-upload-preview" id="settings-photo-back-preview">
+              <span class="photo-upload-preview-icon">📷</span>
+            </div>
+            <div class="photo-upload-info">
+              <div class="photo-upload-label">Оборотная сторона</div>
+              <div class="photo-upload-hint">Нажмите для выбора фото</div>
+            </div>
+            <span class="photo-upload-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="photo-front-input" accept="image/*" onchange="handlePhotoUpload('front', this)">
+      <input type="file" id="photo-back-input" accept="image/*" onchange="handlePhotoUpload('back', this)">
+
+      <button class="btn-primary" onclick="saveCurrentDoc()">Сохранить</button>
+
+      <div class="divider"></div>
+
+      <div class="shortcuts-section">
+        <div class="shortcuts-title">Вынести на экран Домой</div>
+        <div class="shortcuts-subtitle">Добавьте виджеты для быстрого доступа к документам</div>
+        <button class="shortcut-btn" onclick="openShortcut('vu')">
+          <span class="shortcut-btn-icon">🎫</span>
+          <span class="shortcut-btn-text">Установить виджет ВУ</span>
+          <span class="shortcut-btn-arrow">→</span>
+        </button>
+        <button class="shortcut-btn" onclick="openShortcut('sts')">
+          <span class="shortcut-btn-icon">📋</span>
+          <span class="shortcut-btn-text">Установить виджет СТС</span>
+          <span class="shortcut-btn-arrow">→</span>
+        </button>
+        <button class="shortcut-btn" onclick="openShortcut('osago')">
+          <span class="shortcut-btn-icon">🛡️</span>
+          <span class="shortcut-btn-text">Установить виджет ОСАГО</span>
+          <span class="shortcut-btn-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="icon-generator">
+        <div class="icon-generator-title">Подготовить картинку для виджета</div>
+        <div class="icon-generator-hint">Загрузите фото мотоцикла, чтобы создать иконку для виджета</div>
+        <button class="btn-secondary" onclick="document.getElementById('icon-input').click()">Выбрать фото</button>
+        <input type="file" id="icon-input" accept="image/*" onchange="generateIcon(this)">
+        <div class="icon-generator-result" id="icon-result">
+          <img id="icon-result-img" src="" alt="">
+          <div class="icon-generator-instruction">
+            Зажмите фото пальцем и выберите "Сохранить", чтобы использовать его как иконку в приложении Команды
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ЭКРАН ОНБОРДИНГА ===== -->
+  <div id="screen-onboarding" class="screen">
+    <div class="onboarding-header">
+      <div class="onboarding-step-indicator">
+        <div class="step-dot active" id="step-dot-1"></div>
+        <div class="step-dot" id="step-dot-2"></div>
+        <div class="step-dot" id="step-dot-3"></div>
+      </div>
+      <div class="onboarding-title" id="onboarding-title">Добро пожаловать!</div>
+      <div class="onboarding-subtitle" id="onboarding-subtitle">Давайте настроим ваше приложение</div>
+    </div>
+    <div class="onboarding-content" id="onboarding-content">
+      <!-- Шаг 1: Приветствие -->
+      <div id="onboarding-step-1">
+        <div class="welcome-emoji">🏍️</div>
+        <div class="welcome-text">
+          МотоБардачок — это безопасное офлайн-хранилище документов на ваш мотоцикл.
+          Все данные хранятся только на вашем устройстве.
+        </div>
+        <div class="feature-list">
+          <div class="feature-item">
+            <span class="feature-icon">🔒</span>
+            <div class="feature-text"><strong>Полностью офлайн</strong>Работает без интернета</div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📱</span>
+            <div class="feature-text"><strong>Оптимизировано для iOS</strong>Быстрый и удобный интерфейс</div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📸</span>
+            <div class="feature-text"><strong>Сканирование текста</strong>Автоматическое распознавание</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Шаг 2: Заполнение документов -->
+      <div id="onboarding-step-2" style="display: none;">
+        <div class="form-section">
+          <div class="form-section-title">Водительское удостоверение (ВУ)</div>
+          <div class="form-card">
+            <textarea class="doc-text" id="onboarding-vu-text" placeholder="Введите данные ВУ..."></textarea>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">Свидетельство о регистрации (СТС)</div>
+          <div class="form-card">
+            <textarea class="doc-text" id="onboarding-sts-text" placeholder="Введите данные СТС..."></textarea>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">Страховой полис (ОСАГО)</div>
+          <div class="form-card">
+            <textarea class="doc-text" id="onboarding-osago-text" placeholder="Введите данные ОСАГО..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Шаг 3: Шорткаты -->
+      <div id="onboarding-step-3" style="display: none;">
+        <div class="shortcuts-section">
+          <div class="shortcuts-title">Вынести на экран Домого</div>
+          <div class="shortcuts-subtitle">Добавьте виджеты для быстрого доступа к документам</div>
+          <button class="shortcut-btn" onclick="openShortcut('vu')">
+            <span class="shortcut-btn-icon">🎫</span>
+            <span class="shortcut-btn-text">Установить виджет ВУ</span>
+            <span class="shortcut-btn-arrow">→</span>
+          </button>
+          <button class="shortcut-btn" onclick="openShortcut('sts')">
+            <span class="shortcut-btn-icon">📋</span>
+            <span class="shortcut-btn-text">Установить виджет СТС</span>
+            <span class="shortcut-btn-arrow">→</span>
+          </button>
+          <button class="shortcut-btn" onclick="openShortcut('osago')">
+            <span class="shortcut-btn-icon">🛡️</span>
+            <span class="shortcut-btn-text">Установить виджет ОСАГО</span>
+            <span class="shortcut-btn-arrow">→</span>
+          </button>
+        </div>
+        <div class="icon-generator">
+          <div class="icon-generator-title">Подготовить картинку для виджета</div>
+          <div class="icon-generator-hint">Загрузите фото мотоцикла, чтобы создать иконку для виджета</div>
+          <button class="btn-secondary" onclick="document.getElementById('onboarding-icon-input').click()">Выбрать фото</button>
+          <input type="file" id="onboarding-icon-input" accept="image/*" onchange="generateIcon(this)">
+          <div class="icon-generator-result" id="onboarding-icon-result">
+            <img id="onboarding-icon-result-img" src="" alt="">
+            <div class="icon-generator-instruction">
+              Зажмите фото пальцем и выберите "Сохранить", чтобы использовать его как иконку в приложении Команды
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="onboarding-footer">
+      <button class="btn-primary" id="onboarding-next-btn" onclick="nextOnboardingStep()">Далее</button>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast">Уведомление</div>
+
+  <!-- ===== CANVAS ДЛЯ ОБРАБОТКИ ИЗОБРАЖЕНИЙ ===== -->
+  <canvas id="processing-canvas"></canvas>
+
+</div>
+
+<script>
+  // ===== КОНФИГУРАЦИЯ =====
+  const DB_NAME = 'MotoDocsDB';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'documents';
+  const MAX_IMAGE_SIZE = 1200;
+  const IMAGE_QUALITY = 0.8;
+
+  const SHORTCUT_LINKS = {
+    vu: 'https://www.icloud.com/shortcuts/a2f81024931747d392c07a9538bfa7df',
+    sts: 'https://www.icloud.com/shortcuts/094a5de59f3047feaf707ffe5189f6bc',
+    osago: 'https://www.icloud.com/shortcuts/90958801b98c4fd1a3a79740e05fb41b'
+  };
+
+  const DOC_TITLES = {
+    vu: 'ВУ',
+    sts: 'СТС',
+    osago: 'ОСАГО',
+    pts: 'ПТС'
+  };
+
+  const DOC_COLORS = {
+    vu: 'accent-vu',
+    sts: 'accent-sts',
+    osago: 'accent-osago',
+    pts: 'accent-pts'
+  };
+
+  // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+  let db = null;
+  let currentDocId = null;
+  let currentSettingsDoc = 'vu';
+  let onboardingStep = 1;
+  let tempPhotos = { front: null, back: null };
+  let currentPhotoBlob = null;
+
+  // ===== INDEXEDDB WRAPPER =====
+  class DBWrapper {
+    constructor() {
+      this.db = null;
+    }
+
+    async init() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          this.db = request.result;
+          resolve(this.db);
+        };
+
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+            store.createIndex('id', 'id', { unique: true });
+          }
+        };
+      });
+    }
+
+    async get(key) {
+      return new Promise((resolve, reject) => {
+        const transaction = this.db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(key);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+    }
+
+    async set(data) {
+      return new Promise((resolve, reject) => {
+        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.put(data);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+    }
+
+    async getAll() {
+      return new Promise((resolve, reject) => {
+        const transaction = this.db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+    }
+  }
+
+  const dbWrapper = new DBWrapper();
+
+  // ===== ИНИЦИАЛИЗАЦИЯ =====
+  async function initApp() {
+    try {
+      await dbWrapper.init();
+      await checkFirstRun();
+      await updateHomeScreenStatus();
+      hideLoader();
+    } catch (error) {
+      console.error('Ошибка инициализации:', error);
+      showToast('Ошибка инициализации приложения');
+    }
+  }
+
+  function hideLoader() {
+    const loader = document.getElementById('loader');
+    loader.style.opacity = '0';
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 300);
+  }
+
+  // ===== ПРОВЕРКА ПЕРВОГО ЗАПУСКА =====
+  async function checkFirstRun() {
+    const appState = await dbWrapper.get('appState');
+    if (!appState || appState.isFirstRun) {
+      navigate('onboarding');
+    } else {
+      navigate('');
+    }
+  }
+
+  async function completeOnboarding() {
+    await dbWrapper.set({ id: 'appState', isFirstRun: false });
+    navigate('');
+  }
+
+  // ===== РОУТИНГ =====
+  function navigate(hash) {
+    window.location.hash = hash;
+  }
+
+  function handleHashChange() {
+    const hash = window.location.hash.slice(1) || '';
+    
+    // Скрываем все экраны
+    document.querySelectorAll('.screen').forEach(screen => {
+      screen.classList.remove('active');
+    });
+
+    // Показываем нужный экран
+    if (hash === '' || hash === 'home') {
+      showScreen('screen-home');
+      updateHomeScreenStatus();
+    } else if (['vu', 'sts', 'osago', 'pts'].includes(hash)) {
+      showScreen('screen-doc');
+      loadDocument(hash);
+    } else if (hash === 'settings') {
+      showScreen('screen-settings');
+      loadSettings();
+    } else if (hash === 'onboarding') {
+      showScreen('screen-onboarding');
+      resetOnboarding();
+    }
+  }
+
+  function showScreen(screenId) {
+    const screen = document.getElementById(screenId);
+    if (screen) {
+      screen.classList.add('active');
+    }
+  }
+
+  // ===== ЗАГРУЗКА ДОКУМЕНТА =====
+  async function loadDocument(docId) {
+    currentDocId = docId;
+    const doc = await dbWrapper.get(docId);
+    
+    // Обновляем заголовок
+    const titleEl = document.getElementById('doc-title');
+    titleEl.textContent = DOC_TITLES[docId];
+    titleEl.className = `doc-header-title ${DOC_COLORS[docId]}`;
+
+    // Обновляем текст
+    const textEl = document.getElementById('doc-text');
+    if (doc && doc.textData) {
+      textEl.textContent = doc.textData;
+      textEl.classList.remove('doc-text-empty');
+    } else {
+      textEl.textContent = 'Документ не заполнен';
+      textEl.classList.add('doc-text-empty');
+    }
+
+    // Обновляем фото
+    updatePhotoDisplay('front', doc ? doc.photoFront : null);
+    updatePhotoDisplay('back', doc ? doc.photoBack : null);
+  }
+
+  function updatePhotoDisplay(side, blob) {
+    const emptyEl = document.getElementById(`photo-${side}-empty`);
+    const imgEl = document.getElementById(`photo-${side}-img`);
+
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      imgEl.src = url;
+      imgEl.style.display = 'block';
+      emptyEl.style.display = 'none';
+      currentPhotoBlob = blob;
+    } else {
+      imgEl.style.display = 'none';
+      emptyEl.style.display = 'flex';
+      currentPhotoBlob = null;
+    }
+  }
+
+  // ===== ОБНОВЛЕНИЕ СТАТУСА НА ГЛАВНОМ ЭКРАНЕ =====
+  async function updateHomeScreenStatus() {
+    const docs = ['vu', 'sts', 'osago'];
+    
+    for (const docId of docs) {
+      const doc = await dbWrapper.get(docId);
+      const statusEl = document.getElementById(`status-${docId}`);
+      
+      if (doc && (doc.textData || doc.photoFront || doc.photoBack)) {
+        statusEl.textContent = 'Заполнено';
+        statusEl.className = 'doc-btn-status status-filled';
+      } else {
+        statusEl.textContent = 'Не заполнено';
+        statusEl.className = 'doc-btn-status status-empty';
+      }
+    }
+  }
+
+  // ===== НАСТРОЙКИ =====
+  async function loadSettings() {
+    selectSettingsDoc(currentSettingsDoc);
+  }
+
+  function selectSettingsDoc(docId) {
+    currentSettingsDoc = docId;
+    
+    // Обновляем табы
+    document.querySelectorAll('.settings-doc-tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Загружаем данные документа
+    loadDocumentToSettings(docId);
+  }
+
+  async function loadDocumentToSettings(docId) {
+    const doc = await dbWrapper.get(docId);
+    
+    const textEl = document.getElementById('settings-doc-text');
+    textEl.value = doc ? doc.textData : '';
+
+    tempPhotos.front = doc ? doc.photoFront : null;
+    tempPhotos.back = doc ? doc.photoBack : null;
+
+    updateSettingsPhotoPreview('front');
+    updateSettingsPhotoPreview('back');
+  }
+
+  function updateSettingsPhotoPreview(side) {
+    const previewEl = document.getElementById(`settings-photo-${side}-preview`);
+    
+    if (tempPhotos[side]) {
+      const url = URL.createObjectURL(tempPhotos[side]);
+      previewEl.innerHTML = `<img src="${url}" alt="">`;
+    } else {
+      previewEl.innerHTML = '<span class="photo-upload-preview-icon">📷</span>';
+    }
+  }
+
+  async function saveCurrentDoc() {
+    const textData = document.getElementById('settings-doc-text').value;
+    
+    const docData = {
+      id: currentSettingsDoc,
+      textData: textData,
+      photoFront: tempPhotos.front,
+      photoBack: tempPhotos.back
+    };
+
+    await dbWrapper.set(docData);
+    showToast('Документ сохранен');
+    await updateHomeScreenStatus();
+  }
+
+  function editCurrentDoc() {
+    navigate('settings');
+    setTimeout(() => {
+      selectSettingsDoc(currentDocId);
+    }, 100);
+  }
+
+  // ===== ОБРАБОТКА ИЗОБРАЖЕНИЙ =====
+  async function handlePhotoUpload(side, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    try {
+      const blob = await compressImage(file);
+      tempPhotos[side] = blob;
+      updateSettingsPhotoPreview(side);
+      input.value = '';
+    } catch (error) {
+      console.error('Ошибка обработки изображения:', error);
+      showToast('Ошибка обработки изображения');
+    }
+  }
+
+  async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const canvas = document.getElementById('processing-canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        // Масштабируем если нужно
+        if (width > MAX_IMAGE_SIZE || height > MAX_IMAGE_SIZE) {
+          if (width > height) {
+            height = (height / width) * MAX_IMAGE_SIZE;
+            width = MAX_IMAGE_SIZE;
+          } else {
+            width = (width / height) * MAX_IMAGE_SIZE;
+            height = MAX_IMAGE_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Не удалось создать blob'));
+            }
+          },
+          'image/jpeg',
+          IMAGE_QUALITY
+        );
+      };
+
+      img.onerror = () => reject(new Error('Не удалось загрузить изображение'));
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  // ===== ГЕНЕРАТОР ИКОНОК =====
+  async function generateIcon(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    try {
+      const canvas = document.getElementById('processing-canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        const size = 500;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Рисуем фото
+        ctx.drawImage(img, 0, 0, size, size);
+
+        // Добавляем затемнение
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, size, size);
+
+        // Добавляем текст
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 120px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(currentSettingsDoc.toUpperCase(), size / 2, size / 2);
+
+        // Сохраняем результат
+        const resultImg = document.getElementById('icon-result-img');
+        const onboardingResultImg = document.getElementById('onboarding-icon-result-img');
+        
+        const dataUrl = canvas.toDataURL('image/png', 0.9);
+        resultImg.src = dataUrl;
+        onboardingResultImg.src = dataUrl;
+
+        document.getElementById('icon-result').classList.add('visible');
+        document.getElementById('onboarding-icon-result').classList.add('visible');
+
+        input.value = '';
+      };
+
+      img.onerror = () => showToast('Ошибка загрузки изображения');
+      img.src = URL.createObjectURL(file);
+    } catch (error) {
+      console.error('Ошибка генерации иконки:', error);
+      showToast('Ошибка генерации иконки');
+    }
+  }
+
+  // ===== PHOTO VIEWER =====
+  function openPhotoViewer(side) {
+    const imgEl = document.getElementById(`photo-${side}-img`);
+    if (imgEl.style.display === 'none') return;
+
+    const viewer = document.getElementById('photo-viewer');
+    const viewerImg = document.getElementById('photo-viewer-img');
+    
+    viewerImg.src = imgEl.src;
+    viewer.classList.add('active');
+    
+    // Сбрасываем зум
+    viewerImg.style.transform = 'scale(1)';
+  }
+
+  function closePhotoViewer() {
+    const viewer = document.getElementById('photo-viewer');
+    viewer.classList.remove('active');
+  }
+
+  // ===== PINCH TO ZOOM =====
+  let initialDistance = 0;
+  let initialScale = 1;
+
+  function setupPinchZoom() {
+    const viewer = document.getElementById('photo-viewer');
+    const viewerImg = document.getElementById('photo-viewer-img');
+
+    viewer.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        initialDistance = getDistance(e.touches);
+        initialScale = getCurrentScale(viewerImg);
+      }
+    });
+
+    viewer.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const currentDistance = getDistance(e.touches);
+        const scale = initialScale * (currentDistance / initialDistance);
+        viewerImg.style.transform = `scale(${Math.min(Math.max(scale, 1), 5)})`;
+      }
+    });
+
+    // Свайп вниз для закрытия
+    let startY = 0;
+    viewer.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        startY = e.touches[0].clientY;
+      }
+    });
+
+    viewer.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length === 1) {
+        const endY = e.changedTouches[0].clientY;
+        if (endY - startY > 100) {
+          closePhotoViewer();
+        }
+      }
+    });
+
+    // Клик по пустому месту для закрытия
+    viewer.addEventListener('click', (e) => {
+      if (e.target === viewer) {
+        closePhotoViewer();
+      }
+    });
+  }
+
+  function getDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function getCurrentScale(element) {
+    const transform = element.style.transform;
+    const match = transform.match(/scale\(([\d.]+)\)/);
+    return match ? parseFloat(match[1]) : 1;
+  }
+
+  // ===== ШОРТКАТЫ =====
+  function openShortcut(docId) {
+    const url = SHORTCUT_LINKS[docId];
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
+
+  // ===== ОНБОРДИНГ =====
+  function resetOnboarding() {
+    onboardingStep = 1;
+    updateOnboardingUI();
+  }
+
+  function nextOnboardingStep() {
+    if (onboardingStep === 1) {
+      onboardingStep = 2;
+      updateOnboardingUI();
+    } else if (onboardingStep === 2) {
+      // Сохраняем данные
+      saveOnboardingData();
+      onboardingStep = 3;
+      updateOnboardingUI();
+    } else if (onboardingStep === 3) {
+      completeOnboarding();
+    }
+  }
+
+  function updateOnboardingUI() {
+    // Обновляем индикатор шагов
+    for (let i = 1; i <= 3; i++) {
+      const dot = document.getElementById(`step-dot-${i}`);
+      dot.classList.remove('active', 'done');
+      if (i < onboardingStep) {
+        dot.classList.add('done');
+      } else if (i === onboardingStep) {
+        dot.classList.add('active');
+      }
+    }
+
+    // Обновляем заголовок и подзаголовок
+    const titleEl = document.getElementById('onboarding-title');
+    const subtitleEl = document.getElementById('onboarding-subtitle');
+    const nextBtn = document.getElementById('onboarding-next-btn');
+
+    // Скрываем все шаги
+    document.getElementById('onboarding-step-1').style.display = 'none';
+    document.getElementById('onboarding-step-2').style.display = 'none';
+    document.getElementById('onboarding-step-3').style.display = 'none';
+
+    if (onboardingStep === 1) {
+      titleEl.textContent = 'Добро пожаловать!';
+      subtitleEl.textContent = 'Давайте настроим ваше приложение';
+      nextBtn.textContent = 'Далее';
+      document.getElementById('onboarding-step-1').style.display = 'block';
+    } else if (onboardingStep === 2) {
+      titleEl.textContent = 'Заполните документы';
+      subtitleEl.textContent = 'Введите данные ваших документов';
+      nextBtn.textContent = 'Далее';
+      document.getElementById('onboarding-step-2').style.display = 'block';
+    } else if (onboardingStep === 3) {
+      titleEl.textContent = 'Готово!';
+      subtitleEl.textContent = 'Добавьте виджеты на экран Домого';
+      nextBtn.textContent = 'Начать использование';
+      document.getElementById('onboarding-step-3').style.display = 'block';
+    }
+  }
+
+  async function saveOnboardingData() {
+    const vuText = document.getElementById('onboarding-vu-text').value;
+    const stsText = document.getElementById('onboarding-sts-text').value;
+    const osagoText = document.getElementById('onboarding-osago-text').value;
+
+    if (vuText) {
+      await dbWrapper.set({ id: 'vu', textData: vuText, photoFront: null, photoBack: null });
+    }
+    if (stsText) {
+      await dbWrapper.set({ id: 'sts', textData: stsText, photoFront: null, photoBack: null });
+    }
+    if (osagoText) {
+      await dbWrapper.set({ id: 'osago', textData: osagoText, photoFront: null, photoBack: null });
+    }
+  }
+
+  // ===== TOAST =====
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  // ===== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ =====
+  document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+    setupPinchZoom();
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+  });
+</script>
+
+</body>
+</html>
