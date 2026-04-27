@@ -1,23 +1,29 @@
 # Active Context
 
 ## Current State
-v1.0 fully implemented and installed on the machine.  
-Binary at `/usr/local/bin/startwatch`, LaunchAgent loaded.
+v2.0 menu bar app полностью реализован и работает.
+Иконка в menu bar отображается. Daemon + menu-agent работают как два процесса.
 
 ## Last Session Work
-- Built full project from scratch (Phases 0–7): all source files, tests, install script
-- Fixed build errors: removed `-parse-as-library`, removed `@MainActor` from AppDelegate/MenuBarController
-- Fixed `UNUserNotificationCenter` crash in CLI mode (guard on `Bundle.main.bundleIdentifier`)
-- Fixed `install.sh` zsh color syntax (`$'\033'`)
-- 19/19 tests passing, `swift build` clean (warnings only)
-- User ran `bash install.sh` successfully — binary installed, LaunchAgent loaded
-- `startwatch status` works, `startwatch doctor` works (no crash)
+- Реализованы все 10 шагов плана (menu bar app refactor)
+- Создан `Resources/StartWatchMenu-Info.plist` (LSUIElement=YES)
+- `install.sh` собирает `~/Applications/StartWatchMenu.app` bundle
+- Добавлен `ProcessManager` (старт/стоп/рестарт сервисов без терминала)
+- IPC расширен: `start_service`, `stop_service`, `restart_service`
+- `DaemonCoordinator` подключён к `ProcessManager` через IPC callbacks
+- `ConfigEditorWindow` — NSPanel с NSTextView для редактирования JSON конфига
+- `MenuBarController` — подменю (Запустить/Остановить/Перезапустить) на каждый сервис
+- `MenuAgentDelegate` — подключён config editor и кнопки сервисов
+- Исправлен краш `NotificationManager` в daemon mode (guard on bundleIdentifier)
+- Исправлен баг: `.app` bundle запускается через `open -na` (не прямой Process())
 
-## Pending (approved plan: `/Users/agaibadulin/.claude/plans/flickering-toasting-star.md`)
-1. **Create `README.md`** — onboarding docs (install, config guide, CLI reference, troubleshooting)
-2. **Fix `install.sh` build output** — redirect warnings to `/tmp/startwatch-build.log`, only show on error
-3. **Fix `install.sh` daemon startup** — add `launchctl kickstart` after bootstrap so daemon starts immediately without reboot
+## Why Icon Wasn't Showing — Root Causes
+1. Бинарник без `.app` bundle → macOS не регистрирует NSStatusItem
+2. Старый binary в `StartWatchMenu.app/Contents/MacOS/` после `sudo cp` к `/usr/local/bin`
+3. `NotificationManager.shared` вызывался без bundleIdentifier → краш daemon
 
-## Known Issues
-- `startwatch doctor` shows `✗ Daemon is running` — LaunchAgent loaded but daemon not actually running (needs kickstart or relogin)
-- Swift concurrency warnings in `ServiceChecker.swift` (captured `resumed` var) — warnings only, safe in Swift 5.9
+## Pending (v2.1 backlog)
+- Исправить `representedObject = ("start", name)` в MenuBarController — Swift tuple не bridging через ObjC id, заменить на struct
+- Unix socket IPC (вместо file-based)
+- Swift 6 concurrency fix в ServiceChecker
+- Настройки окно (SwiftUI)

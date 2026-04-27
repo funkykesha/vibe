@@ -114,6 +114,13 @@
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/HistoryLogger.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/HistoryLogger.dia"
   },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ProcessManager.swift": {
+    "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ProcessManager.d",
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ProcessManager.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ProcessManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ProcessManager.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ProcessManager.dia"
+  },
   "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift": {
     "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ServiceChecker.d",
     "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ServiceChecker.swift.o",
@@ -176,6 +183,20 @@
     "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/IPCServer~partial.swiftmodule",
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/IPCServer.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/IPCServer.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift": {
+    "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentCommand.d",
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift": {
+    "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentDelegate.d",
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentDelegate.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentDelegate.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentDelegate.dia"
   },
   "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Notifications/NotificationManager.swift": {
     "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/NotificationManager.d",

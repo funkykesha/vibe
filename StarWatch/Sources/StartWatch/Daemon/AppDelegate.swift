@@ -6,6 +6,7 @@ final class DaemonCoordinator {
     private var ipcServer: IPCServer!
     private var config: AppConfig?
     private var menuAgentProcess: Process?
+    private var processManager = ProcessManager()
 
     func start() {
         ipcServer = IPCServer()
@@ -17,6 +18,21 @@ final class DaemonCoordinator {
         }
 
         ipcServer.onTriggerCheck = { [weak self] in self?.runCheck() }
+
+        ipcServer.onStartService = { [weak self] name in
+            guard let svc = self?.config?.services.first(where: { $0.name == name }) else { return }
+            self?.processManager.start(service: svc)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { self?.runCheck() }
+        }
+        ipcServer.onStopService = { [weak self] name in
+            self?.processManager.stop(name: name)
+        }
+        ipcServer.onRestartService = { [weak self] name in
+            guard let svc = self?.config?.services.first(where: { $0.name == name }) else { return }
+            self?.processManager.restart(service: svc)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { self?.runCheck() }
+        }
+
         ipcServer.start()
 
         spawnMenuAgent()
@@ -49,10 +65,12 @@ final class DaemonCoordinator {
     }
 
     private func spawnMenuAgent() {
-        let binaryPath = ProcessInfo.processInfo.arguments[0]
+        let appPath = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Applications/StartWatchMenu.app").path
+
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: binaryPath)
-        process.arguments = ["menu-agent"]
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-na", appPath, "--args", "menu-agent"]
         process.terminationHandler = { [weak self] _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self?.spawnMenuAgent()

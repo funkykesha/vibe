@@ -92,6 +92,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ProcessManager.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift"
         },
         {
@@ -125,6 +129,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCServer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift"
         },
         {
           "kind" : "file",
@@ -199,6 +207,7 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckResult.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/Config.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceRunner.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StateManager.swift.o",
@@ -208,6 +217,7 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCClient.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCMessage.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager.swift.o",
@@ -334,6 +344,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o"
         },
         {
@@ -367,6 +381,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o"
         },
         {
           "kind" : "file",
@@ -435,6 +453,7 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/CheckResult.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/Config.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/HistoryLogger.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ProcessManager.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceRunner.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/StateManager.swift",
@@ -444,6 +463,7 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCClient.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCMessage.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCServer.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Notifications/NotificationManager.swift",
@@ -694,6 +714,7 @@
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/CheckResult.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/Config.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/HistoryLogger.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ProcessManager.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceRunner.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/StateManager.swift",
@@ -703,6 +724,7 @@
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCClient.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCMessage.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCServer.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Notifications/NotificationManager.swift",
@@ -990,6 +1012,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ProcessManager.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift"
         },
         {
@@ -1023,6 +1049,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCServer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift"
         },
         {
           "kind" : "file",
@@ -1124,6 +1154,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.swift.o"
         },
         {
@@ -1173,6 +1207,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.swift.o"
         },
         {
           "kind" : "file",
@@ -1292,6 +1330,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.swift.o"
         },
         {
@@ -1341,6 +1383,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.swift.o"
         },
         {
           "kind" : "file",

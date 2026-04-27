@@ -5,6 +5,7 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController!
     private var pollTimer: Timer?
     private var previousFailedNames: Set<String> = []
+    private var configEditor = ConfigEditorWindow()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         menuBar = MenuBarController()
@@ -29,9 +30,13 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
             TerminalLauncher.openCLI(config: config)
         }
 
-        menuBar.onOpenConfig = {
-            NSWorkspace.shared.open(ConfigManager.configURL)
+        menuBar.onOpenConfig = { [weak self] in
+            self?.configEditor.show()
         }
+
+        menuBar.onStartService = { name in IPCClient.send(.startService(name: name)) }
+        menuBar.onStopService  = { name in IPCClient.send(.stopService(name: name)) }
+        menuBar.onRestartService = { name in IPCClient.send(.restartService(name: name)) }
 
         menuBar.onQuit = {
             MenuAgentIPC.send(action: "quit")

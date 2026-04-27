@@ -42,8 +42,20 @@ enum IPCClient {
         case .triggerCheck:
             let flagFile = StateManager.stateDir.appendingPathComponent("trigger_check")
             FileManager.default.createFile(atPath: flagFile.path, contents: nil)
+        case .startService(let name):
+            writeCommand(["action": "start_service", "name": name])
+        case .stopService(let name):
+            writeCommand(["action": "stop_service", "name": name])
+        case .restartService(let name):
+            writeCommand(["action": "restart_service", "name": name])
         default:
             break
         }
+    }
+
+    private static func writeCommand(_ payload: [String: String]) {
+        guard let data = try? JSONEncoder().encode(payload) else { return }
+        let url = StateManager.stateDir.appendingPathComponent("menu_command.json")
+        try? data.write(to: url, options: .atomic)
     }
 }

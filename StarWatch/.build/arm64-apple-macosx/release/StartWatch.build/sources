@@ -14,6 +14,7 @@
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/CheckResult.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/Config.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/HistoryLogger.swift
+/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ProcessManager.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceRunner.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/StateManager.swift
@@ -23,6 +24,7 @@
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCClient.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCMessage.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCServer.swift
+/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift
 /Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Notifications/NotificationManager.swift

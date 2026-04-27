@@ -24,7 +24,10 @@ bash install.sh              # builds, installs to /usr/local/bin, sets up Launc
 | `~/.local/state/startwatch/last_check.json` | IPC cache |
 | `~/.local/state/startwatch/history.log` | Check history |
 | `~/.local/state/startwatch/trigger_check` | IPC flag file |
+| `~/.local/state/startwatch/menu_command.json` | IPC commands (start/stop/restart) |
 | `~/Library/LaunchAgents/com.user.startwatch.plist` | Auto-start |
+| `~/Applications/StartWatchMenu.app/` | Menu bar .app bundle |
+| `~/Applications/StartWatchMenu.app/Contents/MacOS/startwatch` | Binary inside bundle (must be updated separately from /usr/local/bin!) |
 
 ## Requirements
 - macOS 13+

@@ -874,8 +874,8 @@ async function loadModels() {
     const res = await fetch('/api/models');
     const data = await res.json();
 
-    if (data.pending) {
-      allModels = [];
+    if (!data.validated) {
+      allModels = data.models || [];
       countEl.textContent = 'проверяются';
       select.innerHTML = '<option value="">— проверка моделей —</option>';
       setStatus('Список моделей еще формируется фоновым тестом');
@@ -1129,30 +1129,37 @@ async function sendMessage() {
 }
 
 function processResponse(content) {
-  // Extract groovy-cube block first, then exclude it from main extraction
+  const cubeType = document.getElementById('cube-type').value;
+  const isProcessCube = cubeType === 'json-process' || cubeType === 'json-process-multi';
+
+  // Extract groovy-cube block
   const cubeMatch = content.match(/```groovy-cube\n([\s\S]*?)```/);
+  const cubeCode = cubeMatch ? cubeMatch[1].trim() : null;
   const cubePanel = document.getElementById('cube-code-panel');
-  if (cubeMatch && cubeMatch[1]) {
-    document.getElementById('cube-code-out').textContent = cubeMatch[1].trim();
+  if (cubeCode) {
+    document.getElementById('cube-code-out').textContent = cubeCode;
     cubePanel.style.display = '';
   } else {
     cubePanel.style.display = 'none';
   }
 
+  // json-process: cube code goes into editor (it IS the working code)
+  // json-filter/map: groovy block (test wrapper) goes into editor
+  let code = isProcessCube && cubeCode ? cubeCode : null;
+
   const strippedContent = content.replace(/```groovy-cube\n[\s\S]*?```/g, '');
   const allBlocks = [...strippedContent.matchAll(/```(?:groovy|java|)\n([\s\S]*?)```/g)];
-  let code = null;
-  if (allBlocks.length > 0) {
+  if (!code && allBlocks.length > 0) {
     const largest = allBlocks.reduce((a, b) => b[1].length > a[1].length ? b : a);
     code = largest[1].trim();
   }
-  let explanation = strippedContent;
-  if (code) {
-    explanation = strippedContent.replace(/```(?:groovy|java|)\n[\s\S]*?```/g, (match) => {
-      const lines = match.split('\n').length - 2;
-      return `\n*[Код обновлён — ${lines} строк]*\n`;
-    });
-  }
+
+  const blockLabel = isProcessCube ? 'Код кубика' : 'Код обновлён';
+  const explanation = strippedContent.replace(/```(?:groovy|java|)\n[\s\S]*?```/g, (match) => {
+    const lines = match.split('\n').length - 2;
+    return `\n*[${blockLabel} — ${lines} строк]*\n`;
+  });
+
   return { code, html: marked.parse(explanation.trim()) };
 }
 

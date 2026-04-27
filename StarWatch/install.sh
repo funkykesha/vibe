@@ -80,20 +80,22 @@ else
         ok "LaunchAgent reloaded" || warn "LaunchAgent reload failed"
 fi
 
-# 7. Start daemon immediately
-launchctl kickstart -k "gui/$(id -u)/$PLIST_LABEL" 2>/dev/null || true
-sleep 2
-if pgrep -f "startwatch daemon" > /dev/null 2>&1; then
-    ok "Daemon started"
+# 7. Build StartWatchMenu.app bundle
+MENU_APP="$HOME/Applications/StartWatchMenu.app"
+mkdir -p "$MENU_APP/Contents/MacOS"
+if [[ -w "$MENU_APP/Contents/MacOS" ]]; then
+    cp "$BINARY_PATH" "$MENU_APP/Contents/MacOS/startwatch"
 else
-    warn "Daemon will start on next login (or run: startwatch daemon &)"
+    sudo cp "$BINARY_PATH" "$MENU_APP/Contents/MacOS/startwatch"
 fi
+cp "Resources/StartWatchMenu-Info.plist" "$MENU_APP/Contents/Info.plist"
+ok "StartWatchMenu.app installed at $MENU_APP"
 
 echo ""
 echo "Installation complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Edit config:   startwatch config"
-echo "  2. Check status:  startwatch doctor"
-echo "  3. View services: startwatch status"
+echo "  2. Start daemon:  startwatch daemon &"
+echo "  3. Check status:  startwatch doctor"
 echo ""

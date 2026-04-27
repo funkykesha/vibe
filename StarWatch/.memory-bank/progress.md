@@ -1,26 +1,26 @@
 # Progress
 
 ## Done
-- [x] Phase 0: Package.swift, Config models, ConfigManager, config.example.json
-- [x] Phase 1: ServiceChecker (4 types), ServiceRunner, StateManager, HistoryLogger, AsyncHelpers
-- [x] Phase 2: ANSIColors, TableFormatter, ReportBuilder, CLIRouter, all 8 CLI commands
-- [x] Phase 3: AppDelegate, MenuBarController, CheckScheduler
-- [x] Phase 4: TerminalProtocol + 5 adapters (Warp/iTerm/Terminal/Alacritty/Kitty), TerminalLauncher
-- [x] Phase 5: NotificationManager (UNUserNotificationCenter, categories, actions)
-- [x] Phase 6: IPCMessage, IPCClient (file-based), IPCServer (flag polling)
-- [x] Phase 7: main.swift routing, com.user.startwatch.plist, install.sh
-- [x] Tests: ConfigTests, ServiceCheckerTests, FormattingTests (19/19 pass)
-- [x] Build fixes: -parse-as-library removed, @MainActor issue fixed
-- [x] Runtime fixes: notification crash in CLI, install.sh color codes
-- [x] Installed on machine and verified working
+- [x] Phase 0–7: все исходные файлы, тесты, install script (v1.0)
+- [x] Build fixes, runtime fixes, установка на машину (v1.0)
+- [x] **v2.0: Menu bar app refactor**
+  - [x] `Resources/StartWatchMenu-Info.plist`
+  - [x] `install.sh` — `.app` bundle сборка
+  - [x] `Core/ProcessManager.swift` — старт/стоп/рестарт без терминала
+  - [x] IPC расширен (`start_service`, `stop_service`, `restart_service`)
+  - [x] `DaemonCoordinator` подключён к ProcessManager
+  - [x] `MenuAgent/ConfigEditorWindow.swift` — NSPanel JSON editor
+  - [x] `MenuBarController` — подменю per-service
+  - [x] `MenuAgentDelegate` — editor + service buttons
+  - [x] `NotificationManager` crash fix (bundleIdentifier guard)
+  - [x] Иконка в menu bar работает
 
 ## In Progress
-- [ ] README.md (approved, not started)
-- [ ] install.sh: suppress build warnings
-- [ ] install.sh: auto-start daemon via kickstart
+- [ ] Проверить кнопки Запустить/Остановить/Перезапустить через UI
 
-## Backlog (v1.1)
-- Unix socket IPC (replace file-based)
-- Swift 6 concurrency fix in ServiceChecker (replace DispatchWorkItem with actor)
-- Settings window (SwiftUI)
-- TOML/YAML config support
+## Backlog (v2.1)
+- [ ] Fix `representedObject` tuple bridging в MenuBarController (заменить на struct)
+- [ ] Unix socket IPC (вместо file-based polling)
+- [ ] Swift 6 concurrency fix в ServiceChecker
+- [ ] Settings window (SwiftUI)
+- [ ] README.md (onboarding)

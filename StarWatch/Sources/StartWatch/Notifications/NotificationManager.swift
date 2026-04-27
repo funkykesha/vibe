@@ -14,6 +14,8 @@ final class NotificationManager: NSObject {
 
     private override init() {
         super.init()
+        // UNUserNotificationCenter crashes without .app bundle (no bundleIdentifier)
+        guard Bundle.main.bundleIdentifier != nil else { return }
         setupCategories()
     }
 

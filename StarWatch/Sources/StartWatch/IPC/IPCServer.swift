@@ -4,6 +4,9 @@ import Foundation
 final class IPCServer {
     private var timer: Timer?
     var onTriggerCheck: (() -> Void)?
+    var onStartService: ((String) -> Void)?
+    var onStopService: ((String) -> Void)?
+    var onRestartService: ((String) -> Void)?
 
     func start() {
         timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
@@ -36,6 +39,12 @@ final class IPCServer {
         switch cmd.action {
         case "check_now":
             onTriggerCheck?()
+        case "start_service":
+            if let name = cmd.name { onStartService?(name) }
+        case "stop_service":
+            if let name = cmd.name { onStopService?(name) }
+        case "restart_service":
+            if let name = cmd.name { onRestartService?(name) }
         case "quit":
             exit(0)
         default:
@@ -50,4 +59,5 @@ final class IPCServer {
 
 private struct MenuAgentIPCCommand: Codable {
     let action: String
+    let name: String?
 }

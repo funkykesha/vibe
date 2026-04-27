@@ -1,202 +1,213 @@
-# Plan: Backlog — cube selector, export CSV/XLSX
+# Plan: Request Analytics
 
 ## Context
 
-Backlog содержит 4 пункта. Пункты 1–2 связаны с выбором типа «кубика» (интеграционного блока в pipeline). Пункты 3–4 — экспорт результата. Google Sheets (п.4) заменён на XLSX.
-
-Кубики: **Json Filter** (предикат `_`), **Json Map** (трансформация `_`), **Json Process** (полный скрипт), **Json Process multi-input** (массив входов).
+В groovy_agent нет аналитики запросов. Пользователь не видит, сколько токенов потрачено, какие модели и кубики используются, насколько успешны запросы. Нужна минимальная система: лог на диск + эндпоинт + простая UI-панель.
 
 ---
 
-## Feature 1: Cube Type Selector + system prompt
+## Scope
 
-### UI (`public/index.html`)
+Логировать два типа событий:
+- `chat` — каждый `/api/chat` запрос (модель, тип кубика, токены, длительность)
+- `execute` — каждый `/api/execute` запрос (успех, длительность)
 
-Добавить `<select id="cube-type">` в toolbar рядом с кнопкой "Groovy Code":
+---
 
-```html
-<select id="cube-type" title="Тип кубика">
-  <option value="">— кубик не выбран —</option>
-  <option value="json-filter">Json Filter</option>
-  <option value="json-map">Json Map</option>
-  <option value="json-process">Json Process</option>
-  <option value="json-process-multi">Json Process (multi-input)</option>
-</select>
-```
+## Data Model
 
-- Сохранять/восстанавливать из `localStorage['groovy-cube-type']`
-- Добавить `cubeType: document.getElementById('cube-type').value` в тело fetch `/api/chat` внутри `sendMessage()`
-- Если `cubeType` пустой при нажатии «Отправить» — показать `confirm('Тип кубика не выбран. Отправить без привязки к типу?')`. Если нет — прервать отправку.
+Файл `analytics.jsonl` в корне проекта — JSON Lines, один объект на строку.
 
-### Backend (`server.js`)
-
-Изменить сигнатуру: `buildSystemPrompt(knowledge, rules, currentCode, inputData, cubeType)`
-
-Извлечь `cubeType` из `req.body` в `/api/chat` (строка 567):
-```js
-const { messages, currentCode, inputData, model, system: systemOverride, cubeType } = req.body;
-```
-
-Передать в `buildSystemPrompt(loadKnowledge(), loadRules(), currentCode, inputData, cubeType)`.
-
-Добавить в `buildSystemPrompt()` секцию после базового промпта:
-
-```js
-const cubeInstructions = {
-  'json-filter': `
-## Тип кубика: Json Filter
-Пользователь пишет код для кубика Json Filter.
-Этот кубик принимает только Groovy-предикат с переменной _:
-- _ = каждый объект массива
-- Возвращает boolean (true → левый выход, false → правый)
-- НЕТ import, def input, println — только выражение-предикат
-
-Пример: \`_.country == "RU"\`
-
-В ответе предоставь ДВА блока кода:
-1. \`\`\`groovy — полный тестовый скрипт (с import/readline/println) для запуска в редакторе
-2. \`\`\`groovy-cube — только предикат для вставки в кубик`,
-
-  'json-map': `
-## Тип кубика: Json Map
-Пользователь пишет код для кубика Json Map.
-Этот кубик принимает только трансформацию объекта _:
-- _ = входной объект
-- В конце всегда возвращать _
-- НЕТ import, println — только изменения _
-
-В ответе предоставь ДВА блока кода:
-1. \`\`\`groovy — полный тестовый скрипт для запуска в редакторе
-2. \`\`\`groovy-cube — только трансформация _ для вставки в кубик`,
-
-  'json-process': `
-## Тип кубика: Json Process
-Пользователь пишет код для кубика Json Process.
-Полный Groovy-скрипт — совместим с редактором напрямую.
-Один блок кода \`\`\`groovy достаточен.`,
-
-  'json-process-multi': `
-## Тип кубика: Json Process (multi-input)
-Пользователь пишет код для кубика Json Process с несколькими входами.
-Входные данные приходят как JSON-массив: [input1, input2, ...].
-Читать через: \`def inputs = new JsonSlurper().parseText(System.in.text ?: '[]')\`
-Один блок кода \`\`\`groovy достаточен.`,
-};
-
-if (cubeType && cubeInstructions[cubeType]) {
-  prompt += cubeInstructions[cubeType];
+**Chat entry:**
+```json
+{
+  "ts": "2024-01-15T10:30:00.000Z",
+  "type": "chat",
+  "model": "anthropic/claude-3-5-sonnet",
+  "cubeType": "json-filter",
+  "messagesCount": 3,
+  "promptTokens": 1500,
+  "completionTokens": 300,
+  "totalTokens": 1800,
+  "durationMs": 2340,
+  "success": true
 }
 ```
 
-### Frontend: отображение groovy-cube блока
-
-Добавить в Output область второй панель «Код для кубика» (скрытую по умолчанию).
-
-В `sendMessage()` после получения полного стримового ответа — искать блок `\`\`\`groovy-cube` в `fullText` (аккумулируется уже сейчас в `accum`). Если найден — показать панель и подставить код.
-
-```js
-// после сборки ответа:
-const cubeMatch = fullText.match(/```groovy-cube\n([\s\S]*?)```/);
-const cubePanel = document.getElementById('cube-code-panel');
-if (cubeMatch && cubeMatch[1]) {
-  document.getElementById('cube-code-out').textContent = cubeMatch[1].trim();
-  cubePanel.style.display = '';
-} else {
-  cubePanel.style.display = 'none';
+**Execute entry:**
+```json
+{
+  "ts": "2024-01-15T10:30:05.000Z",
+  "type": "execute",
+  "durationMs": 450,
+  "success": true
 }
 ```
 
-HTML для cube panel (добавить после `.data-panels` блока):
+Токены берутся из `usage` объекта, который уже приходит от Eliza API (строка 44 server.js: `if (obj.usage) yield { delta: '', done: false, usage: obj.usage }`) — нужно только захватить его в streaming loop.
+
+---
+
+## Backend Changes (`server.js`)
+
+### 1. Константа и функция логирования
+
+После строки с `RULES_FILE` добавить:
+```js
+const ANALYTICS_FILE = path.join(__dirname, 'analytics.jsonl');
+
+function logEvent(entry) {
+  try {
+    fs.appendFileSync(ANALYTICS_FILE, JSON.stringify(entry) + '\n');
+  } catch {}
+}
+```
+
+### 2. Захват usage в `/api/chat` (строки 134–139)
+
+Текущий loop игнорирует `usage`. Изменить:
+```js
+let usage = null;
+const startTs = Date.now();
+for await (const { delta, done, error, usage: u } of eliza.chat(...)) {
+  if (u) usage = u;
+  if (!clientConnected) break;
+  if (error) { safeWrite(...); break; }
+  if (done)  { safeWrite('data: [DONE]\n\n'); break; }
+  if (delta) safeWrite(...);
+}
+// После loop:
+logEvent({
+  ts: new Date().toISOString(),
+  type: 'chat',
+  model,
+  cubeType: cubeType || null,
+  messagesCount: messages?.length ?? 0,
+  promptTokens: usage?.prompt_tokens ?? null,
+  completionTokens: usage?.completion_tokens ?? null,
+  totalTokens: usage?.total_tokens ?? null,
+  durationMs: Date.now() - startTs,
+  success: !clientDisconnected,
+});
+```
+
+### 3. Логирование в `/api/execute` (строки 148–186)
+
+```js
+const startTs = Date.now();
+const result = await runProcess(groovyCmd, [scriptFile], inputData || '{}', 30000);
+logEvent({
+  ts: new Date().toISOString(),
+  type: 'execute',
+  durationMs: Date.now() - startTs,
+  success: !result.error,
+});
+res.json(result);
+```
+
+### 4. Эндпоинт `/api/analytics`
+
+```js
+app.get('/api/analytics', (req, res) => {
+  try {
+    const raw = fs.existsSync(ANALYTICS_FILE)
+      ? fs.readFileSync(ANALYTICS_FILE, 'utf8').trim()
+      : '';
+    const entries = raw ? raw.split('\n').map(l => JSON.parse(l)) : [];
+    const limit = Math.min(parseInt(req.query.limit) || 200, 1000);
+    res.json(entries.slice(-limit).reverse()); // новые первыми
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+```
+
+---
+
+## Frontend Changes (`public/index.html`)
+
+### 1. Кнопка в toolbar
+
+В шапку (рядом с другими кнопками) добавить:
 ```html
-<div id="cube-code-panel" style="display:none">
-  <div class="toolbar">
-    <span class="toolbar-label">Код для кубика</span>
-    <div class="toolbar-actions">
-      <button onclick="copyCubeCode()">Copy</button>
+<button id="btn-analytics" onclick="openAnalytics()">Аналитика</button>
+```
+
+### 2. Модальное окно
+
+```html
+<div id="analytics-modal" class="modal" style="display:none">
+  <div class="modal-content" style="max-width:800px">
+    <div class="modal-header">
+      <h3>Аналитика запросов</h3>
+      <button onclick="closeAnalytics()">✕</button>
     </div>
+    <div id="analytics-summary" style="margin-bottom:16px"></div>
+    <table id="analytics-table" style="width:100%;font-size:13px;border-collapse:collapse"></table>
   </div>
-  <pre id="cube-code-out" class="output-scroll"></pre>
 </div>
 ```
 
----
+### 3. JS функции
 
-## Feature 2: Export CSV / XLSX
-
-### UI (`public/index.html`)
-
-Добавить SheetJS в `<head>`:
-```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-```
-
-Добавить кнопки в Output toolbar:
-```html
-<button id="btn-csv" onclick="exportCSV()" style="display:none">CSV ↓</button>
-<button id="btn-xlsx" onclick="exportXLSX()" style="display:none">XLSX ↓</button>
-```
-
-В `executeCode()` после парсинга вывода — показывать/скрывать кнопки:
 ```js
-let parsedData = null;
-try {
-  parsedData = JSON.parse(rawOut);
-} catch {}
-const showExport = parsedData !== null;
-document.getElementById('btn-csv').style.display = showExport ? '' : 'none';
-document.getElementById('btn-xlsx').style.display = showExport ? '' : 'none';
-```
-
-Функции экспорта:
-```js
-function getOutputData() {
-  const text = document.getElementById('output').textContent;
-  let data = JSON.parse(text);
-  if (!Array.isArray(data)) data = [data];
-  return data;
+async function openAnalytics() {
+  document.getElementById('analytics-modal').style.display = 'flex';
+  const data = await fetch('/api/analytics?limit=100').then(r => r.json());
+  renderAnalytics(data);
 }
 
-function exportCSV() {
-  const data = getOutputData();
-  if (!data.length) return;
-  const keys = Object.keys(data[0]);
-  const rows = [keys.join(','), ...data.map(r =>
-    keys.map(k => JSON.stringify(r[k] ?? '')).join(',')
-  )];
-  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
-  const a = Object.assign(document.createElement('a'), {
-    href: URL.createObjectURL(blob),
-    download: 'output.csv'
-  });
-  a.click();
+function closeAnalytics() {
+  document.getElementById('analytics-modal').style.display = 'none';
 }
 
-function exportXLSX() {
-  const data = getOutputData();
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Output');
-  XLSX.writeFile(wb, 'output.xlsx');
+function renderAnalytics(entries) {
+  // Summary stats
+  const chats = entries.filter(e => e.type === 'chat');
+  const execs = entries.filter(e => e.type === 'execute');
+  const totalTokens = chats.reduce((s, e) => s + (e.totalTokens || 0), 0);
+  document.getElementById('analytics-summary').innerHTML = `
+    <b>Чатов:</b> ${chats.length} &nbsp;
+    <b>Выполнений:</b> ${execs.length} &nbsp;
+    <b>Токенов всего:</b> ${totalTokens.toLocaleString()}
+  `;
+
+  // Table
+  const headers = ['Время', 'Тип', 'Модель', 'Кубик', 'Токены', 'Мс', 'Успех'];
+  const rows = entries.map(e => [
+    new Date(e.ts).toLocaleString('ru'),
+    e.type,
+    e.model || '—',
+    e.cubeType || '—',
+    e.totalTokens?.toLocaleString() || '—',
+    e.durationMs,
+    e.success ? '✓' : '✗',
+  ]);
+  const table = document.getElementById('analytics-table');
+  table.innerHTML = `
+    <tr>${headers.map(h => `<th style="text-align:left;padding:4px 8px;border-bottom:1px solid #444">${h}</th>`).join('')}</tr>
+    ${rows.map(r => `<tr>${r.map(c => `<td style="padding:4px 8px;border-bottom:1px solid #333">${c}</td>`).join('')}</tr>`).join('')}
+  `;
 }
 ```
 
 ---
 
-## Files to modify
+## Files to Modify
 
 | Файл | Изменения |
 |------|-----------|
-| `public/index.html` | cube-type select, cube-code panel, export buttons, 4 JS функции, SheetJS CDN |
-| `server.js` | `buildSystemPrompt()` + 5-параметр + cubeType из req.body |
+| `server.js` | `logEvent()`, захват `usage` в chat loop, лог execute, `/api/analytics` endpoint |
+| `public/index.html` | кнопка, модальное окно, 3 JS функции |
+
+Новый файл `analytics.jsonl` создаётся автоматически при первом запросе.
 
 ---
 
 ## Verification
 
-1. Запустить `npm run dev`
-2. Выбрать "Json Filter", отправить "напиши фильтр по полю country == RU"
-   - Ожидать: два блока кода в ответе; панель "Код для кубика" появляется
-3. Отправить без выбора кубика — появляется confirm dialog
-4. Запустить код (F5), получить JSON-массив → кнопки CSV/XLSX появляются
-5. Скачать CSV — открыть в Numbers/Excel, проверить заголовки и данные
-6. Скачать XLSX — то же самое
+1. `npm run dev`
+2. Отправить чат-запрос → проверить `analytics.jsonl` появился, запись содержит `promptTokens`
+3. Выполнить код (F5) → вторая запись с `type: execute`
+4. Открыть «Аналитика» в UI → таблица показывает оба события
+5. `GET /api/analytics` напрямую → JSON массив, новые записи первыми

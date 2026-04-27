@@ -100,6 +100,12 @@
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.dia"
   },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ProcessManager.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.dia"
+  },
   "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift": {
     "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o",
     "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker~partial.swiftmodule",
@@ -153,6 +159,12 @@
     "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer~partial.swiftmodule",
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.dia"
   },
   "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift": {
     "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.swift.o",

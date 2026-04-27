@@ -366,43 +366,60 @@ record + [newKey: value]
 1. \`\`\`groovy — полный тестовый скрипт для запуска в редакторе
 2. \`\`\`groovy-cube — только трансформация _ для вставки в кубик`,
 
-    'json-process': `\n\n## Тип кубика: Json Process
-Пользователь пишет код для кубика Json Process.
-ВАЖНО: этот кубик использует ДРУГОЙ синтаксис, не совместимый с редактором:
-- Входные данные: \`in0\` (массив объектов, не System.in)
-- Запись результата: \`out.write(...)\` (не println)
-- НЕТ import JsonSlurper, НЕТ чтения из System.in, НЕТ println
-- Можно import JsonOutput если нужна сериализация
+    'json-process': `\n\n## Тип кубика: Json Process — СТРОГИЕ ПРАВИЛА
 
-Синтаксис кубика:
-\`\`\`
-in0.each { ... }
-out.write([field: value])
-in0.groupBy { it.workerId }.each { key, value -> out.write([...]) }
-\`\`\`
+Ты пишешь код ИСКЛЮЧИТЕЛЬНО для кубика Json Process. Это НЕ обычный Groovy-скрипт.
 
-В ответе предоставь ДВА блока кода:
-1. \`\`\`groovy — тестовый скрипт для запуска в редакторе (с import JsonSlurper, читает System.in, использует println)
-2. \`\`\`groovy-cube — код для кубика (использует in0 и out.write, без import/println)`,
+ЗАПРЕЩЕНО (никогда не используй):
+- ❌ \`import groovy.json.JsonSlurper\`
+- ❌ \`import groovy.json.JsonOutput\`
+- ❌ \`System.in\`, \`System.in.text\`, \`readLine\`
+- ❌ \`println\`, \`print\`
+- ❌ \`def input = ...parseText(...)\`
+- ❌ \`JsonOutput.toJson(...)\`, \`prettyPrint\`
 
-    'json-process-multi': `\n\n## Тип кубика: Json Process (multi-input)
-Пользователь пишет код для кубика Json Process с несколькими входами.
-ВАЖНО: этот кубик использует ДРУГОЙ синтаксис, не совместимый с редактором:
-- Входные данные: \`in0\`, \`in1\`, \`in2\` ... (отдельные переменные на каждый вход)
-- Запись результата: \`out.write(...)\`
-- НЕТ import JsonSlurper, НЕТ System.in, НЕТ println
+ОБЯЗАТЕЛЬНО используй:
+- ✅ \`in0\` — уже готовый массив входных объектов (НЕ нужно парсить)
+- ✅ \`out.write(map)\` — записывает объект в выход (НЕ println)
 
-Синтаксис кубика:
-\`\`\`
-in0.each { task ->
-  def extra = in1.find { it.id == task.id }
-  out.write([...])
+Шаблон кода кубика:
+\`\`\`groovy
+in0.groupBy { it.someField }.each { key, items ->
+    out.write([field: key, count: items.size()])
 }
 \`\`\`
 
-В ответе предоставь ДВА блока кода:
-1. \`\`\`groovy — тестовый скрипт для редактора (читает JSON-массив из System.in: [input0, input1, ...], использует println)
-2. \`\`\`groovy-cube — код для кубика (использует in0, in1, ... и out.write)`,
+Или:
+\`\`\`groovy
+in0.each { item ->
+    out.write([id: item.id, value: item.x * 2])
+}
+\`\`\`
+
+ФОРМАТ ОТВЕТА: ровно ОДИН блок кода с тегом \`\`\`groovy. Внутри — только код кубика (in0/out.write). Никаких import, System.in, println. Если сгенерируешь println или JsonSlurper — это ОШИБКА, код не запустится в кубике.`,
+
+    'json-process-multi': `\n\n## Тип кубика: Json Process (multi-input) — СТРОГИЕ ПРАВИЛА
+
+Ты пишешь код ИСКЛЮЧИТЕЛЬНО для кубика Json Process с несколькими входами.
+
+ЗАПРЕЩЕНО:
+- ❌ \`import\` любых JSON-библиотек
+- ❌ \`System.in\`, \`println\`, \`readLine\`
+- ❌ парсинг JSON через JsonSlurper
+
+ОБЯЗАТЕЛЬНО:
+- ✅ \`in0\`, \`in1\`, \`in2\`, ... — готовые массивы по числу входов
+- ✅ \`out.write(map)\` — записывает объект в выход
+
+Шаблон:
+\`\`\`groovy
+in0.each { task ->
+    def extra = in1.find { it.id == task.id }
+    out.write([id: task.id, name: extra?.name])
+}
+\`\`\`
+
+ФОРМАТ ОТВЕТА: ровно ОДИН блок \`\`\`groovy с кодом кубика. Никаких import/System.in/println.`,
   };
 
   if (cubeType && cubeInstructions[cubeType]) {

@@ -10,6 +10,9 @@ final class MenuBarController {
     var onOpenCLI: (() -> Void)?
     var onOpenConfig: (() -> Void)?
     var onQuit: (() -> Void)?
+    var onStartService: ((String) -> Void)?
+    var onStopService: ((String) -> Void)?
+    var onRestartService: ((String) -> Void)?
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -72,12 +75,34 @@ final class MenuBarController {
         } else {
             for result in lastResults {
                 let icon = result.isRunning ? "✅" : "❌"
-                let item = NSMenuItem(
+                let header = NSMenuItem(
                     title: "\(icon)  \(result.service.name)",
                     action: nil, keyEquivalent: ""
                 )
-                item.toolTip = "\(result.detail)\n\(result.service.check.type.rawValue): \(result.service.check.value)"
-                menu.addItem(item)
+                header.toolTip = "\(result.detail)\n\(result.service.check.type.rawValue): \(result.service.check.value)"
+
+                let submenu = NSMenu()
+
+                let startItem = NSMenuItem(title: "Запустить", action: #selector(serviceActionClicked(_:)), keyEquivalent: "")
+                startItem.target = self
+                startItem.representedObject = ("start", result.service.name)
+                startItem.isEnabled = !result.isRunning
+
+                let stopItem = NSMenuItem(title: "Остановить", action: #selector(serviceActionClicked(_:)), keyEquivalent: "")
+                stopItem.target = self
+                stopItem.representedObject = ("stop", result.service.name)
+                stopItem.isEnabled = result.isRunning
+
+                let restartItem = NSMenuItem(title: "Перезапустить", action: #selector(serviceActionClicked(_:)), keyEquivalent: "")
+                restartItem.target = self
+                restartItem.representedObject = ("restart", result.service.name)
+
+                submenu.addItem(startItem)
+                submenu.addItem(stopItem)
+                submenu.addItem(restartItem)
+
+                header.submenu = submenu
+                menu.addItem(header)
             }
         }
 
@@ -130,4 +155,14 @@ final class MenuBarController {
     @objc private func checkNowClicked() { onCheckNow?() }
     @objc private func openConfigClicked() { onOpenConfig?() }
     @objc private func quitClicked() { onQuit?() }
+
+    @objc private func serviceActionClicked(_ sender: NSMenuItem) {
+        guard let (action, name) = sender.representedObject as? (String, String) else { return }
+        switch action {
+        case "start":   onStartService?(name)
+        case "stop":    onStopService?(name)
+        case "restart": onRestartService?(name)
+        default: break
+        }
+    }
 }
