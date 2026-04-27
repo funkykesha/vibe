@@ -1,6 +1,6 @@
 {
   "validated": true,
-  "checkedAt": "2026-04-23T10:10:11.533Z",
+  "checkedAt": "2026-04-25T21:33:52.969Z",
   "prompt": "Reply with exactly OK.",
   "maxTokens": 16,
   "models": [
@@ -20,7 +20,7 @@
       "provider": "anthropic",
       "family": "claude-haiku",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "anthropic-blocks-max_tokens"
@@ -42,7 +42,7 @@
       "provider": "anthropic",
       "family": "claude-opus",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "anthropic-blocks-max_tokens"
@@ -65,27 +65,10 @@
       "provider": "anthropic",
       "family": "claude-sonnet",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK.",
         "variant": "anthropic-blocks-max_tokens"
-      }
-    },
-    {
-      "id": "deepseek-v3-1-terminus",
-      "title": "DeepSeek V3.1 Terminus",
-      "developer": "deepseek",
-      "namespace": "communal",
-      "prices": {
-        "total_tokens": "0.00000078"
-      },
-      "provider": "deepseek",
-      "family": "deepseek-v3.1",
-      "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
-        "status": 200,
-        "sample": "OK.",
-        "variant": "openai-string-max_tokens"
       }
     },
     {
@@ -97,7 +80,7 @@
       "provider": "deepseek",
       "family": "deepseek-v3.2",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK.",
         "variant": "openai-string-max_tokens"
@@ -120,36 +103,10 @@
       "provider": "google",
       "family": "gemini-2.5-flash",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
-      }
-    },
-    {
-      "id": "gemini-2.5-pro",
-      "title": "Gemini 2.5 Pro",
-      "developer": "",
-      "namespace": "external",
-      "prices": {
-        "input_cache_read_tokens": "0",
-        "input_cache_read_tokens_prompt_0_200k": "0.000000125",
-        "input_cache_read_tokens_prompt_200k_inf": "0.000000250",
-        "input_tokens": "0",
-        "input_tokens_prompt_0_200k": "0.00000125",
-        "input_tokens_prompt_200k_inf": "0.0000025",
-        "output_tokens": "0",
-        "output_tokens_prompt_0_200k": "0.00001",
-        "output_tokens_prompt_200k_inf": "0.000015",
-        "web_search": "0.035"
-      },
-      "provider": "google",
-      "family": "gemini-2.5-pro",
-      "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
-        "status": 200,
-        "sample": "**",
-        "variant": "openai-blocks-max_tokens"
       }
     },
     {
@@ -161,7 +118,7 @@
       "provider": "zhipu",
       "family": "glm-4",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -184,7 +141,7 @@
       "provider": "openai",
       "family": "gpt-4.1",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -207,7 +164,7 @@
       "provider": "openai",
       "family": "gpt-4.1-mini",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -229,7 +186,7 @@
       "provider": "openai",
       "family": "gpt-4.1-nano",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -252,7 +209,7 @@
       "provider": "openai",
       "family": "gpt-4o",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -275,7 +232,7 @@
       "provider": "openai",
       "family": "gpt-4o-mini",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK.",
         "variant": "openai-string-max_tokens"
@@ -294,7 +251,49 @@
       "provider": "xai",
       "family": "grok-3",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
+        "status": 200,
+        "sample": "OK",
+        "variant": "openai-string-max_tokens"
+      }
+    },
+    {
+      "id": "grok-3-mini",
+      "title": "",
+      "developer": "",
+      "namespace": "external",
+      "prices": {
+        "input_cache_read_tokens": "0.000000075",
+        "input_tokens": "0.0000003",
+        "output_tokens": "0.0000005"
+      },
+      "provider": "xai",
+      "family": "grok-3-mini",
+      "probe": {
+        "checkedAt": "2026-04-25T21:33:52.969Z",
+        "status": 200,
+        "sample": "OK",
+        "variant": "openai-string-max_tokens"
+      }
+    },
+    {
+      "id": "grok-4",
+      "title": "",
+      "developer": "",
+      "namespace": "external",
+      "prices": {
+        "input_cache_read_tokens": "0.00000075",
+        "input_cache_read_tokens_more_200k": "0.00000075",
+        "input_tokens": "0.000003",
+        "input_tokens_more_200k": "0.000006",
+        "output_tokens": "0.000015",
+        "output_tokens_more_200k": "0.00003",
+        "web_search": "0.025"
+      },
+      "provider": "xai",
+      "family": "grok-4",
+      "probe": {
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -313,26 +312,25 @@
       "provider": "moonshotai",
       "family": "kimi-k2.5",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens-no-temp"
       }
     },
     {
-      "id": "openrouter/deepseek/deepseek-v3.2",
-      "title": "DeepSeek V3.2",
+      "id": "openrouter/deepseek/deepseek-v3.1-terminus",
+      "title": "DeepSeek V3.1 Terminus",
       "developer": "deepseek",
       "namespace": "external",
       "prices": {
-        "input_cache_read_tokens": "0.00000013",
-        "input_tokens": "0.00000026",
-        "output_tokens": "0.00000038"
+        "input_tokens": "0.00000023",
+        "output_tokens": "0.0000009"
       },
       "provider": "deepseek",
       "family": "deepseek-v3",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK.",
         "variant": "openai-string-max_tokens"
@@ -351,7 +349,7 @@
       "provider": "alibaba",
       "family": "qwen-max",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK.",
         "variant": "openai-string-max_tokens"
@@ -369,7 +367,7 @@
       "provider": "alibaba",
       "family": "qwq-32b",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -387,28 +385,28 @@
       "provider": "alibaba",
       "family": "qwen3-coder",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
       }
     },
     {
-      "id": "qwen3.5-35b-a3b",
-      "title": "Qwen: Qwen3.5 35B",
+      "id": "qwen3.5-397b-a17b",
+      "title": "Qwen: Qwen3.5 397B A17B",
       "developer": "qwen",
       "namespace": "external",
       "prices": {
-        "input_tokens": "0.0000025",
-        "output_tokens": "0.000002"
+        "input_tokens": "0.0000006",
+        "output_tokens": "0.0000036"
       },
       "provider": "alibaba",
       "family": "qwen3.5",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
-        "variant": "openai-blocks-max_tokens"
+        "variant": "openai-string-max_tokens-no-temp"
       }
     },
     {
@@ -432,7 +430,7 @@
       "provider": "alibaba",
       "family": "qwen3.6-plus",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -450,7 +448,7 @@
       "provider": "zhipu",
       "family": "glm-4.5",
       "probe": {
-        "checkedAt": "2026-04-23T10:10:11.533Z",
+        "checkedAt": "2026-04-25T21:33:52.969Z",
         "status": 200,
         "sample": "OK",
         "variant": "openai-string-max_tokens"
@@ -495,6 +493,15 @@
       "error": "gemini-2.0-flash is not a valid model ID"
     },
     {
+      "id": "deepseek-v3-1-terminus",
+      "provider": "deepseek",
+      "family": "deepseek-v3.1",
+      "status": 0,
+      "kind": "timeout",
+      "variant": "runtime",
+      "error": "The operation was aborted due to timeout"
+    },
+    {
       "id": "gpt-5",
       "provider": "openai",
       "family": "gpt-5",
@@ -531,13 +538,22 @@
       "error": "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported."
     },
     {
-      "id": "gpt-5.2-codex",
+      "id": "gpt-5.1",
       "provider": "openai",
-      "family": "gpt-5.2-codex",
-      "status": 404,
-      "kind": "model_not_found",
-      "variant": "openai-string-max_tokens",
-      "error": "This is not a chat model and thus not supported in the v1/chat/completions endpoint. Did you mean to use v1/completions?"
+      "family": "gpt-5.1",
+      "status": 400,
+      "kind": "invalid_request",
+      "variant": "openai-string-max_completion_tokens",
+      "error": "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported."
+    },
+    {
+      "id": "gemini-2.5-pro",
+      "provider": "google",
+      "family": "gemini-2.5-pro",
+      "status": 200,
+      "kind": "empty_response",
+      "variant": "openai-string-max_completion_tokens-no-temp",
+      "error": "empty response"
     },
     {
       "id": "gpt-5.2-pro",
@@ -549,18 +565,9 @@
       "error": "Quota exceeded"
     },
     {
-      "id": "gpt-5.1",
+      "id": "gpt-5.2-codex",
       "provider": "openai",
-      "family": "gpt-5.1",
-      "status": 400,
-      "kind": "invalid_request",
-      "variant": "openai-string-max_completion_tokens",
-      "error": "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported."
-    },
-    {
-      "id": "gpt-5.3-codex",
-      "provider": "openai",
-      "family": "gpt-5.3-codex",
+      "family": "gpt-5.2-codex",
       "status": 404,
       "kind": "model_not_found",
       "variant": "openai-string-max_tokens",
@@ -576,9 +583,18 @@
       "error": "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported."
     },
     {
-      "id": "gpt-5.4-mini",
+      "id": "gpt-5.3-codex",
       "provider": "openai",
-      "family": "gpt-5.4-mini",
+      "family": "gpt-5.3-codex",
+      "status": 404,
+      "kind": "model_not_found",
+      "variant": "openai-string-max_tokens",
+      "error": "This is not a chat model and thus not supported in the v1/chat/completions endpoint. Did you mean to use v1/completions?"
+    },
+    {
+      "id": "gpt-5.4",
+      "provider": "openai",
+      "family": "gpt-5.4",
       "status": 400,
       "kind": "invalid_request",
       "variant": "openai-string-max_completion_tokens",
@@ -594,18 +610,27 @@
       "error": "Quota exceeded"
     },
     {
-      "id": "gpt-5.4",
+      "id": "gpt-5.4-nano",
       "provider": "openai",
-      "family": "gpt-5.4",
+      "family": "gpt-5.4-nano",
       "status": 400,
       "kind": "invalid_request",
       "variant": "openai-string-max_completion_tokens",
       "error": "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported."
     },
     {
-      "id": "gpt-5.4-nano",
+      "id": "gpt-5.4-mini",
       "provider": "openai",
-      "family": "gpt-5.4-nano",
+      "family": "gpt-5.4-mini",
+      "status": 400,
+      "kind": "invalid_request",
+      "variant": "openai-string-max_completion_tokens",
+      "error": "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported."
+    },
+    {
+      "id": "gpt-5.5",
+      "provider": "openai",
+      "family": "gpt-5.5",
       "status": 400,
       "kind": "invalid_request",
       "variant": "openai-string-max_completion_tokens",
@@ -628,15 +653,6 @@
       "kind": "invalid_request",
       "variant": "openai-prompt-max_tokens",
       "error": "mistral-large-latest is not a valid model ID"
-    },
-    {
-      "id": "grok-3-mini-fast",
-      "provider": "xai",
-      "family": "grok-3-mini",
-      "status": 400,
-      "kind": "invalid_request",
-      "variant": "openai-prompt-max_tokens",
-      "error": "grok-3-mini-fast is not a valid model ID"
     },
     {
       "id": "mistral-small-latest",
@@ -684,15 +700,6 @@
       "error": "Quota exceeded"
     },
     {
-      "id": "o3-mini",
-      "provider": "openai",
-      "family": "o3-mini",
-      "status": 200,
-      "kind": "empty_response",
-      "variant": "openai-string-max_completion_tokens-no-reasoning",
-      "error": "empty response"
-    },
-    {
       "id": "o3-pro",
       "provider": "openai",
       "family": "o3-pro",
@@ -702,13 +709,13 @@
       "error": "Quota exceeded"
     },
     {
-      "id": "grok-4",
-      "provider": "xai",
-      "family": "grok-4",
-      "status": 0,
-      "kind": "timeout",
-      "variant": "runtime",
-      "error": "The operation was aborted due to timeout"
+      "id": "o3-mini",
+      "provider": "openai",
+      "family": "o3-mini",
+      "status": 200,
+      "kind": "empty_response",
+      "variant": "openai-string-max_completion_tokens-no-reasoning",
+      "error": "empty response"
     },
     {
       "id": "openai/o1-mini",
@@ -720,15 +727,6 @@
       "error": "Quota exceeded"
     },
     {
-      "id": "o4-mini",
-      "provider": "openai",
-      "family": "o4-mini",
-      "status": 200,
-      "kind": "empty_response",
-      "variant": "openai-string-max_completion_tokens-no-reasoning",
-      "error": "empty response"
-    },
-    {
       "id": "qwen-mt-plus",
       "provider": "alibaba",
       "family": "qwen-mt-plus",
@@ -738,13 +736,13 @@
       "error": "qwen-mt-plus is not a valid model ID"
     },
     {
-      "id": "qwen-mt-turbo",
-      "provider": "alibaba",
-      "family": "qwen-mt-turbo",
-      "status": 400,
-      "kind": "invalid_request",
-      "variant": "openai-string-max_completion_tokens-no-temp",
-      "error": "qwen-mt-turbo is not a valid model ID"
+      "id": "o4-mini",
+      "provider": "openai",
+      "family": "o4-mini",
+      "status": 200,
+      "kind": "empty_response",
+      "variant": "openai-string-max_completion_tokens-no-reasoning",
+      "error": "empty response"
     },
     {
       "id": "qwen3-5-397b-a17b-fp8",
@@ -754,6 +752,15 @@
       "kind": "quota_exceeded",
       "variant": "openai-string-max_completion_tokens-no-temp",
       "error": "Quota exceeded"
+    },
+    {
+      "id": "qwen-mt-turbo",
+      "provider": "alibaba",
+      "family": "qwen-mt-turbo",
+      "status": 400,
+      "kind": "invalid_request",
+      "variant": "openai-string-max_completion_tokens-no-temp",
+      "error": "qwen-mt-turbo is not a valid model ID"
     },
     {
       "id": "qwen3.5-plus",
@@ -774,6 +781,6 @@
       "error": "together/qwen/qwen3-235b-a22b-fp8-tput is not a valid model ID"
     }
   ],
-  "totalCandidates": 57,
+  "totalCandidates": 58,
   "totalValidated": 22
 }

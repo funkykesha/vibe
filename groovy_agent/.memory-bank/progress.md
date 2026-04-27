@@ -1,10 +1,6 @@
 # Progress
 
-## Session sync (2026-04-20, /mmr)
-
-- Memory bank refreshed (activeContext). Brain MCP: save/consolidate skipped (DuckDB lock on `brain_data/brain.duckdb`).
-
-## eliza-client module extraction
+## eliza-client module extraction + genidea integration
 
 ### Done
 
@@ -16,19 +12,31 @@
 | 4: streaming.js | `streaming.js`, `test/streaming.test.js` | 13 | ✅ |
 | 5: probe.js | `probe.js`, `test/probe.test.js` | 14 | ✅ |
 | 6: index getModels | `index.js`, `test/client.test.js` | 7 | ✅ |
+| 7: chat/chatOnce/probe | `index.js`, `test/client.test.js` | +5 | ✅ |
+| A1: CORS | `server.js` | — | ✅ |
+| A2: system passthrough | `server.js` | — | ✅ |
+| A3: genidea integration | `genidea/index.html` | — | ✅ |
+| B-doc: external integration guide | `docs/eliza-client-integration-guide.md`, `docs/eliza-proxy-architecture-plan.md` | — | ✅ |
 
-**Total tests passing: 72**
+**Total tests passing: 77**
 
-### Remaining
+### Remaining (Трек B)
 
 | Task | Description |
 |------|-------------|
-| 7 | `index.js` — chat() + chatOnce() (rev 2: reasoning roles, temperature guard, GPT-5 guard) |
-| 8 | Migrate `server.js` — delete ~300 lines |
+| 8 | Migrate `server.js` — удалить ~300 строк, wire eliza-client (сохранить passthrough `system`) |
 | 9 | Simplify `scripts/test-models.js` → ~30-line wrapper |
-| 10 | Frontend `index.html` — `data.pending` → `!data.validated` |
+| 10 | `public/index.html` — `data.pending` → `data.validated === false` |
 
-## Known rev 2 changes in remaining tasks
+## Integration status
 
-- Task 6 done: `fetchAndParse` — 3-attempt retry (500ms/1s backoff, network only); probe failure → `onValidated` subscribers get **raw** models; in-memory cache until process restart; probe cooldown timer uses `.unref()`.
-- Task 7 `chat()`: role `'developer'` for o1/o3/o4/grok; `temperature:0` only for non-reasoning; GPT-5 → ElizaError 501; usage logging via `console.log`
+genidea ↔ groovy_agent: готово к тестированию.
+
+## eliza-proxy (внешняя команда)
+
+| Документ | Статус |
+|----------|--------|
+| `docs/eliza-proxy-architecture-plan.md` | ✅ написан |
+| `docs/eliza-client-integration-guide.md` | ✅ написан |
+| `genidea/eliza-api-answers.md` | ✅ написан |
+| Реализация eliza-proxy | ⏳ ожидает внешнюю команду |

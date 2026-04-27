@@ -1,40 +1,35 @@
 # Active Context
 
-**Last updated:** 2026-04-20 (umb + /mmr)
+**Last updated:** 2026-04-26 (umb + mmr)
 
 ## Current focus
 
-Subagent-driven implementation of `lib/eliza-client/` — a reusable local module extracted from `server.js` and `scripts/test-models.js`.
+Архитектурный план `eliza-proxy` готов. Трек A (genidea интеграция) завершён. Tasks 8–10 остались.
 
-## Work in progress: Task 7
+## Completed this session
 
-**Next task to execute:** Task 7 — `chat()` async generator + `chatOnce()` in `lib/eliza-client/index.js` (rev 2: role `developer` for reasoning, no temperature for reasoning, GPT-5 guard → ElizaError 501, usage logging).
+- **Task 7**: `chat()` + `chatOnce()` + `probe()` в `lib/eliza-client/index.js`. 77 тестов.
+- **A1–A3**: CORS, system passthrough, genidea ↔ groovy_agent интеграция
+- **eliza-proxy план**: `docs/eliza-proxy-architecture-plan.md` — полный план выноса Eliza в standalone сервис для внешней команды. Включает server.js, API, чеклист.
+- **genidea/eliza-api-answers.md**: ответы команде genidea на 5 вопросов (usage, pricing, models TTL, rate limits, monitoring, прямой доступ)
+- **integration guide (as-is + to-be)**: `docs/eliza-client-integration-guide.md` — практический гайд для внешней команды по интеграции с Eliza Client, включая SDK, текущие `/api/*`, целевые `/v1/*`, SSE контракт и миграционный чеклист.
 
-Plan file: `docs/superpowers/plans/2026-04-20-eliza-client.md`
-Spec file: `docs/superpowers/specs/2026-04-19-eliza-client-design.md` (rev 2 dated 2026-04-20)
+## Next steps (Трек B — Tasks 8–10)
 
-## Completed tasks (this session)
+- **Task 8**: Migrate `server.js` — удалить ~300 строк, wire eliza-client (сохранить passthrough `system`)
+- **Task 9**: Упростить `scripts/test-models.js` → ~30-строк CLI wrapper
+- **Task 10**: `public/index.html` — `data.pending` → `data.validated === false`
 
-- Task 1: `lib/eliza-client/package.json` + stub `index.js` + root `package.json` dep + test script
-- Task 2: `lib/eliza-client/models.js` + `test/models.test.js` (14 tests)
-- Task 3: `lib/eliza-client/routing.js` + `test/routing.test.js` (24 tests)
-- Task 4: `lib/eliza-client/streaming.js` + `test/streaming.test.js` (13 tests)
-- Task 5: `lib/eliza-client/probe.js` + `test/probe.test.js` (14 tests)
-- Task 6: `lib/eliza-client/index.js` — `createElizaClient` + `getModels` (fetch retries, probe singleton, `onValidated` fallback on probe error, `_sleep`/`_runProbe` test hooks, stubs for `chat`/`chatOnce`/`probe`) + `test/client.test.js` (7 tests)
+## Pending from external team
 
-**Current test count: 72 passing**
+- Реализация `eliza-proxy` по плану `docs/eliza-proxy-architecture-plan.md`
+- После деплоя: groovy_agent добавляет `ELIZA_PROXY_URL` в .env, genidea меняет `AGENT_BASE_URL` → port 3100 и путь `/v1/chat`
 
-## Remaining tasks
+## Key files
 
-- Task 7: `index.js` — add `chat()` async generator + `chatOnce()` (rev 2: role 'developer' for reasoning, no temperature for reasoning, GPT-5 guard → ElizaError 501, usage logging)
-- Task 8: Migrate `server.js` — delete ~300 lines, wire eliza-client
-- Task 9: Simplify `scripts/test-models.js` → ~30-line CLI wrapper
-- Task 10: Update `public/index.html` — `data.pending` → `!data.validated`
-
-## Next step
-
-Implement Task 7 (`chat` / `chatOnce` + tests); see plan file after Task 6 section.
-
-## Sync notes
-
-- **Brain (`/mmr`)**: `brain_save` / `brain_consolidate_dialog` не выполнены — файл `brain.duckdb` заблокирован другим процессом (PID 75425). Повторите `/mmr`, когда лок Brain свободен.
+| Файл | Назначение |
+|------|-----------|
+| `docs/eliza-client-integration-guide.md` | Гайд для внешней команды (текущий и целевой контракт) |
+| `docs/eliza-proxy-architecture-plan.md` | План standalone сервиса для команды |
+| `genidea/eliza-api-answers.md` | Ответы genidea team на API вопросы |
+| `/Users/agaibadulin/.claude/plans/moonlit-drifting-treehouse.md` | План Tasks 7–10 + genidea |

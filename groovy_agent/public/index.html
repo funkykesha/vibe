@@ -315,6 +315,20 @@
     }
     .chat-hint { color: var(--text3); font-size: 10px; }
     .chat-status { color: var(--text2); font-size: 10px; }
+    .cube-selector { display: flex; gap: 4px; }
+    .cube-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 2px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 11px;
+      white-space: nowrap;
+      transition: background .1s, color .1s, border-color .1s;
+    }
+    .cube-btn:hover { border-color: var(--accent); color: var(--text); background: transparent; }
+    .cube-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
     /* ── Editor Panel ──────────────────────────────────────────────── */
     .editor-panel {
@@ -575,6 +589,11 @@
       <div class="msg system-note">Groovy AI готов.<br>Опишите задачу трансформации JSON.</div>
     </div>
     <div class="chat-footer">
+      <div class="cube-selector">
+        <button class="cube-btn" data-cube="json-filter" onclick="selectCube('json-filter')">Json Filter</button>
+        <button class="cube-btn" data-cube="json-map" onclick="selectCube('json-map')">Json Map</button>
+        <button class="cube-btn" data-cube="json-process" onclick="selectCube('json-process')">Json Process</button>
+      </div>
       <textarea id="chat-input" placeholder="Опишите задачу...&#10;⌘Enter / Ctrl+Enter — отправить"></textarea>
       <div class="chat-footer-actions">
         <span class="chat-status" id="chat-status"></span>
@@ -594,6 +613,13 @@
       <div class="toolbar">
         <span class="toolbar-label">Groovy Code</span>
         <div class="toolbar-actions">
+          <select id="cube-type" title="Тип кубика" onchange="saveCubeType()">
+            <option value="">— кубик —</option>
+            <option value="json-filter">Json Filter</option>
+            <option value="json-map">Json Map</option>
+            <option value="json-process">Json Process</option>
+            <option value="json-process-multi">Json Process (multi)</option>
+          </select>
           <span id="diff-badge" style="color:var(--warn);font-size:10.5px;display:none"></span>
           <button onclick="formatCode()" title="Форматировать">Format</button>
           <button onclick="clearCode()">Clear</button>
@@ -622,11 +648,24 @@
         <div class="toolbar">
           <span class="toolbar-label">Output</span>
           <div class="toolbar-actions">
+            <button id="btn-csv" onclick="exportCSV()" style="display:none">CSV ↓</button>
+            <button id="btn-xlsx" onclick="exportXLSX()" style="display:none">XLSX ↓</button>
             <button onclick="copyOutput()">Copy</button>
           </div>
         </div>
         <div class="output-scroll" id="output">Запустите скрипт для получения результата</div>
       </div>
+    </div>
+
+    <!-- Cube code panel -->
+    <div id="cube-code-panel" style="display:none;margin-top:6px">
+      <div class="toolbar">
+        <span class="toolbar-label">Код для кубика</span>
+        <div class="toolbar-actions">
+          <button onclick="copyCubeCode()">Copy</button>
+        </div>
+      </div>
+      <pre id="cube-code-out" class="output-scroll" style="font-family:monospace;white-space:pre-wrap"></pre>
     </div>
 
   </section>
@@ -694,6 +733,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
 // ── Default code ─────────────────────────────────────────────────────────────
@@ -782,6 +822,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initEditors();
   loadModels();
   setupShortcuts();
+  const savedCube = localStorage.getItem('groovy-cube-type') || '';
+  document.getElementById('cube-type').value = savedCube;
+  updateCubeButtons(savedCube);
   setStatus('Готов');
 });
 
@@ -998,6 +1041,11 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text || isSending) return;
 
+  const cubeType = document.getElementById('cube-type').value;
+  if (!cubeType) {
+    if (!confirm('Тип кубика не выбран. Отправить без привязки к типу?')) return;
+  }
+
   isSending = true;
   setSending(true);
   input.value = '';
@@ -1015,6 +1063,7 @@ async function sendMessage() {
         currentCode: codeEditor.getValue(),
         inputData: inputEditor.getValue(),
         model: document.getElementById('model-select').value,
+        cubeType,
       }),
     });
 
@@ -1080,15 +1129,26 @@ async function sendMessage() {
 }
 
 function processResponse(content) {
-  const allBlocks = [...content.matchAll(/```(?:groovy|java|)\n([\s\S]*?)```/g)];
+  // Extract groovy-cube block first, then exclude it from main extraction
+  const cubeMatch = content.match(/```groovy-cube\n([\s\S]*?)```/);
+  const cubePanel = document.getElementById('cube-code-panel');
+  if (cubeMatch && cubeMatch[1]) {
+    document.getElementById('cube-code-out').textContent = cubeMatch[1].trim();
+    cubePanel.style.display = '';
+  } else {
+    cubePanel.style.display = 'none';
+  }
+
+  const strippedContent = content.replace(/```groovy-cube\n[\s\S]*?```/g, '');
+  const allBlocks = [...strippedContent.matchAll(/```(?:groovy|java|)\n([\s\S]*?)```/g)];
   let code = null;
   if (allBlocks.length > 0) {
     const largest = allBlocks.reduce((a, b) => b[1].length > a[1].length ? b : a);
     code = largest[1].trim();
   }
-  let explanation = content;
+  let explanation = strippedContent;
   if (code) {
-    explanation = content.replace(/```(?:groovy|java|)\n[\s\S]*?```/g, (match) => {
+    explanation = strippedContent.replace(/```(?:groovy|java|)\n[\s\S]*?```/g, (match) => {
       const lines = match.split('\n').length - 2;
       return `\n*[Код обновлён — ${lines} строк]*\n`;
     });
@@ -1203,10 +1263,18 @@ async function executeCode() {
       setStatus('Ошибка выполнения', 'err');
     } else {
       const rawOut = (data.output || '').trim();
-      try { out.textContent = JSON.stringify(JSON.parse(rawOut), null, 2); }
-      catch { out.textContent = rawOut || '(нет вывода)'; }
+      let parsedOutput = null;
+      try {
+        parsedOutput = JSON.parse(rawOut);
+        out.textContent = JSON.stringify(parsedOutput, null, 2);
+      } catch {
+        out.textContent = rawOut || '(нет вывода)';
+      }
       out.className = 'output-scroll ok';
       if (data.error) out.textContent += '\n\n⚠ Stderr:\n' + data.error;
+      const showExport = parsedOutput !== null;
+      document.getElementById('btn-csv').style.display = showExport ? '' : 'none';
+      document.getElementById('btn-xlsx').style.display = showExport ? '' : 'none';
       setStatus('Выполнено успешно', 'ok');
     }
   } catch (err) {
@@ -1229,6 +1297,62 @@ function clearInput() { inputEditor.setValue('{}'); }
 function copyOutput() {
   navigator.clipboard.writeText(document.getElementById('output').textContent)
     .then(() => setStatus('Скопировано'));
+}
+
+function copyCubeCode() {
+  navigator.clipboard.writeText(document.getElementById('cube-code-out').textContent)
+    .then(() => setStatus('Код кубика скопирован'));
+}
+
+function getOutputData() {
+  let data = JSON.parse(document.getElementById('output').textContent);
+  if (!Array.isArray(data)) data = [data];
+  return data;
+}
+
+function exportCSV() {
+  const data = getOutputData();
+  if (!data.length) return;
+  const keys = Object.keys(data[0]);
+  const rows = [
+    keys.join(','),
+    ...data.map(r => keys.map(k => JSON.stringify(r[k] ?? '')).join(','))
+  ];
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob),
+    download: 'output.csv',
+  });
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function exportXLSX() {
+  const data = getOutputData();
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Output');
+  XLSX.writeFile(wb, 'output.xlsx');
+}
+
+function saveCubeType() {
+  const val = document.getElementById('cube-type').value;
+  localStorage.setItem('groovy-cube-type', val);
+  updateCubeButtons(val);
+}
+
+function selectCube(type) {
+  const current = document.getElementById('cube-type').value;
+  const newVal = current === type ? '' : type;
+  document.getElementById('cube-type').value = newVal;
+  localStorage.setItem('groovy-cube-type', newVal);
+  updateCubeButtons(newVal);
+}
+
+function updateCubeButtons(type) {
+  document.querySelectorAll('.cube-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.cube === type);
+  });
 }
 
 // ── Status bar ───────────────────────────────────────────────────────────────

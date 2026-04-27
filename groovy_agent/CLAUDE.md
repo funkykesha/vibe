@@ -85,6 +85,13 @@ Single self-contained file. All UI text and prompts are in **Russian**.
 - API contracts must stay stable; do not change function signatures without updating all callers.
 - After changes: `npm test` (no tests currently defined — verify manually). If tests fail, revert immediately.
 
+## Karpathy Coding Rules (also in global ~/.claude/CLAUDE.md)
+
+- **Think first:** state assumptions, ask when unclear, surface tradeoffs before coding
+- **Simplicity:** minimum code for the task — no speculative features, no premature abstractions
+- **Surgical:** touch only task-related files, match existing style, don't refactor adjacent code
+- **Goal-driven:** define success criteria; multi-step = brief plan + verify steps
+
 ## Key Invariants
 
 - `parseModels()` filters: test namespaces (`eliza_test`, `alice`, `gena_offline_batch_inference`, `internal`), non-chat models (embeddings, TTS, image-gen patterns), date-versioned IDs (`YYYY-MM-DD`), known old families.

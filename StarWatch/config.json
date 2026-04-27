@@ -1,0 +1,15 @@
+{
+    "terminal": "warp",
+    "checkIntervalMinutes": 1,
+    "notifications": {
+        "enabled": true,
+        "sound": true
+    },
+    "services": [
+      {
+        "name": "Log Server",
+        "check": { "type": "http", "value": "http://localhost:3001" },
+        "start": "cd /Users/agaibadulin/Desktop/projects/vibe/genidea && node log-server.js"
+      }
+    ]
+}

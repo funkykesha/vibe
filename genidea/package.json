@@ -1,0 +1,12 @@
+{
+  "name": "genidea-log-server",
+  "version": "1.0.0",
+  "main": "log-server.js",
+  "scripts": {
+    "logs": "node log-server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}

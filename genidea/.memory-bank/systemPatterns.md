@@ -6,13 +6,14 @@
 ```js
 {
   branch: 'A'|'B'|null,
-  step: 'mode'|'A1'|'A2'|...|'result',
-  a: { mode, type, notes, task, questionIndex, answers[5] },
+  step: 'mode'|'A1'|'A2'|'A2b'|'A3'|'A4'|'A5'|'B1'|'B2a'|'B2b'|'result',
+  a: { mode, type, tool, notes, task, questionIndex, answers[5] },
   b: { inputPrompt, xmlBlocks[], transformCards[], transformCustom },
   result: { text, isEditing },
-  selectedModel: string,
+  selectedModel: string,  // default: claude-haiku-4-5
   loading: boolean,
   loadingMsg: string,
+  error: { message, retry }|null,
 }
 ```
 
@@ -35,18 +36,26 @@ Each screen is conditional render based on `state.branch && state.step`
 
 ---
 
-## API Mock Pattern
+## API Pattern
+
+```
+genidea → groovy_agent (port 3000) → api.eliza.yandex.net → Anthropic/OpenAI/...
+```
+
+- **groovy_agent**: другая команда, нормализует SSE, кеширует модели
+- **Eliza**: Yandex internal AI gateway (OAuth token)
+- **callModel()**: SSE fetch → `response.body.getReader()` → аккумулирует chunks → return при `[DONE]`
+- **AGENT_BASE_URL**: `http://localhost:3000`
+- **LOG_BASE_URL**: `http://localhost:3001` (наш log-server, опциональный)
 
 ```js
-const callModel = async (system, user, model) => {
-  await new Promise(r => setTimeout(r, 1500 + Math.random() * 500));
-  return '// faux result...';
+const callModel = async (systemPrompt, userMessage, model) => {
+  const response = await fetch(`${AGENT_BASE_URL}/api/chat`, { method:'POST', ... });
+  // SSE stream reading loop → return accumulated result on [DONE]
 };
 ```
 
-- Delays 1.5–2s to simulate API latency
-- Returns plausible dummy text
-- Interface identical to real fetch — easy swap for `/groovy_agent`
+**Логирование**: fire-and-forget POST на `localhost:3001/log` после каждой генерации.
 
 ---
 
@@ -75,11 +84,13 @@ const QUESTIONS_5 = {
 
 ## Navigation Logic
 
-**Flow A:** mode → type → (notes if continue) → task → questions → result
+**Flow A:** mode → type → **[A2b если type===code]** → (notes if continue) → task → questions → result
 
 **Flow B:** paste → parse XML OR transform → result
 
-**Skip logic:** A3 skipped automatically if `a.mode === 'new'`
+**Skip logic:** A3 skipped if `a.mode === 'new'`; A2b вставляется только для `type === 'code'`
+
+**A2b — инструменты:** Chat / Claude Code / Codex / Yandex Code Assistant → `state.a.tool`
 
 ---
 

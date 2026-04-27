@@ -1,8 +1,9 @@
 # Memory Bank
 
-## Project Context
-- [Project overview](project-context/project-overview.md)
-- [Review history](project-context/review-history/index.md)
+## Core Files
 
-## Active Context
-- [Current status](active-context/current-status.md)
+- [Project Brief](projectbrief.md)
+- [Product Context](productContext.md)
+- [System Patterns](systemPatterns.md)
+- [Active Context](activeContext.md)
+- [Progress](progress.md)

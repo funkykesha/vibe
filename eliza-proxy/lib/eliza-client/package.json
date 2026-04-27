@@ -1,0 +1,10 @@
+{
+  "name": "eliza-client",
+  "version": "1.0.0",
+  "description": "Eliza API client — model routing, streaming chat, model probing",
+  "main": "index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

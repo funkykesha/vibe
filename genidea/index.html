@@ -81,29 +81,38 @@
     }
     .fade-up { animation: fadeUp 0.4s both; }
     .fade-up-stagger > * { animation: fadeUp 0.4s both; }
-    .fade-up-stagger > :nth-child(1) { animation-delay: 0.04s; }
-    .fade-up-stagger > :nth-child(2) { animation-delay: 0.08s; }
-    .fade-up-stagger > :nth-child(3) { animation-delay: 0.12s; }
-    .fade-up-stagger > :nth-child(4) { animation-delay: 0.16s; }
-    .fade-up-stagger > :nth-child(5) { animation-delay: 0.20s; }
-    .fade-up-stagger > :nth-child(6) { animation-delay: 0.24s; }
-    .fade-up-stagger > :nth-child(7) { animation-delay: 0.28s; }
-    .fade-up-stagger > :nth-child(8) { animation-delay: 0.32s; }
+    .fade-up-stagger > :nth-child(1) { animation-delay: 0.05s; }
+    .fade-up-stagger > :nth-child(2) { animation-delay: 0.10s; }
+    .fade-up-stagger > :nth-child(3) { animation-delay: 0.15s; }
+    .fade-up-stagger > :nth-child(4) { animation-delay: 0.20s; }
+    .fade-up-stagger > :nth-child(5) { animation-delay: 0.25s; }
+    .fade-up-stagger > :nth-child(6) { animation-delay: 0.30s; }
+    .fade-up-stagger > :nth-child(7) { animation-delay: 0.35s; }
+    .fade-up-stagger > :nth-child(8) { animation-delay: 0.40s; }
+
+    @media (max-width: 600px) {
+      [data-drag-handle] { display: none; }
+    }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useRef } = React;
+    const { useState, useRef, useEffect } = React;
 
     // ── Config ────────────────────────────────────────────────────────────────
 
-    const MODEL_LIST = [
-      { id: 'claude-sonnet',  label: 'Claude Sonnet',   provider: 'anthropic' },
-      { id: 'gpt-4o',         label: 'GPT-4o',          provider: 'openai'    },
-      { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro',  provider: 'google'    },
+    const AGENT_BASE_URL = 'http://localhost:3000';
+
+    const TOOLS_CODE = [
+      { id: 'chat',         icon: '💬', label: 'Чат',                   desc: 'Claude.ai, ChatGPT, обычный диалог' },
+      { id: 'claude-code',  icon: '🖥️', label: 'Claude Code',            desc: 'CLI-агент, доступ к файлам и shell' },
+      { id: 'codex',        icon: '🟢', label: 'OpenAI Codex',           desc: 'CLI-агент, GitHub Copilot workspace' },
+      { id: 'yandex-code',  icon: '🔵', label: 'Yandex Code Assistant',  desc: 'Агент в IDE, JetBrains / VS Code' },
     ];
+
+    const TOOL_LABELS = Object.fromEntries(TOOLS_CODE.map(t => [t.id, t.label]));
 
     const QUESTIONS_COMMON = [
       { q: 'Для кого этот результат?',  hint: 'Аудитория, площадка, уровень подготовки читателя' },
@@ -127,61 +136,67 @@
       { id: 'detailed', icon: '✨', label: 'Улучшить детализацию'   },
     ];
 
-    // ── Mock API ──────────────────────────────────────────────────────────────
+    // ── System prompts ────────────────────────────────────────────────────────
 
-    const MOCK_PROMPTS = {
-      content: `Ты опытный контент-редактор и копирайтер.
-
-Контекст: {context}
-
-Твоя задача: {task}
-
-Требования к результату:
-— Аудитория: {audience}
-— Тон: {tone}
-— Формат: {format}
-— Ограничения: {constraints}
-
-Пиши чётко, структурированно, без воды. Каждое предложение должно нести смысл.`,
-      code: `Ты senior-разработчик с экспертизой в {stack}.
-
-Контекст проекта: {context}
-
-Задача: {task}
-
-Требования:
-— Язык/стек: {stack}
-— Ожидаемый результат: {format}
-— Ограничения и требования к стилю: {constraints}
-
-Пиши чистый, читаемый код. Добавляй комментарии там, где логика неочевидна. Следуй best practices.`,
-      report: `Ты аналитик и технический писатель.
-
-Контекст: {context}
-
-Задача: {task}
-
-Требования к отчёту:
-— Аудитория: {audience}
-— Структура: {format}
-— Стандарт оформления: {standard}
-— Что исключить: {constraints}
-
-Пиши точно, опирайся на факты, делай чёткие выводы.`,
+    const SYSTEM_PROMPTS = {
+      generate:
+        `You are an expert prompt engineer. Create a detailed structured prompt for a powerful AI model based on user data. If a target tool/environment is specified, adapt accordingly: for CLI agents (Claude Code, Codex) make it task-oriented with file context awareness; for chat — conversational. Structure: Role → Context → Task → Format → Constraints. Respond in the same language the user used. Return ONLY the prompt text, no preamble or explanation.`,
+      parse_xml:
+        `Parse the prompt into semantic blocks. Use tags from: role, context, task, format, constraints, examples. Return ONLY a JSON array: [{"tag":"role","content":"..."}]. No markdown, no preamble.`,
+      transform:
+        `You are a prompt engineer. Transform the prompt according to the user's instruction. Return ONLY the modified prompt, no explanation or preamble.`,
+      refine:
+        `You are a prompt engineer. Improve the prompt according to the user's request. Return ONLY the improved prompt, no explanation or preamble.`,
     };
 
-    const callModel = async (system, user, model) => {
-      await new Promise(r => setTimeout(r, 1500 + Math.random() * 600));
-      const base = MOCK_PROMPTS[system] || MOCK_PROMPTS.content;
-      return base
-        .replace('{context}', user.includes('наработки') ? 'имеющиеся материалы и наработки пользователя' : 'задача поставлена с нуля')
-        .replace(/{task}/g, 'выполнить задачу пользователя максимально точно')
-        .replace(/{audience}/g, 'целевая аудитория, указанная пользователем')
-        .replace(/{tone}/g, 'профессиональный, ясный')
-        .replace(/{format}/g, 'структурированный текст с чёткими секциями')
-        .replace(/{constraints}/g, 'без лишних отступлений, по делу')
-        .replace(/{stack}/g, 'выбранный стек технологий')
-        .replace(/{standard}/g, 'принятый стандарт оформления');
+    // ── API ───────────────────────────────────────────────────────────────────
+
+    const LOG_BASE_URL = 'http://localhost:3001';
+
+    const logGeneration = (entry) => {
+      fetch(`${LOG_BASE_URL}/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+      }).catch(() => {});
+    };
+
+    const callModel = async (systemPrompt, userMessage, model) => {
+      const response = await fetch(`${AGENT_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMessage }],
+          currentCode: '',
+          inputData: '{}',
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let result = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6).trim();
+          if (payload === '[DONE]') return result;
+          const msg = JSON.parse(payload);
+          if (msg.error) throw new Error(msg.error);
+          if (msg.text) result += msg.text;
+        }
+      }
+      return result;
     };
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -189,20 +204,22 @@
     const INITIAL_STATE = {
       branch: null,
       step: 'mode',
-      a: { mode: null, type: null, notes: '', task: '', questionIndex: 0, answers: ['','','','',''] },
+      a: { mode: null, type: null, tool: null, notes: '', task: '', questionIndex: 0, answers: ['','','','',''] },
       b: { inputPrompt: '', xmlBlocks: [], transformCards: [], transformCustom: '' },
       result: { text: '', isEditing: false },
-      selectedModel: 'claude-sonnet',
+      selectedModel: 'claude-haiku-4-5',
       loading: false,
       loadingMsg: '',
+      error: null,
     };
 
     const buildPromptA = (a) => {
       const q5 = QUESTIONS_5[a.type] || QUESTIONS_5.content;
-      return `Тип задачи: ${a.type}
-Режим: ${a.mode}
-Наработки: ${a.notes || 'нет'}
-Задача: ${a.task}
+      const toolLine = a.tool ? `\nTarget tool/environment: ${TOOL_LABELS[a.tool] || a.tool}` : '';
+      return `Task type: ${a.type}
+Mode: ${a.mode}${toolLine}
+Prior materials: ${a.notes || 'none'}
+Task: ${a.task}
 ${QUESTIONS_COMMON[0].q}: ${a.answers[0] || '—'}
 ${QUESTIONS_COMMON[1].q}: ${a.answers[1] || '—'}
 ${QUESTIONS_COMMON[2].q}: ${a.answers[2] || '—'}
@@ -337,7 +354,7 @@ ${q5.q}: ${a.answers[4] || '—'}`;
 
     // ── Header ─────────────────────────────────────────────────────────────────
 
-    const Header = ({ selectedModel, onSelectModel, onReset, theme, onThemeChange }) => (
+    const Header = ({ selectedModel, onSelectModel, modelList, onReset, theme, onThemeChange }) => (
       <header style={{ borderBottom: '1px solid var(--border)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{ flex: 1 }}>
           <span style={{ fontFamily: '"Instrument Serif", serif', fontStyle: 'italic', fontSize: '20px', color: 'var(--accent)', letterSpacing: '-0.01em' }}>
@@ -347,18 +364,20 @@ ${q5.q}: ${a.answers[4] || '—'}`;
         <select
           value={selectedModel}
           onChange={e => onSelectModel(e.target.value)}
+          disabled={modelList.length === 0}
           style={{
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             borderRadius: '7px',
-            color: 'var(--muted)',
+            color: modelList.length === 0 ? 'var(--dim)' : 'var(--muted)',
             padding: '7px 12px',
             fontSize: '13px',
           }}
         >
-          {MODEL_LIST.map(m => (
-            <option key={m.id} value={m.id}>{m.label}</option>
-          ))}
+          {modelList.length === 0
+            ? <option>Загрузка...</option>
+            : modelList.map(m => <option key={m.id} value={m.id}>{m.label}</option>)
+          }
         </select>
         <GhostBtn onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')} style={{ fontSize: '12px', padding: '7px 14px' }}>
           {theme === 'dark' ? '☀️' : '🌙'}
@@ -435,8 +454,8 @@ ${q5.q}: ${a.answers[4] || '—'}`;
               key={t.id}
               onClick={() => setState(s => ({
                 ...s,
-                a: { ...s.a, type: t.id },
-                step: s.a.mode === 'continue' ? 'A3' : 'A4',
+                a: { ...s.a, type: t.id, tool: t.id !== 'code' ? null : s.a.tool },
+                step: t.id === 'code' ? 'A2b' : (s.a.mode === 'continue' ? 'A3' : 'A4'),
               }))}
               selected={state.a.type === t.id}
             >
@@ -448,6 +467,33 @@ ${q5.q}: ${a.answers[4] || '—'}`;
         </div>
         <div style={{ marginTop: '24px' }}>
           <GhostBtn onClick={() => setState(s => ({ ...s, step: 'A1' }))}>← Назад</GhostBtn>
+        </div>
+      </div>
+    );
+
+    // A2b — Инструмент (только для code)
+    const A2b_Screen = ({ state, setState }) => (
+      <div className="fade-up">
+        <SectionLabel>Где будет применяться промпт?</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          {TOOLS_CODE.map(t => (
+            <Card
+              key={t.id}
+              onClick={() => setState(s => ({
+                ...s,
+                a: { ...s.a, tool: t.id },
+                step: s.a.mode === 'continue' ? 'A3' : 'A4',
+              }))}
+              selected={state.a.tool === t.id}
+            >
+              <div style={{ fontSize: '22px', marginBottom: '8px' }}>{t.icon}</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '4px' }}>{t.label}</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.desc}</div>
+            </Card>
+          ))}
+        </div>
+        <div style={{ marginTop: '24px' }}>
+          <GhostBtn onClick={() => setState(s => ({ ...s, step: 'A2' }))}>← Назад</GhostBtn>
         </div>
       </div>
     );
@@ -468,7 +514,7 @@ ${q5.q}: ${a.answers[4] || '—'}`;
         />
         <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
           <PrimaryBtn onClick={() => setState(s => ({ ...s, step: 'A4' }))}>Далее →</PrimaryBtn>
-          <GhostBtn onClick={() => setState(s => ({ ...s, step: 'A2' }))}>← Назад</GhostBtn>
+          <GhostBtn onClick={() => setState(s => ({ ...s, step: s.a.type === 'code' ? 'A2b' : 'A2' }))}>← Назад</GhostBtn>
         </div>
       </div>
     );
@@ -646,6 +692,7 @@ ${q5.q}: ${a.answers[4] || '—'}`;
     const B2a_Screen = ({ state, setState }) => {
       const blocks = state.b.xmlBlocks;
       const dragOver = useRef(null);
+      const [editingTagId, setEditingTagId] = useState(null);
 
       const updateBlock = (id, field, val) =>
         setState(s => ({ ...s, b: { ...s.b, xmlBlocks: s.b.xmlBlocks.map(b => b.id === id ? { ...b, [field]: val } : b) } }));
@@ -702,8 +749,20 @@ ${q5.q}: ${a.answers[4] || '—'}`;
                 style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-                  <span style={{ cursor: 'grab', color: 'var(--dim)', fontSize: '14px' }}>↕</span>
-                  <code style={{ flex: 1, fontSize: '12px', color: 'var(--accent)', fontFamily: 'Courier New, monospace' }}>&lt;{block.tag}&gt;</code>
+                  <span data-drag-handle style={{ cursor: 'grab', color: 'var(--dim)', fontSize: '14px' }}>↕</span>
+                  {editingTagId === block.id ? (
+                    <input
+                      autoFocus
+                      value={block.tag}
+                      onChange={e => updateBlock(block.id, 'tag', e.target.value)}
+                      onBlur={() => setEditingTagId(null)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingTagId(null); }}
+                      style={{ flex: 1, fontSize: '12px', color: 'var(--accent)', fontFamily: 'Courier New, monospace', background: 'var(--surface)', border: '1px solid var(--accent)', borderRadius: '4px', padding: '2px 6px', outline: 'none' }}
+                    />
+                  ) : (
+                    <code style={{ flex: 1, fontSize: '12px', color: 'var(--accent)', fontFamily: 'Courier New, monospace' }}>&lt;{block.tag}&gt;</code>
+                  )}
+                  <button onClick={() => setEditingTagId(block.id)} style={{ background: 'none', color: 'var(--dim)', fontSize: '12px', padding: '2px 6px' }} title="Переименовать тег">✏️</button>
                   <button onClick={() => copyBlock(block)} style={{ background: 'none', color: 'var(--dim)', fontSize: '12px', padding: '2px 6px' }} title="Копировать тег">📋</button>
                   <button onClick={() => deleteBlock(block.id)} style={{ background: 'none', color: 'var(--dim)', fontSize: '12px', padding: '2px 6px' }} title="Удалить">🗑</button>
                 </div>
@@ -732,6 +791,7 @@ ${q5.q}: ${a.answers[4] || '—'}`;
 
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <PrimaryBtn onClick={copyAll}>📋 Скопировать весь XML</PrimaryBtn>
+            <GhostBtn onClick={() => setState(s => ({ ...s, step: 'B2b' }))}>✏️ Преобразовать</GhostBtn>
             <GhostBtn onClick={() => setState(s => ({ ...s, step: 'B1' }))}>← Промпт</GhostBtn>
           </div>
         </div>
@@ -809,9 +869,15 @@ ${q5.q}: ${a.answers[4] || '—'}`;
 
       const translateEN = async () => {
         setTranslating(true);
-        await callModel('content', buildRefinementPrompt(text, 'Переведи на английский язык'), state.selectedModel);
-        setTranslated(true);
-        setTranslating(false);
+        try {
+          const result = await callModel(SYSTEM_PROMPTS.refine, buildRefinementPrompt(text, 'Переведи на английский язык'), state.selectedModel);
+          setState(s => ({ ...s, result: { ...s.result, text: result } }));
+          setTranslated(true);
+        } catch {
+          // молча игнорируем
+        } finally {
+          setTranslating(false);
+        }
       };
 
       const doRefine = () => {
@@ -870,31 +936,72 @@ ${q5.q}: ${a.answers[4] || '—'}`;
       );
     };
 
+    // ── ErrorScreen ───────────────────────────────────────────────────────────
+
+    const ErrorScreen = ({ error, onDismiss }) => (
+      <div className="fade-up" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px', textAlign: 'center' }}>
+        <p style={{ fontSize: '24px', marginBottom: '12px' }}>⚠️</p>
+        <p style={{ color: 'var(--text)', fontSize: '15px', marginBottom: '8px' }}>{error.message}</p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px', flexWrap: 'wrap' }}>
+          {error.retry && (
+            <PrimaryBtn onClick={error.retry}>Попробовать ещё раз</PrimaryBtn>
+          )}
+          <GhostBtn onClick={onDismiss}>← Назад</GhostBtn>
+        </div>
+      </div>
+    );
+
     // ── App ────────────────────────────────────────────────────────────────────
 
     function App() {
       const [state, setState] = useState(INITIAL_STATE);
       const [theme, setTheme] = React.useState('dark');
+      const [modelList, setModelList] = useState([]);
+
       React.useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
       }, [theme]);
 
+      useEffect(() => {
+        fetch(`${AGENT_BASE_URL}/api/models`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.models && data.models.length > 0 && !data.pending) {
+              const list = data.models.map(m => ({ id: m.id, label: m.title || m.id, provider: m.provider || m.developer }));
+              setModelList(list);
+              setState(s => list.find(m => m.id === s.selectedModel) ? s : { ...s, selectedModel: list[0].id });
+            }
+          })
+          .catch(() => {});
+      }, []);
+
       const resetAll = () => setState(INITIAL_STATE);
       const setModel = (m) => setState(s => ({ ...s, selectedModel: m }));
 
-      const startLoading = (msg) => setState(s => ({ ...s, loading: true, loadingMsg: msg }));
+      const startLoading = (msg) => setState(s => ({ ...s, loading: true, loadingMsg: msg, error: null }));
       const stopLoading = () => setState(s => ({ ...s, loading: false, loadingMsg: '' }));
+      const showResult = (text) => setState(s => ({ ...s, step: 'result', result: { text, isEditing: false }, loading: false, error: null }));
+      const showError = (message, retry) => setState(s => ({ ...s, loading: false, error: { message, retry } }));
 
-      const showResult = (text) => setState(s => ({ ...s, step: 'result', result: { text, isEditing: false }, loading: false }));
+      const goBack = () => setState(s => {
+        const { branch, step } = s;
+        const map = { A5: 'A4', A4: s.a.mode === 'new' ? (s.a.type === 'code' ? 'A2b' : 'A2') : 'A3', A3: s.a.type === 'code' ? 'A2b' : 'A2', A2b: 'A2', A2: 'A1', A1: 'mode', B2a: 'B1', B2b: 'B1', result: branch === 'A' ? 'A5' : 'B2b' };
+        const next = map[step];
+        if (!next) return s;
+        return { ...s, step: next, branch: next === 'mode' ? null : branch, error: null };
+      });
 
       const handleGenerate = async () => {
         startLoading('Собираю промпт...');
         setState(s => ({ ...s, step: 'result' }));
+        const t0 = Date.now();
+        const userMsg = buildPromptA(state.a);
         try {
-          const text = await callModel(state.a.type || 'content', buildPromptA(state.a), state.selectedModel);
+          const text = await callModel(SYSTEM_PROMPTS.generate, userMsg, state.selectedModel);
           showResult(text);
+          logGeneration({ branch: 'A', type: state.a.type, tool: state.a.tool, model: state.selectedModel, durationMs: Date.now() - t0, inputLen: userMsg.length, outputLen: text.length, input: userMsg.slice(0, 1000), output: text.slice(0, 2000) });
         } catch {
-          showResult('Ошибка генерации. Попробуйте ещё раз.');
+          showError('Не удалось сгенерировать промпт.', handleGenerate);
         }
       };
 
@@ -902,39 +1009,72 @@ ${q5.q}: ${a.answers[4] || '—'}`;
         startLoading('Разбираю структуру...');
         setState(s => ({ ...s, step: 'B2a' }));
         try {
-          const raw = await callModel('content', buildPromptB2a(state.b.inputPrompt), state.selectedModel);
+          const raw = await callModel(SYSTEM_PROMPTS.parse_xml, buildPromptB2a(state.b.inputPrompt), state.selectedModel);
           const blocks = parseXMLBlocks(raw);
           setState(s => ({ ...s, b: { ...s.b, xmlBlocks: blocks.length ? blocks : [{ id: 'b0', tag: 'task', content: state.b.inputPrompt }] }, loading: false }));
         } catch {
-          setState(s => ({ ...s, b: { ...s.b, xmlBlocks: [] }, loading: false }));
+          showError('Не удалось разобрать промпт на блоки.', handleParseXML);
         }
       };
 
       const handleTransformB2b = async () => {
         startLoading('Преобразую промпт...');
         setState(s => ({ ...s, step: 'result' }));
+        const t0 = Date.now();
+        const userMsg = buildPromptB2b(state.b);
         try {
-          const text = await callModel('content', buildPromptB2b(state.b), state.selectedModel);
+          const text = await callModel(SYSTEM_PROMPTS.transform, userMsg, state.selectedModel);
           showResult(text);
+          logGeneration({ branch: 'B', type: 'transform', tool: null, model: state.selectedModel, durationMs: Date.now() - t0, inputLen: userMsg.length, outputLen: text.length, input: userMsg.slice(0, 1000), output: text.slice(0, 2000) });
         } catch {
-          showResult('Ошибка преобразования. Попробуйте ещё раз.');
+          showError('Не удалось преобразовать промпт.', handleTransformB2b);
         }
       };
 
       const handleRefine = async (refinement) => {
         startLoading('Уточняю...');
-        setState(s => ({ ...s, loading: true }));
+        const t0 = Date.now();
+        const userMsg = buildRefinementPrompt(state.result.text, refinement);
         try {
-          const text = await callModel('content', buildRefinementPrompt(state.result.text, refinement), state.selectedModel);
+          const text = await callModel(SYSTEM_PROMPTS.refine, userMsg, state.selectedModel);
           showResult(text);
+          logGeneration({ branch: 'A', type: 'refine', tool: state.a.tool, model: state.selectedModel, durationMs: Date.now() - t0, inputLen: userMsg.length, outputLen: text.length, input: userMsg.slice(0, 1000), output: text.slice(0, 2000) });
         } catch {
-          stopLoading();
+          showError('Не удалось уточнить промпт.', () => handleRefine(refinement));
         }
       };
 
+      useEffect(() => {
+        const handler = (e) => {
+          if (state.loading || state.error) return;
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+            const { branch, step, a } = state;
+            if (step === 'A3') {
+              setState(s => ({ ...s, step: 'A4' }));
+            } else if (step === 'A4' && a.task.trim().length >= 20) {
+              setState(s => ({ ...s, step: 'A5' }));
+            } else if (branch === 'A' && step === 'A5') {
+              if (a.questionIndex === 4) {
+                handleGenerate();
+              } else {
+                setState(s => ({ ...s, a: { ...s.a, questionIndex: s.a.questionIndex + 1 } }));
+              }
+            } else if (branch === 'B' && step === 'B2b') {
+              const canGo = state.b.transformCards.length > 0 || state.b.transformCustom.trim().length > 0;
+              if (canGo) handleTransformB2b();
+            }
+          }
+          if (e.key === 'Escape') {
+            if (state.step !== 'mode') goBack();
+          }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+      }, [state]);
+
       return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <Header selectedModel={state.selectedModel} onSelectModel={setModel} onReset={resetAll} theme={theme} onThemeChange={setTheme} />
+          <Header selectedModel={state.selectedModel} onSelectModel={setModel} modelList={modelList} onReset={resetAll} theme={theme} onThemeChange={setTheme} />
           <div style={{ flex: 1, maxWidth: '720px', margin: '0 auto', width: '100%', padding: '44px 24px 80px' }}>
 
             {/* Page title */}
@@ -947,11 +1087,16 @@ ${q5.q}: ${a.answers[4] || '—'}`;
 
             {state.loading && <Spinner message={state.loadingMsg} />}
 
-            {!state.loading && (
+            {!state.loading && state.error && (
+              <ErrorScreen error={state.error} onDismiss={() => { setState(s => ({ ...s, error: null })); goBack(); }} />
+            )}
+
+            {!state.loading && !state.error && (
               <>
                 {state.step === 'mode'  && <ModeScreen setState={setState} />}
                 {state.branch === 'A' && state.step === 'A1' && <A1_Screen state={state} setState={setState} />}
                 {state.branch === 'A' && state.step === 'A2' && <A2_Screen state={state} setState={setState} />}
+                {state.branch === 'A' && state.step === 'A2b' && <A2b_Screen state={state} setState={setState} />}
                 {state.branch === 'A' && state.step === 'A3' && <A3_Screen state={state} setState={setState} />}
                 {state.branch === 'A' && state.step === 'A4' && <A4_Screen state={state} setState={setState} />}
                 {state.branch === 'A' && state.step === 'A5' && <A5_Screen state={state} setState={setState} onGenerate={handleGenerate} />}

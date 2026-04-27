@@ -1,0 +1,223 @@
+{
+  "": {
+    "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StartWatch.d",
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StartWatch.o",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/primary.swiftdeps"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/CLIRouter.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CLIRouter.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CLIRouter~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CLIRouter.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CLIRouter.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/CheckCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/ConfigCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/DaemonCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/DoctorCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/LogCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/RestartCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/RestartCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/RestartCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/RestartCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/RestartCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/StartCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StartCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StartCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StartCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StartCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Commands/StatusCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StatusCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StatusCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StatusCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StatusCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Formatting/ANSIColors.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ANSIColors.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ANSIColors~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ANSIColors.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ANSIColors.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Formatting/ReportBuilder.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ReportBuilder.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ReportBuilder~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ReportBuilder.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ReportBuilder.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/CLI/Formatting/TableFormatter.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TableFormatter.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TableFormatter~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TableFormatter.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TableFormatter.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/AsyncHelpers.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AsyncHelpers.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AsyncHelpers~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AsyncHelpers.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AsyncHelpers.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/CheckResult.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckResult.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckResult~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckResult.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckResult.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/Config.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/Config.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/Config~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/Config.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/Config.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/HistoryLogger.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceChecker.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/ServiceRunner.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceRunner.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceRunner~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceRunner.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceRunner.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Core/StateManager.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StateManager.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StateManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StateManager.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/StateManager.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Daemon/AppDelegate.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppDelegate.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppDelegate.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppDelegate.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Daemon/CheckScheduler.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckScheduler.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckScheduler~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckScheduler.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckScheduler.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Daemon/MenuBarController.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuBarController.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuBarController~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuBarController.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuBarController.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCClient.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCClient.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCClient~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCClient.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCClient.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCMessage.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCMessage.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCMessage~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCMessage.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCMessage.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/IPC/IPCServer.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Notifications/NotificationManager.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Terminal/TerminalLauncher.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalLauncher.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalLauncher~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalLauncher.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalLauncher.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Terminal/Terminals/AlacrittyTerminal.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AlacrittyTerminal.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AlacrittyTerminal~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AlacrittyTerminal.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AlacrittyTerminal.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Terminal/Terminals/AppleTerminal.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppleTerminal.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppleTerminal~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppleTerminal.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/AppleTerminal.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Terminal/Terminals/ITermTerminal.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ITermTerminal.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ITermTerminal~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ITermTerminal.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/ITermTerminal.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Terminal/Terminals/KittyTerminal.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/KittyTerminal.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/KittyTerminal~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/KittyTerminal.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/KittyTerminal.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Terminal/Terminals/TerminalProtocol.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalProtocol.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalProtocol~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalProtocol.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalProtocol.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/Terminal/Terminals/WarpTerminal.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/WarpTerminal.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/WarpTerminal~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/WarpTerminal.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/WarpTerminal.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/Sources/StartWatch/main.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/main.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/main.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StarWatch/.build/arm64-apple-macosx/release/StartWatch.build/main.dia"
+  }
+}

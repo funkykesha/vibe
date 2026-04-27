@@ -9,6 +9,7 @@
     "test": "node --test lib/eliza-client/test/*.test.js"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "eliza-client": "file:lib/eliza-client",
     "express": "^4.18.2"
