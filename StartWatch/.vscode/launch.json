@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:StarWatch}",
+            "name": "Debug StartWatch",
+            "target": "StartWatch",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug StartWatch"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:StarWatch}",
+            "name": "Release StartWatch",
+            "target": "StartWatch",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release StartWatch"
+        }
+    ]
+}

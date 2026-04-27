@@ -1,0 +1,25 @@
+{
+    "terminal": "warp",
+    "checkIntervalMinutes": 1,
+    "notifications": {
+        "enabled": true,
+        "sound": true
+    },
+    "services": [
+      {
+        "name": "Log Server",
+        "check": { "type": "http", "value": "http://localhost:3001" },
+        "start": "cd /Users/agaibadulin/Desktop/projects/vibe/genidea && node log-server.js"
+      },
+      {
+        "name": "Ollama",
+        "check": { "type": "http", "value": "http://localhost:11434/api/tags" },
+        "start": "ollama serve"
+      },
+      {
+        "name": "Groovy",
+        "check": { "type": "http", "value": "http://localhost:3000" },
+        "start": "cd /Users/agaibadulin/Desktop/projects/vibe/groovy_agent && node server.js"
+      }
+    ]
+}
