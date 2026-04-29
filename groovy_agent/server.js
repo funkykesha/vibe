@@ -6,9 +6,6 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 const os = require('os');
 const cors = require('cors');
-const { createElizaClient } = require('./lib/eliza-client');
-
-const ELIZA_TOKEN    = process.env.ELIZA_TOKEN;
 const ELIZA_PROXY_URL = process.env.ELIZA_PROXY_URL;
 
 function createProxyClient(baseUrl) {
@@ -58,9 +55,7 @@ function createProxyClient(baseUrl) {
   };
 }
 
-const eliza = ELIZA_PROXY_URL
-  ? createProxyClient(ELIZA_PROXY_URL)
-  : (ELIZA_TOKEN ? createElizaClient({ token: ELIZA_TOKEN }) : null);
+const eliza = ELIZA_PROXY_URL ? createProxyClient(ELIZA_PROXY_URL) : null;
 
 const app = express();
 app.use(cors({ origin: '*' }));   // dev — для прода сузить до нужного origin
@@ -86,20 +81,6 @@ app.get('/api/models', async (req, res) => {
     res.json({ models, validated, updatedAt: new Date().toISOString() });
   } catch (err) {
     res.status(500).json({ error: err.message });
-  }
-});
-
-// ── Model availability test ──────────────────────────────────────────────────
-app.post('/api/models/test', async (req, res) => {
-  const { model } = req.body;
-  if (!model) { res.status(400).json({ error: 'model required' }); return; }
-  if (!eliza) { res.status(500).json({ error: 'ELIZA_TOKEN не задан' }); return; }
-  try {
-    const t0 = Date.now();
-    const available = await eliza.probe(model);
-    res.json({ available, latency: Date.now() - t0 });
-  } catch (err) {
-    res.json({ available: false, error: err.message });
   }
 });
 
@@ -455,15 +436,9 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\nGroovy AI Agent запущен: http://localhost:${PORT}\n`);
   if (!eliza) {
-    console.warn('  ⚠ ELIZA_TOKEN и ELIZA_PROXY_URL не заданы! Создайте файл .env');
-    console.warn('    Токен: https://oauth.yandex-team.ru/authorize?response_type=token&client_id=60c90ec3a2b846bcbf525b0b46baac80');
-  } else if (ELIZA_PROXY_URL) {
-    console.log(`  ✓ Режим прокси: ${ELIZA_PROXY_URL}`);
+    console.warn('  ⚠ ELIZA_PROXY_URL не задан в .env');
   } else {
-    console.log('  ✓ ELIZA_TOKEN загружен из .env');
-    eliza.getModels().then(({ onValidated }) => {
-      onValidated((models) => console.log(`  ✓ Проверка моделей завершена: ${models.length} доступно`));
-    }).catch(() => {});
+    console.log(`  ✓ Режим прокси: ${ELIZA_PROXY_URL}`);
   }
   console.log('  - Groovy (brew install groovy) — для выполнения скриптов\n');
 });
