@@ -5,6 +5,7 @@ const express = require('express');
 const cors    = require('cors');
 const fs      = require('fs');
 const { createElizaClient, ElizaError } = require('./lib/eliza-client');
+const { formatGroup, groupByProvider } = require('./lib/format-startup');
 
 const ELIZA_TOKEN    = process.env.ELIZA_TOKEN;
 const PORT           = process.env.PORT || 3100;
@@ -16,7 +17,28 @@ if (!ELIZA_TOKEN) {
   process.exit(1);
 }
 
-const eliza = createElizaClient({ token: ELIZA_TOKEN });
+const displayedGroups = new Set();
+let rawModels = null;
+const probedCount = {};
+
+const eliza = createElizaClient({
+  token: ELIZA_TOKEN,
+  onModelProbed: (provider, model) => {
+    if (!rawModels) return;
+    if (displayedGroups.has(provider)) return;
+
+    probedCount[provider] = (probedCount[provider] || 0) + 1;
+
+    const providerModels = rawModels.filter(m => m.provider === provider);
+    const totalInProvider = providerModels.length;
+
+    if (probedCount[provider] === totalInProvider) {
+      displayedGroups.add(provider);
+      const output = formatGroup(provider, providerModels);
+      console.log('\n' + output);
+    }
+  },
+});
 
 const usageStats = {
   total_requests: 0,
@@ -155,7 +177,14 @@ app.get('/v1/usage', (req, res) => {
   res.json({ ...usageStats, generated_at: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`eliza-proxy: http://localhost:${PORT}`);
   console.log(`ELIZA_TOKEN: OK`);
+
+  try {
+    const { models } = await eliza.getModels();
+    rawModels = models;
+  } catch (err) {
+    console.error('Failed to fetch models:', err.message);
+  }
 });
