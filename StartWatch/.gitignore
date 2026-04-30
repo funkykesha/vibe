@@ -1,0 +1,22 @@
+# Swift
+.build/
+Packages/
+*.xcodeproj
+xcuserdata/
+.swiftpm/
+DerivedData/
+
+# Worktrees
+.worktrees/
+worktrees/
+
+# macOS
+.DS_Store
+*/.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Claude
+.claude/

@@ -31,7 +31,7 @@ function createElizaClient({
   token,
   baseUrl = 'https://api.eliza.yandex.net',
   _skipProbe = false,
-  _runProbe = runProbe,
+  _runProbe = (models, token, baseUrl, onModelProbed, updateModelStatus) => runProbe(models, token, baseUrl, onModelProbed, updateModelStatus),
   _sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
   onModelProbed = null,
 } = {}) {
@@ -40,6 +40,8 @@ function createElizaClient({
   let fetchPromise = null;
   let probePromise = null;
   const callbacks = [];
+  const modelStatuses = new Map(); // provider -> Map<modelId, status>
+  const statusListeners = [];
 
   async function fetchAndParse() {
     const backoffMs = [500, 1000];
@@ -67,7 +69,7 @@ function createElizaClient({
   function startProbeIfNeeded() {
     if (_skipProbe || probePromise) return;
 
-    probePromise = _runProbe(rawCache.models, token, baseUrl, onModelProbed)
+    probePromise = _runProbe(rawCache.models, token, baseUrl, onModelProbed, updateModelStatus)
       .then((validated) => {
         validatedCache = { models: validated, validated: true };
         callbacks.splice(0).forEach((cb) => cb(validated));
@@ -184,7 +186,25 @@ function createElizaClient({
     }
   }
 
-  return { chat, chatOnce, probe, getModels, _forceValidated };
+  // Add method to subscribe to status updates
+  function onModelUpdate(listener) {
+    statusListeners.push(listener);
+  }
+
+  // Add method to update model status
+  function updateModelStatus(provider, modelId, status) {
+    if (!modelStatuses.has(provider)) {
+      modelStatuses.set(provider, new Map());
+    }
+    modelStatuses.get(provider).set(modelId, status);
+    
+    // Notify listeners
+    statusListeners.forEach(listener => {
+      listener(provider, modelId, status);
+    });
+  }
+
+  return { chat, chatOnce, probe, getModels, _forceValidated, onModelUpdate, updateModelStatus };
 }
 
 module.exports = { createElizaClient, ElizaError };

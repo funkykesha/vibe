@@ -3,7 +3,7 @@
 const { elizaConfig, supportsThinking, usesReasoningTokens, supportsReasoningEffort } = require('./routing.js');
 
 const CONCURRENCY = 15;
-const REQUEST_TIMEOUT_MS = 500;
+const REQUEST_TIMEOUT_MS = 200;
 const MAX_TOKENS = 16;
 const REASONING_MAX_TOKENS = 32;
 const TEST_PROMPT = 'Reply with exactly OK.';
@@ -129,9 +129,14 @@ function buildProbeVariants(model, baseUrl) {
   return variants;
 }
 
-async function probeModel(model, token, baseUrl) {
+async function probeModel(model, token, baseUrl, updateModelStatus = null) {
   const config = elizaConfig(model.id, baseUrl);
   let lastFailure = null;
+  
+  // Set status to pending if updateModelStatus function is provided
+  if (updateModelStatus) {
+    updateModelStatus(model.provider, model.id, 'pending');
+  }
 
   const doFetch = (body) => fetch(config.url, {
     method: 'POST',
@@ -165,7 +170,13 @@ async function probeModel(model, token, baseUrl) {
       const error = extractErrorMessage(parsed, rawText).slice(0, 300);
       const classification = classifyError(response.status, error);
       lastFailure = { ok: false, status: response.status, error, kind: classification.kind, variant: variant.name };
-      if (!classification.retryable) return lastFailure;
+      if (!classification.retryable) {
+        // Set status to error if updateModelStatus function is provided
+        if (updateModelStatus) {
+          updateModelStatus(model.provider, model.id, 'error');
+        }
+        return lastFailure;
+      }
       continue;
     }
 
@@ -175,18 +186,28 @@ async function probeModel(model, token, baseUrl) {
       lastFailure = { ok: false, status: response.status, error: 'empty response', kind: 'empty_response', variant: variant.name };
       continue;
     }
+    
+    // Set status to success if updateModelStatus function is provided
+    if (updateModelStatus) {
+      updateModelStatus(model.provider, model.id, 'success');
+    }
 
     return { ok: true, status: response.status, sample: text.slice(0, 80), variant: variant.name };
+  }
+  
+  // Set status to error if updateModelStatus function is provided
+  if (updateModelStatus) {
+    updateModelStatus(model.provider, model.id, 'error');
   }
 
   return lastFailure || { ok: false, status: 0, error: 'probe failed without response', kind: 'probe_failed', variant: 'none' };
 }
 
-async function runProbe(models, token, baseUrl, onModelProbed) {
+async function runProbe(models, token, baseUrl, onModelProbed, updateModelStatus = null) {
   const results = [];
   for (const model of models) {
     try {
-      const result = await probeModel(model, token, baseUrl);
+      const result = await probeModel(model, token, baseUrl, updateModelStatus);
       if (result.ok) {
         const withProbe = { ...model, probe: { checkedAt: new Date().toISOString(), status: result.status, sample: result.sample, variant: result.variant } };
         if (onModelProbed) onModelProbed(withProbe.provider, withProbe);
@@ -194,11 +215,13 @@ async function runProbe(models, token, baseUrl, onModelProbed) {
       } else {
         const failed = { ...model, probe: { status: 0 } };
         if (onModelProbed) onModelProbed(failed.provider, failed);
+        results.push(failed);
       }
     } catch (err) {
       console.error(`[eliza-client] probe error for ${model.id}:`, err.message);
       const failed = { ...model, probe: { status: 0 } };
       if (onModelProbed) onModelProbed(failed.provider, failed);
+      results.push(failed);
     }
   }
   return results.sort((a, b) => a.id.localeCompare(b.id));

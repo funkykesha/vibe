@@ -38,6 +38,11 @@ npm test -- lib/eliza-client/test/models.test.js  # Одна suite
 **Получение токена:**
 `https://oauth.yandex-team.ru/authorize?response_type=token&client_id=60c90ec3a2b846bcbf525b0b46baac80`
 
+**Доступность моделей:**
+- Работают: `deepseek-v3-1-terminus`, `deepseek-v3-2`, `glm-4-7` (internal/communal models)
+- Требуют sec-review: Claude, Google, внешние DeepSeek, OpenAI
+- Подробнее см. `docs/eliza-api-models-guide.md`
+
 ## API
 
 | Method | Path | Описание |
