@@ -67,24 +67,7 @@ function createElizaClient({
   function startProbeIfNeeded() {
     if (_skipProbe || probePromise) return;
 
-    const wrappedRunProbe = async (models, token, baseUrl) => {
-      const validated = await _runProbe(models, token, baseUrl);
-      if (onModelProbed) {
-        const validatedSet = new Set(validated.map(m => m.id));
-        for (const model of rawCache.models) {
-          if (validatedSet.has(model.id)) {
-            const probedModel = validated.find(m => m.id === model.id);
-            onModelProbed(probedModel.provider, probedModel);
-          } else {
-            const failedModel = { ...model, probe: { status: 0 } };
-            onModelProbed(model.provider, failedModel);
-          }
-        }
-      }
-      return validated;
-    };
-
-    probePromise = wrappedRunProbe(rawCache.models, token, baseUrl)
+    probePromise = _runProbe(rawCache.models, token, baseUrl, onModelProbed)
       .then((validated) => {
         validatedCache = { models: validated, validated: true };
         callbacks.splice(0).forEach((cb) => cb(validated));

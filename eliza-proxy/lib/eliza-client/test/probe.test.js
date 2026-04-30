@@ -1,27 +1,7 @@
 'use strict';
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { mapWithConcurrency, classifyError, extractResponseText } = require('../probe.js');
-
-describe('mapWithConcurrency', () => {
-  it('processes all items', async () => {
-    const results = await mapWithConcurrency([1, 2, 3], 2, async (x) => x * 2);
-    assert.deepEqual(results, [2, 4, 6]);
-  });
-
-  it('respects concurrency limit', async () => {
-    let active = 0;
-    let maxActive = 0;
-    await mapWithConcurrency([1, 2, 3, 4], 2, async (x) => {
-      active++;
-      maxActive = Math.max(maxActive, active);
-      await new Promise(r => setTimeout(r, 10));
-      active--;
-      return x;
-    });
-    assert.ok(maxActive <= 2, `maxActive was ${maxActive}`);
-  });
-});
+const { classifyError, extractResponseText } = require('../probe.js');
 
 describe('classifyError', () => {
   it('classifies 404 model not found as non-retryable', () => {

@@ -182,31 +182,26 @@ async function probeModel(model, token, baseUrl) {
   return lastFailure || { ok: false, status: 0, error: 'probe failed without response', kind: 'probe_failed', variant: 'none' };
 }
 
-async function mapWithConcurrency(items, limit, worker) {
-  const results = new Array(items.length);
-  let cursor = 0;
-  async function runWorker() {
-    while (cursor < items.length) {
-      const index = cursor++;
-      results[index] = await worker(items[index], index);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runWorker));
-  return results;
-}
-
-async function runProbe(models, token, baseUrl) {
-  const results = await mapWithConcurrency(models, CONCURRENCY, async (model) => {
+async function runProbe(models, token, baseUrl, onModelProbed) {
+  const results = [];
+  for (const model of models) {
     try {
       const result = await probeModel(model, token, baseUrl);
-      if (result.ok) return { ...model, probe: { checkedAt: new Date().toISOString(), status: result.status, sample: result.sample, variant: result.variant } };
-      return null;
+      if (result.ok) {
+        const withProbe = { ...model, probe: { checkedAt: new Date().toISOString(), status: result.status, sample: result.sample, variant: result.variant } };
+        if (onModelProbed) onModelProbed(withProbe.provider, withProbe);
+        results.push(withProbe);
+      } else {
+        const failed = { ...model, probe: { status: 0 } };
+        if (onModelProbed) onModelProbed(failed.provider, failed);
+      }
     } catch (err) {
       console.error(`[eliza-client] probe error for ${model.id}:`, err.message);
-      return null;
+      const failed = { ...model, probe: { status: 0 } };
+      if (onModelProbed) onModelProbed(failed.provider, failed);
     }
-  });
-  return results.filter(Boolean).sort((a, b) => a.id.localeCompare(b.id));
+  }
+  return results.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-module.exports = { runProbe, probeModel, buildProbeVariants, mapWithConcurrency, classifyError, extractResponseText, extractErrorMessage };
+module.exports = { runProbe, probeModel, buildProbeVariants, classifyError, extractResponseText, extractErrorMessage };
