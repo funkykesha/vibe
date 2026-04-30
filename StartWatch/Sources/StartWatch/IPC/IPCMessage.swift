@@ -8,4 +8,5 @@ enum IPCMessage: Codable {
     case stopService(name: String)
     case restartService(name: String)
     case restartAllFailed
+    case quit
 }

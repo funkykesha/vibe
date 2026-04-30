@@ -50,9 +50,13 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
 
         menuBar.onQuit = {
             Logger.log(level: .info, component: "MenuAgentDelegate", event: "QUIT_CLICKED", details: ["action": .string("Sending quit command via IPC")])
-            MenuAgentIPC.send(action: "quit")
-            Logger.log(level: .info, component: "MenuAgentDelegate", event: "QUIT_CLICKED", details: ["action": .string("Terminating application")])
-            NSApplication.shared.terminate(nil)
+            IPCClient.send(.quit)
+            Logger.log(level: .info, component: "MenuAgentDelegate", event: "QUIT_SENT", details: ["action": .string("Quit command sent, waiting for daemon to shutdown")])
+            
+            // Дать daemon время для graceful shutdown (1 секунда)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                NSApplication.shared.terminate(nil)
+            }
         }
 
         if let config = ConfigManager.load() {

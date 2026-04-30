@@ -3,7 +3,7 @@
 const { elizaConfig, supportsThinking, usesReasoningTokens, supportsReasoningEffort } = require('./routing.js');
 
 const CONCURRENCY = 15;
-const REQUEST_TIMEOUT_MS = 4000;
+const REQUEST_TIMEOUT_MS = 500;
 const MAX_TOKENS = 16;
 const REASONING_MAX_TOKENS = 32;
 const TEST_PROMPT = 'Reply with exactly OK.';

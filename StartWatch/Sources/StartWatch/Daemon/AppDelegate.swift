@@ -8,6 +8,9 @@ final class DaemonCoordinator {
     private var processManager = ProcessManager()
     private var fileWatcher: FileWatcher?
     private let configQueue = DispatchQueue(label: "com.startwatch.config", attributes: .concurrent)
+    private var menuAgentTimer: Timer?
+    private var workItems: [DispatchWorkItem] = []
+    private let startTime = Date()
 
     func start() {
         let pid = getpid()
@@ -17,6 +20,7 @@ final class DaemonCoordinator {
         ipcServer = IPCServer()
         loadConfig()
         watchConfigFile()
+        startAutostartServices()
 
         let interval = TimeInterval((config?.checkIntervalMinutes ?? 180) * 60)
         scheduler = CheckScheduler(interval: interval) { [weak self] in
@@ -25,20 +29,30 @@ final class DaemonCoordinator {
 
         ipcServer.onTriggerCheck = { [weak self] in self?.runCheck() }
 
+        ipcServer.onQuit = { [weak self] in
+            self?.shutdown()
+        }
+
         ipcServer.onStartService = { [weak self] name in
             guard let svc = self?.config?.services.first(where: { $0.name == name }) else { return }
             self?.processManager.start(service: svc)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { self?.runCheck() }
+            let item = DispatchWorkItem { self?.runCheck() }
+            self?.workItems.append(item)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: item)
         }
         ipcServer.onStopService = { [weak self] name in
             guard let svc = self?.config?.services.first(where: { $0.name == name }) else { return }
             self?.processManager.stop(service: svc)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { self?.runCheck() }
+            let item = DispatchWorkItem { self?.runCheck() }
+            self?.workItems.append(item)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: item)
         }
         ipcServer.onRestartService = { [weak self] name in
             guard let svc = self?.config?.services.first(where: { $0.name == name }) else { return }
             self?.processManager.restart(service: svc)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { self?.runCheck() }
+            let item = DispatchWorkItem { self?.runCheck() }
+            self?.workItems.append(item)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: item)
         }
 
         ipcServer.start()
@@ -46,13 +60,59 @@ final class DaemonCoordinator {
 
         spawnMenuAgentIfNeeded()
 
-        Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+        menuAgentTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             self?.spawnMenuAgentIfNeeded()
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+        let initialCheckItem = DispatchWorkItem { [weak self] in
             self?.runCheck()
         }
+        workItems.append(initialCheckItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15, execute: initialCheckItem)
+    }
+
+    func shutdown() {
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "DAEMON_SHUTDOWN_START", details: [:])
+
+        // Stop all running services
+        if let config = config {
+            for service in config.services {
+                processManager.stop(service: service)
+            }
+            Logger.log(level: .info, component: "DaemonCoordinator", event: "SERVICES_STOPPED", details: ["serviceCount": .int(config.services.count)])
+        }
+
+        // Stop scheduler
+        scheduler = nil
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "SCHEDULER_STOPPED", details: [:])
+
+        // Stop file watcher
+        fileWatcher?.stop()
+        fileWatcher = nil
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "FILE_WATCHER_STOPPED", details: [:])
+
+        // Stop IPC server
+        ipcServer.stop()
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "IPC_SERVER_STOPPED", details: [:])
+
+        // Cancel all pending dispatch queue operations
+        for item in workItems {
+            item.cancel()
+        }
+        workItems.removeAll()
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "DISPATCH_ITEMS_CANCELLED", details: [:])
+
+        // Cancel repeating timer
+        menuAgentTimer?.invalidate()
+        menuAgentTimer = nil
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "TIMERS_CANCELLED", details: [:])
+
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "DAEMON_SHUTDOWN_COMPLETE", details: [:])
+
+        let uptime = Int(Date().timeIntervalSince(startTime))
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "DAEMON_STOP", details: ["uptime": .int(uptime), "reason": .string("user_request")])
+
+        exit(0)
     }
 
     // MARK: - Private
@@ -107,6 +167,15 @@ final class DaemonCoordinator {
         fileWatcher?.start { [weak self] in
             print("[Daemon] Config file changed, reloading...")
             self?.reloadConfig()
+        }
+    }
+
+    private func startAutostartServices() {
+        guard let config = config else { return }
+        for service in config.services where service.autostart == true {
+            guard service.start != nil else { continue }
+            Logger.log(level: .info, component: "DaemonCoordinator", event: "SERVICE_AUTOSTART", details: ["serviceName": .string(service.name)])
+            processManager.start(service: service)
         }
     }
 

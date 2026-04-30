@@ -7,13 +7,18 @@ const fs      = require('fs');
 const { createElizaClient, ElizaError } = require('./lib/eliza-client');
 const { formatGroup, groupByProvider } = require('./lib/format-startup');
 
-const ELIZA_TOKEN    = process.env.ELIZA_TOKEN;
+let ELIZA_TOKEN = process.env.ELIZA_TOKEN;
 const PORT           = process.env.PORT || 3100;
 const USAGE_LOG_FILE = process.env.USAGE_LOG_FILE || './usage.jsonl';
 const LOG_USAGE      = process.env.LOG_USAGE !== 'false';
+const TOKEN_FILE     = '/Users/agaibadulin/.eliza/token';
+
+if (!ELIZA_TOKEN && fs.existsSync(TOKEN_FILE)) {
+  ELIZA_TOKEN = fs.readFileSync(TOKEN_FILE, 'utf-8').trim();
+}
 
 if (!ELIZA_TOKEN) {
-  console.error('FATAL: ELIZA_TOKEN не задан в .env');
+  console.error('FATAL: ELIZA_TOKEN не задан в .env и не найден в', TOKEN_FILE);
   process.exit(1);
 }
 

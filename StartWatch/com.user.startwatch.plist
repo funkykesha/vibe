@@ -14,9 +14,6 @@
     <key>RunAtLoad</key>
     <true/>
 
-    <key>KeepAlive</key>
-    <true/>
-
     <key>StandardOutPath</key>
     <string>/Users/Shared/startwatch.log</string>
 

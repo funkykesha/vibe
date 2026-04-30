@@ -24,6 +24,7 @@ struct ServiceConfig: Codable {
     let cwd: String?
     let tags: [String]?
     let open: String?
+    let autostart: Bool?
 }
 
 struct CheckConfig: Codable {
@@ -114,6 +115,7 @@ enum ConfigManager {
                     "check": { "type": "port", "value": "6379", "timeout": 3 },
                     "start": "brew services start redis",
                     "restart": "brew services restart redis",
+                    "autostart": true,
                     "tags": ["infra"]
                 },
                 {
@@ -121,6 +123,7 @@ enum ConfigManager {
                     "check": { "type": "http", "value": "http://localhost:3000/health", "timeout": 5 },
                     "start": "cd ~/projects/backend && npm start",
                     "cwd": "~/projects/backend",
+                    "autostart": true,
                     "tags": ["app"]
                 }
             ]
