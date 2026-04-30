@@ -6,16 +6,21 @@ Display real-time model availability status during server startup using sequenti
 
 The system SHALL display real-time status of all available Eliza models during server startup, showing which models are accessible and which are unavailable.
 
-#### Scenario: Server startup with sequential probing
-- **WHEN** server starts (`npm start`) and begins probing models sequentially
-- **THEN** initial group list is displayed with ⏳ for all models
-- **AND** as each model completes probing (3-5 seconds apart), that model's status updates (✅ or ❌)
-- **AND** when all models in a provider group are done, group is displayed with final statuses
+#### Scenario: Server startup with model probing
+- **WHEN** server starts (`npm start`) and begins probing models
+- **THEN** initial group list SHALL be displayed with ⏳ for all models
+- **AND** as each provider's probe completes, that group SHALL be re-displayed with final statuses
 
-#### Scenario: Per-model update
-- **WHEN** each individual model completes probing
-- **THEN** that model's status in the provider group updates immediately
-- **AND** progress bar is recalculated and shown
+#### Scenario: Completed model group display
+- **WHEN** all models in a provider group have completed probing
+- **THEN** the group SHALL be shown with format: `ProviderName [████░░░░] 12/15` followed by model list
+- **AND** the progress bar shows 100% filled (`[██████████]`)
+- **AND** models SHALL show ✅ for available, ❌ for unavailable
+
+#### Scenario: Race condition safety
+- **WHEN** probe events arrive before provider map is initialized
+- **THEN** those events SHALL be queued and processed once initialization completes
+- **AND** no events SHALL be silently dropped
 
 ### Requirement: Group models by provider
 
@@ -78,23 +83,18 @@ The system SHALL use ANSI escape codes to color-code status indicators and provi
 - **THEN** output still displays correctly (symbols and text visible without colors)
 
 ### Requirement: Update groups incrementally without full screen redraw
+The system SHALL update individual provider groups as models complete without clearing the entire screen or causing terminal flicker.
 
-The system SHALL append new groups to output as they complete without clearing the entire screen or causing terminal flicker.
-
-#### Scenario: New group appears
-- **WHEN** a new provider group completes its first model
-- **THEN** that group is printed to stdout as new lines
-- **AND** previously printed groups remain visible above it
-
-#### Scenario: Group in-progress update
+#### Scenario: Group in-progress update with line rewriting
 - **WHEN** a model completes in an already-displayed group
-- **THEN** only that group's lines are updated (progress bar and model list)
+- **THEN** only that group's lines are updated (progress bar and model list) using terminal cursor positioning
 - **AND** output is re-rendered cleanly without clearing other groups
+- **AND** the global progress bar at the bottom is updated with new completion statistics
 
-#### Scenario: No screen flicker
-- **WHEN** models complete during probing
-- **THEN** terminal output appears smooth and readable
-- **AND** no visual artifacts or excessive redrawing occurs
+#### Scenario: Global progress tracking
+- **WHEN** any model completes probing across all providers
+- **THEN** a global progress indicator is displayed at the bottom of the output showing total models probed vs total models
+- **AND** this global indicator is updated incrementally as each model completes
 
 ### Requirement: Progress bar format and calculation
 

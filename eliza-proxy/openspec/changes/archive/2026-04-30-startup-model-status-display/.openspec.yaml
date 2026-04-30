@@ -1,0 +1,9 @@
+id: startup-model-status-display
+version: 0.1.0
+title: Startup Model Status Display
+description: Implement a real-time model status display during startup that shows probing progress with visual progress bars and color-coded model statuses
+apply:
+  requires:
+    - proposal
+    - design
+    - tasks

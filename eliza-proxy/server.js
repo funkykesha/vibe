@@ -6,12 +6,21 @@ const cors    = require('cors');
 const fs      = require('fs');
 const { createElizaClient, ElizaError } = require('./lib/eliza-client');
 const { formatGroup, groupByProvider } = require('./lib/format-startup');
+const StartupDisplayManager = require('./lib/startup-display-manager');
 
 let ELIZA_TOKEN = process.env.ELIZA_TOKEN;
 const PORT           = process.env.PORT || 3100;
 const USAGE_LOG_FILE = process.env.USAGE_LOG_FILE || './usage.jsonl';
 const LOG_USAGE      = process.env.LOG_USAGE !== 'false';
 const TOKEN_FILE     = '/Users/agaibadulin/.eliza/token';
+
+// Constants for auto-exit functionality
+const FINAL_DISPLAY_DELAY_MS = 100; // Brief delay to ensure final display renders before exit
+
+// Parse command-line arguments for CI/CD automation
+// --exit-after-probe: Automatically exit after all models are probed (useful for health checks)
+const args = process.argv.slice(2);
+const shouldExitAfterProbe = args.includes('--exit-after-probe');
 
 if (!ELIZA_TOKEN && fs.existsSync(TOKEN_FILE)) {
   ELIZA_TOKEN = fs.readFileSync(TOKEN_FILE, 'utf-8').trim();
@@ -22,28 +31,21 @@ if (!ELIZA_TOKEN) {
   process.exit(1);
 }
 
-const displayedGroups = new Set();
 let modelsByProvider = {};
 let modelsByProviderReady = false;
 let pendingProbeEvents = [];
-const probedCount = {};
+
+// Auto-exit tracking variables
+let totalModels = 0;        // Total number of models to probe
+let completedProbeCount = 0; // Count of completed probe operations
+let modelsLoaded = false;    // Flag to track when totalModels is initialized
 
 function processProbeEvent(provider, model) {
-  if (displayedGroups.has(provider)) return;
   if (!modelsByProvider[provider]) return;
 
   const idx = modelsByProvider[provider].findIndex(m => m.id === model.id);
   if (idx !== -1) {
     modelsByProvider[provider][idx] = { ...modelsByProvider[provider][idx], probe: model.probe };
-  }
-
-  probedCount[provider] = (probedCount[provider] || 0) + 1;
-  const totalInProvider = modelsByProvider[provider].length;
-
-  if (probedCount[provider] === totalInProvider) {
-    displayedGroups.add(provider);
-    const output = formatGroup(provider, modelsByProvider[provider]);
-    console.log('\n' + output);
   }
 }
 
@@ -56,6 +58,35 @@ const eliza = createElizaClient({
     }
     processProbeEvent(provider, model);
   },
+});
+
+// Create startup display manager
+const displayManager = new StartupDisplayManager();
+
+// Subscribe to model status updates
+eliza.onModelUpdate((provider, modelId, status) => {
+  displayManager.updateModelStatus(provider, modelId, status);
+
+  // Track probe completion for auto-exit functionality
+  // Both success and error statuses count as completed probes
+  // Only track if models have been loaded from API to prevent race condition
+  if (modelsLoaded && (status === 'success' || status === 'error')) {
+    completedProbeCount++;
+
+    // Check if all models have been probed and auto-exit is enabled
+    // This is the core condition for CI/CD automation - exit when all probes complete
+    if (shouldExitAfterProbe && modelsLoaded && completedProbeCount === totalModels) {
+      // Give a brief moment for the final display to render
+      // This ensures the final status update is visible before process termination
+      setTimeout(async () => {
+        console.log('\nProbe complete. Exiting due to --exit-after-probe flag.');
+        if (server && server.listening) {
+          await server.close();
+        }
+        process.exit(0);
+      }, FINAL_DISPLAY_DELAY_MS);
+    }
+  }
 });
 
 const usageStats = {
@@ -195,17 +226,22 @@ app.get('/v1/usage', (req, res) => {
   res.json({ ...usageStats, generated_at: new Date().toISOString() });
 });
 
-app.listen(PORT, async () => {
+const server = app.listen(PORT, async () => {
   console.log(`eliza-proxy: http://localhost:${PORT}`);
   console.log(`ELIZA_TOKEN: OK`);
 
   try {
     const { models } = await eliza.getModels();
     modelsByProvider = groupByProvider(models);
+    
+    // Initialize total models count
+    // Edge case: If API returns zero models, totalModels = 0 and exit will trigger immediately
+    //   after first probe completes (0 === 0). This is valid behavior - no models to probe = done.
+    totalModels = Object.values(modelsByProvider).reduce((sum, providerModels) => sum + providerModels.length, 0);
+    modelsLoaded = true; // Enable probe tracking - prevents race condition with early probe completions
 
-    for (const [provider, providerModels] of Object.entries(modelsByProvider)) {
-      console.log('\n' + formatGroup(provider, providerModels));
-    }
+    // Note: The display manager will handle rendering via the onModelUpdate subscription
+    // No need to manually render groups here since probing will trigger updates
 
     modelsByProviderReady = true;
 
