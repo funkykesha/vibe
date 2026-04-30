@@ -88,7 +88,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/FileWatcher.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/HistoryLogger.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/Logger.swift"
         },
         {
           "kind" : "file",
@@ -132,15 +140,15 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift"
-        },
-        {
-          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift"
         },
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ServiceMenuItemView.swift"
         },
         {
           "kind" : "file",
@@ -206,7 +214,9 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/AsyncHelpers.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckResult.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/Config.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/FileWatcher.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/Logger.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ProcessManager.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceRunner.swift.o",
@@ -217,9 +227,9 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCClient.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCMessage.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCServer.swift.o",
-        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceMenuItemView.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/NotificationManager.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/TerminalLauncher.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/AlacrittyTerminal.swift.o",
@@ -340,7 +350,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/FileWatcher.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/Logger.swift.o"
         },
         {
           "kind" : "file",
@@ -384,15 +402,15 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o"
-        },
-        {
-          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceMenuItemView.swift.o"
         },
         {
           "kind" : "file",
@@ -452,7 +470,9 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/AsyncHelpers.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/CheckResult.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/Config.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/FileWatcher.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/HistoryLogger.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/Logger.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/ProcessManager.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/ServiceChecker.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/ServiceRunner.swift",
@@ -463,9 +483,9 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/IPC/IPCClient.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/IPC/IPCMessage.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/IPC/IPCServer.swift",
-        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ServiceMenuItemView.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Notifications/NotificationManager.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Terminal/TerminalLauncher.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Terminal/Terminals/AlacrittyTerminal.swift",
@@ -583,6 +603,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FileWatcherTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FormattingTests.swift"
         },
         {
@@ -607,6 +631,7 @@
       "moduleOutputPath" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/Modules/StartWatchTests.swiftmodule",
       "objects" : [
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/ConfigTests.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FileWatcherTests.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FormattingTests.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/ServiceCheckerTests.swift.o"
       ],
@@ -666,6 +691,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FileWatcherTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FormattingTests.swift.o"
         },
         {
@@ -680,6 +709,7 @@
       "prepareForIndexing" : false,
       "sources" : [
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ConfigTests.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FileWatcherTests.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FormattingTests.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ServiceCheckerTests.swift"
       ],
@@ -713,7 +743,9 @@
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/AsyncHelpers.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/CheckResult.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/Config.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/FileWatcher.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/HistoryLogger.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/Logger.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/ProcessManager.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/ServiceChecker.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/ServiceRunner.swift",
@@ -724,9 +756,9 @@
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/IPC/IPCClient.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/IPC/IPCMessage.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/IPC/IPCServer.swift",
-      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ServiceMenuItemView.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Notifications/NotificationManager.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Terminal/TerminalLauncher.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Terminal/Terminals/AlacrittyTerminal.swift",
@@ -851,6 +883,7 @@
       "startwatch",
       "-c",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ConfigTests.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FileWatcherTests.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FormattingTests.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ServiceCheckerTests.swift",
       "-I",
@@ -1008,7 +1041,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/FileWatcher.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/HistoryLogger.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/Core/Logger.swift"
         },
         {
           "kind" : "file",
@@ -1052,15 +1093,15 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ConfigEditorWindow.swift"
-        },
-        {
-          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentCommand.swift"
         },
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/MenuAgentDelegate.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/MenuAgent/ServiceMenuItemView.swift"
         },
         {
           "kind" : "file",
@@ -1154,15 +1195,15 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o"
-        },
-        {
-          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/FileWatcher.swift.o"
         },
         {
           "kind" : "file",
@@ -1191,6 +1232,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/Logger.swift.o"
         },
         {
           "kind" : "file",
@@ -1223,6 +1268,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceMenuItemView.swift.o"
         },
         {
           "kind" : "file",
@@ -1330,15 +1379,15 @@
         },
         {
           "kind" : "file",
-          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o"
-        },
-        {
-          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/FileWatcher.swift.o"
         },
         {
           "kind" : "file",
@@ -1367,6 +1416,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/Logger.swift.o"
         },
         {
           "kind" : "file",
@@ -1399,6 +1452,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceMenuItemView.swift.o"
         },
         {
           "kind" : "file",
@@ -1446,6 +1503,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FileWatcherTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FormattingTests.swift.o"
         },
         {
@@ -1465,6 +1526,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ConfigTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FileWatcherTests.swift"
         },
         {
           "kind" : "file",

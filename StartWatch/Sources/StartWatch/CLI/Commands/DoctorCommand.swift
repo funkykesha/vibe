@@ -50,8 +50,37 @@ enum DoctorCommand {
             }
         }
 
-        // 6. Notification permission (requires .app bundle — only meaningful in daemon mode)
-        if Bundle.main.bundleIdentifier != nil {
+        // 6. Menu app bundle installed
+        var menuAppPath = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Applications/StartWatchMenu.app").path
+        if !FileManager.default.fileExists(atPath: menuAppPath) {
+            // Fallback to /Applications if not found in ~/Applications
+            menuAppPath = "/Applications/StartWatchMenu.app"
+        }
+        check("Menu app installed", &allOk) {
+            FileManager.default.fileExists(atPath: menuAppPath)
+        }
+
+        // 7. Menu app signature valid (required by newer macOS for UI agent)
+        check("Menu app signature valid", &allOk) {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
+            process.arguments = ["-vvv", menuAppPath]
+            process.standardOutput = FileHandle.nullDevice
+            process.standardError = FileHandle.nullDevice
+            do {
+                try process.run()
+                process.waitUntilExit()
+                return process.terminationStatus == 0
+            } catch {
+                return false
+            }
+        }
+
+        // 8. Notification permission (requires .app bundle — only meaningful in daemon mode)
+        // Check if we're running in the menu app bundle context
+        let isMenuAppBundle = Bundle.main.bundleIdentifier?.contains("startwatch.menu") ?? false
+        if isMenuAppBundle {
             check("Notification permission", &allOk) {
                 let semaphore = DispatchSemaphore(value: 0)
                 var granted = false

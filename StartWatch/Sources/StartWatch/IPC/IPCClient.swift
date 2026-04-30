@@ -1,11 +1,11 @@
-// StartWatch — IPCClient: CLI → Daemon коммуникация через файловый кэш
+// StartWatch — IPCClient: CLI/menu-agent → daemon via Unix domain socket
 import Foundation
+import Darwin
 
 enum IPCClient {
     static func getLastResults() -> [CheckResult]? {
         guard let cached = StateManager.loadLastResults() else { return nil }
 
-        // Данные старше 4 часов считаем невалидными
         if let first = cached.first,
            Date().timeIntervalSince(first.checkedAt) > 4 * 3600 {
             return nil
@@ -38,24 +38,50 @@ enum IPCClient {
     }
 
     static func send(_ message: IPCMessage) {
+        guard let payload = payload(for: message),
+              let data = try? JSONEncoder().encode(payload)
+        else { return }
+        socketSend(data)
+    }
+
+    // MARK: - Private
+
+    private static func payload(for message: IPCMessage) -> [String: String]? {
         switch message {
-        case .triggerCheck:
-            let flagFile = StateManager.stateDir.appendingPathComponent("trigger_check")
-            FileManager.default.createFile(atPath: flagFile.path, contents: nil)
-        case .startService(let name):
-            writeCommand(["action": "start_service", "name": name])
-        case .stopService(let name):
-            writeCommand(["action": "stop_service", "name": name])
-        case .restartService(let name):
-            writeCommand(["action": "restart_service", "name": name])
-        default:
-            break
+        case .triggerCheck:               return ["action": "trigger_check"]
+        case .startService(let name):     return ["action": "start_service", "name": name]
+        case .stopService(let name):      return ["action": "stop_service", "name": name]
+        case .restartService(let name):   return ["action": "restart_service", "name": name]
+        default:                          return nil
         }
     }
 
-    private static func writeCommand(_ payload: [String: String]) {
-        guard let data = try? JSONEncoder().encode(payload) else { return }
-        let url = StateManager.stateDir.appendingPathComponent("menu_command.json")
-        try? data.write(to: url, options: .atomic)
+    private static func socketSend(_ data: Data) {
+        let path = StateManager.socketURL.path
+        guard FileManager.default.fileExists(atPath: path) else { return }
+
+        let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+        guard fd >= 0 else { return }
+        defer { Darwin.close(fd) }
+
+        var addr = sockaddr_un()
+        addr.sun_family = sa_family_t(AF_UNIX)
+        path.withCString { src in
+            withUnsafeMutableBytes(of: &addr.sun_path) { dst in
+                dst.copyMemory(from: UnsafeRawBufferPointer(start: src, count: min(strlen(src) + 1, dst.count)))
+            }
+        }
+
+        let connected = withUnsafePointer(to: addr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.connect(fd, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
+            }
+        }
+        guard connected == 0 else { return }
+
+        _ = data.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
+
+        var reply = [UInt8](repeating: 0, count: 64)
+        _ = Darwin.read(fd, &reply, reply.count)
     }
 }

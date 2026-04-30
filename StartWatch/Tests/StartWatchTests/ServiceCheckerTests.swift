@@ -11,7 +11,8 @@ final class ServiceCheckerTests: XCTestCase {
             start: nil,
             restart: nil,
             cwd: nil,
-            tags: nil
+            tags: nil,
+            open: nil
         )
     }
 

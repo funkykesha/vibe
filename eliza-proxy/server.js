@@ -18,25 +18,38 @@ if (!ELIZA_TOKEN) {
 }
 
 const displayedGroups = new Set();
-let rawModels = null;
+let modelsByProvider = {};
+let modelsByProviderReady = false;
+let pendingProbeEvents = [];
 const probedCount = {};
+
+function processProbeEvent(provider, model) {
+  if (displayedGroups.has(provider)) return;
+  if (!modelsByProvider[provider]) return;
+
+  const idx = modelsByProvider[provider].findIndex(m => m.id === model.id);
+  if (idx !== -1) {
+    modelsByProvider[provider][idx] = { ...modelsByProvider[provider][idx], probe: model.probe };
+  }
+
+  probedCount[provider] = (probedCount[provider] || 0) + 1;
+  const totalInProvider = modelsByProvider[provider].length;
+
+  if (probedCount[provider] === totalInProvider) {
+    displayedGroups.add(provider);
+    const output = formatGroup(provider, modelsByProvider[provider]);
+    console.log('\n' + output);
+  }
+}
 
 const eliza = createElizaClient({
   token: ELIZA_TOKEN,
   onModelProbed: (provider, model) => {
-    if (!rawModels) return;
-    if (displayedGroups.has(provider)) return;
-
-    probedCount[provider] = (probedCount[provider] || 0) + 1;
-
-    const providerModels = rawModels.filter(m => m.provider === provider);
-    const totalInProvider = providerModels.length;
-
-    if (probedCount[provider] === totalInProvider) {
-      displayedGroups.add(provider);
-      const output = formatGroup(provider, providerModels);
-      console.log('\n' + output);
+    if (!modelsByProviderReady) {
+      pendingProbeEvents.push({ provider, model });
+      return;
     }
+    processProbeEvent(provider, model);
   },
 });
 
@@ -183,7 +196,18 @@ app.listen(PORT, async () => {
 
   try {
     const { models } = await eliza.getModels();
-    rawModels = models;
+    modelsByProvider = groupByProvider(models);
+
+    for (const [provider, providerModels] of Object.entries(modelsByProvider)) {
+      console.log('\n' + formatGroup(provider, providerModels));
+    }
+
+    modelsByProviderReady = true;
+
+    for (const { provider, model } of pendingProbeEvents) {
+      processProbeEvent(provider, model);
+    }
+    pendingProbeEvents = [];
   } catch (err) {
     console.error('Failed to fetch models:', err.message);
   }

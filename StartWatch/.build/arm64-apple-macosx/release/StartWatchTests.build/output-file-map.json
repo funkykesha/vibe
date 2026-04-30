@@ -10,6 +10,12 @@
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/ConfigTests.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/ConfigTests.dia"
   },
+  "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FileWatcherTests.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FileWatcherTests.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FileWatcherTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FileWatcherTests.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FileWatcherTests.dia"
+  },
   "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FormattingTests.swift": {
     "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FormattingTests.swift.o",
     "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatchTests.build/FormattingTests~partial.swiftmodule",

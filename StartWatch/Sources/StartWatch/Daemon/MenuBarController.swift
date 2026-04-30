@@ -13,6 +13,7 @@ final class MenuBarController {
     var onStartService: ((String) -> Void)?
     var onStopService: ((String) -> Void)?
     var onRestartService: ((String) -> Void)?
+    var onSetTerminal: ((String) -> Void)?
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -35,17 +36,27 @@ final class MenuBarController {
 
     private func updateIcon(allOk: Bool) {
         guard let button = statusItem.button else { return }
-        if #available(macOS 11.0, *) {
-            let symbolName = allOk
-                ? "checkmark.circle.fill"
-                : "exclamationmark.triangle.fill"
-            let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "StartWatch")
-            image?.isTemplate = true
-            button.image = image
-            if image == nil { button.title = allOk ? "●" : "◐" }
-        } else {
-            button.title = allOk ? "●" : "◐"
-        }
+        button.image = makeStatusIcon(emoji: allOk ? "♻️" : "⚠️")
+        button.title = ""
+        button.toolTip = "StartWatch"
+    }
+
+    private func makeStatusIcon(emoji: String) -> NSImage {
+        let size = NSSize(width: 28, height: 20)
+        let image = NSImage(size: size)
+        image.lockFocus()
+
+        let bg = NSRect(x: 1, y: 1, width: size.width - 2, height: size.height - 2)
+        NSColor.windowBackgroundColor.setFill()
+        NSBezierPath(roundedRect: bg, xRadius: 5, yRadius: 5).fill()
+
+        let attrs: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 12)]
+        let str = NSAttributedString(string: emoji, attributes: attrs)
+        let sz = str.size()
+        str.draw(at: NSPoint(x: (size.width - sz.width) / 2, y: (size.height - sz.height) / 2))
+
+        image.unlockFocus()
+        return image
     }
 
     private func buildMenu() {
@@ -75,35 +86,19 @@ final class MenuBarController {
             menu.addItem(item)
         } else {
             for result in lastResults {
-                let icon = result.isRunning ? "✅" : "❌"
-                let header = NSMenuItem(
-                    title: "\(icon)  \(result.service.name)",
-                    action: nil, keyEquivalent: ""
-                )
-                header.toolTip = "\(result.detail)\n\(result.service.check.type.rawValue): \(result.service.check.value)"
+                let menuItem = NSMenuItem()
+                menuItem.isEnabled = true
+                let rowView = ServiceMenuItemView(result: result)
 
-                let submenu = NSMenu()
+                rowView.onOpen = { [weak self] in
+                    self?.openService(result.service)
+                }
+                rowView.onStart = { [weak self] in self?.onStartService?(result.service.name) }
+                rowView.onStop = { [weak self] in self?.onStopService?(result.service.name) }
+                rowView.onRestart = { [weak self] in self?.onRestartService?(result.service.name) }
 
-                let startItem = NSMenuItem(title: "Запустить", action: #selector(serviceActionClicked(_:)), keyEquivalent: "")
-                startItem.target = self
-                startItem.representedObject = ("start", result.service.name)
-                startItem.isEnabled = !result.isRunning
-
-                let stopItem = NSMenuItem(title: "Остановить", action: #selector(serviceActionClicked(_:)), keyEquivalent: "")
-                stopItem.target = self
-                stopItem.representedObject = ("stop", result.service.name)
-                stopItem.isEnabled = result.isRunning
-
-                let restartItem = NSMenuItem(title: "Перезапустить", action: #selector(serviceActionClicked(_:)), keyEquivalent: "")
-                restartItem.target = self
-                restartItem.representedObject = ("restart", result.service.name)
-
-                submenu.addItem(startItem)
-                submenu.addItem(stopItem)
-                submenu.addItem(restartItem)
-
-                header.submenu = submenu
-                menu.addItem(header)
+                menuItem.view = rowView
+                menu.addItem(menuItem)
             }
         }
 
@@ -129,6 +124,11 @@ final class MenuBarController {
         menu.addItem(checkNow)
 
         menu.addItem(NSMenuItem.separator())
+
+        let terminalMenu = buildTerminalSubmenu()
+        let terminalItem = NSMenuItem(title: "Terminal", action: nil, keyEquivalent: "")
+        terminalItem.submenu = terminalMenu
+        menu.addItem(terminalItem)
 
         let openConfig = NSMenuItem(
             title: "Open Config…",
@@ -157,13 +157,40 @@ final class MenuBarController {
     @objc private func openConfigClicked() { onOpenConfig?() }
     @objc private func quitClicked() { onQuit?() }
 
-    @objc private func serviceActionClicked(_ sender: NSMenuItem) {
-        guard let (action, name) = sender.representedObject as? (String, String) else { return }
-        switch action {
-        case "start":   onStartService?(name)
-        case "stop":    onStopService?(name)
-        case "restart": onRestartService?(name)
-        default: break
+    @objc private func terminalSelected(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? String else { return }
+        onSetTerminal?(id)
+    }
+
+    private func buildTerminalSubmenu() -> NSMenu {
+        let current = config?.terminal ?? "terminal"
+        let candidates: [(id: String, label: String)] = [
+            ("terminal", "Terminal"),
+            ("warp",     "Warp"),
+            ("iterm",    "iTerm2"),
+            ("alacritty","Alacritty"),
+            ("kitty",    "Kitty"),
+        ]
+        let sub = NSMenu()
+        for (id, label) in candidates where TerminalLauncher.isAvailable(terminal: id) {
+            let item = NSMenuItem(title: label, action: #selector(terminalSelected(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = id
+            item.state = (id == current) ? .on : .off
+            sub.addItem(item)
+        }
+        return sub
+    }
+
+    private func openService(_ service: ServiceConfig) {
+        guard let openValue = service.open else { return }
+        if openValue.hasPrefix("http://") || openValue.hasPrefix("https://"),
+           let url = URL(string: openValue) {
+            NSWorkspace.shared.open(url)
+        } else if let config = config {
+            TerminalLauncher.open(terminal: config.terminal ?? "terminal", command: openValue)
+        } else {
+            TerminalLauncher.open(terminal: "terminal", command: openValue)
         }
     }
 }

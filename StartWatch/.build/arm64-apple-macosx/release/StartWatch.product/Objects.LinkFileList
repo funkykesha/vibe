@@ -9,9 +9,9 @@
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/CheckScheduler.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/Config.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigCommand.swift.o
-/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ConfigEditorWindow.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DaemonCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.swift.o
+/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/FileWatcher.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/HistoryLogger.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCClient.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/IPCMessage.swift.o
@@ -19,6 +19,7 @@
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ITermTerminal.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/KittyTerminal.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand.swift.o
+/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/Logger.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuAgentDelegate.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/MenuBarController.swift.o
@@ -27,6 +28,7 @@
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ReportBuilder.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/RestartCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceChecker.swift.o
+/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceMenuItemView.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ServiceRunner.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StartCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StateManager.swift.o

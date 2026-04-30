@@ -5,7 +5,6 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController!
     private var pollTimer: Timer?
     private var previousFailedNames: Set<String> = []
-    private var configEditor = ConfigEditorWindow()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         menuBar = MenuBarController()
@@ -30,16 +29,29 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
             TerminalLauncher.openCLI(config: config)
         }
 
-        menuBar.onOpenConfig = { [weak self] in
-            self?.configEditor.show()
+        menuBar.onOpenConfig = {
+            NSWorkspace.shared.open(ConfigManager.configURL)
         }
 
         menuBar.onStartService = { name in IPCClient.send(.startService(name: name)) }
         menuBar.onStopService  = { name in IPCClient.send(.stopService(name: name)) }
         menuBar.onRestartService = { name in IPCClient.send(.restartService(name: name)) }
 
+        menuBar.onSetTerminal = { terminal in
+            guard var config = ConfigManager.load() else { return }
+            config = AppConfig(
+                terminal: terminal,
+                checkIntervalMinutes: config.checkIntervalMinutes,
+                notifications: config.notifications,
+                services: config.services
+            )
+            try? ConfigManager.save(config)
+        }
+
         menuBar.onQuit = {
+            Logger.log(level: .info, component: "MenuAgentDelegate", event: "QUIT_CLICKED", details: ["action": .string("Sending quit command via IPC")])
             MenuAgentIPC.send(action: "quit")
+            Logger.log(level: .info, component: "MenuAgentDelegate", event: "QUIT_CLICKED", details: ["action": .string("Terminating application")])
             NSApplication.shared.terminate(nil)
         }
 

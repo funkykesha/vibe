@@ -1,6 +1,8 @@
 // StartWatch — ServiceChecker: 4 типа проверок сервисов
 import Foundation
-import Network
+import os
+@preconcurrency import Network
+@preconcurrency import Dispatch
 
 enum ServiceChecker {
 
@@ -24,16 +26,25 @@ enum ServiceChecker {
 
     static func check(service: ServiceConfig) async -> CheckResult {
         let timeout = service.check.timeout ?? 5
+        let result: CheckResult
         switch service.check.type {
         case .process:
-            return await checkProcess(service: service)
+            result = await checkProcess(service: service)
         case .port:
-            return await checkPort(service: service, timeout: timeout)
+            result = await checkPort(service: service, timeout: timeout)
         case .http:
-            return await checkHTTP(service: service, timeout: timeout)
+            result = await checkHTTP(service: service, timeout: timeout)
         case .command:
-            return await checkCommand(service: service, timeout: timeout)
+            result = await checkCommand(service: service, timeout: timeout)
         }
+
+        if result.isRunning {
+            Logger.log(level: .info, component: "ServiceChecker", event: "SERVICE_READY", details: ["serviceName": .string(service.name), "checkType": .string(service.check.type.rawValue)])
+        } else {
+            Logger.log(level: .error, component: "ServiceChecker", event: "SERVICE_NOT_READY", details: ["serviceName": .string(service.name), "checkType": .string(service.check.type.rawValue), "detail": .string(result.detail)])
+        }
+
+        return result
     }
 
     // MARK: - Process check
@@ -72,47 +83,33 @@ enum ServiceChecker {
         }
 
         return await withCheckedContinuation { continuation in
-            var resumed = false
-            let connection = NWConnection(
-                host: "127.0.0.1",
-                port: nwPort,
-                using: .tcp
-            )
+            // OSAllocatedUnfairLock is Sendable — safe to capture across concurrency domains
+            let once = OSAllocatedUnfairLock(initialState: false)
+            let tryResume: @Sendable (CheckResult) -> Void = { result in
+                let first = once.withLock { state -> Bool in
+                    if state { return false }
+                    state = true
+                    return true
+                }
+                if first { continuation.resume(returning: result) }
+            }
 
+            let connection = NWConnection(host: "127.0.0.1", port: nwPort, using: .tcp)
             let queue = DispatchQueue(label: "startwatch.portcheck.\(portStr)")
 
-            let timeoutWork = DispatchWorkItem {
-                guard !resumed else { return }
-                resumed = true
+            queue.asyncAfter(deadline: .now() + .seconds(timeout)) {
                 connection.cancel()
-                continuation.resume(returning: CheckResult(
-                    service: service, isRunning: false,
-                    detail: "Port \(portStr): connection timeout"
-                ))
+                tryResume(CheckResult(service: service, isRunning: false, detail: "Port \(portStr): connection timeout"))
             }
-            queue.asyncAfter(deadline: .now() + .seconds(timeout), execute: timeoutWork)
 
             connection.stateUpdateHandler = { state in
                 switch state {
                 case .ready:
-                    timeoutWork.cancel()
-                    guard !resumed else { return }
-                    resumed = true
                     connection.cancel()
-                    continuation.resume(returning: CheckResult(
-                        service: service, isRunning: true,
-                        detail: "Port \(portStr) open"
-                    ))
+                    tryResume(CheckResult(service: service, isRunning: true, detail: "Port \(portStr) open"))
                 case .failed(let error):
-                    timeoutWork.cancel()
-                    guard !resumed else { return }
-                    resumed = true
-                    continuation.resume(returning: CheckResult(
-                        service: service, isRunning: false,
-                        detail: "Port \(portStr): \(error.localizedDescription)"
-                    ))
+                    tryResume(CheckResult(service: service, isRunning: false, detail: "Port \(portStr): \(error.localizedDescription)"))
                 case .cancelled:
-                    // handled by timeout or ready
                     break
                 default:
                     break
@@ -155,6 +152,16 @@ enum ServiceChecker {
 
     private static func checkCommand(service: ServiceConfig, timeout: Int) async -> CheckResult {
         await withCheckedContinuation { continuation in
+            let once = OSAllocatedUnfairLock(initialState: false)
+            let tryResume: @Sendable (CheckResult) -> Void = { result in
+                let first = once.withLock { state -> Bool in
+                    if state { return false }
+                    state = true
+                    return true
+                }
+                if first { continuation.resume(returning: result) }
+            }
+
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/bin/zsh")
             process.arguments = ["-c", service.check.value]
@@ -162,42 +169,23 @@ enum ServiceChecker {
             process.standardError = FileHandle.nullDevice
 
             let queue = DispatchQueue(label: "startwatch.cmdcheck")
-            var resumed = false
 
-            let timeoutWork = DispatchWorkItem {
-                guard !resumed else { return }
-                resumed = true
+            queue.asyncAfter(deadline: .now() + .seconds(timeout)) {
                 process.terminate()
-                continuation.resume(returning: CheckResult(
-                    service: service, isRunning: false,
-                    detail: "Command timeout after \(timeout)s"
-                ))
+                tryResume(CheckResult(service: service, isRunning: false, detail: "Command timeout after \(timeout)s"))
             }
-            queue.asyncAfter(deadline: .now() + .seconds(timeout), execute: timeoutWork)
 
             do {
                 try process.run()
             } catch {
-                timeoutWork.cancel()
-                guard !resumed else { return }
-                resumed = true
-                continuation.resume(returning: CheckResult(
-                    service: service, isRunning: false,
-                    detail: "Command error: \(error.localizedDescription)"
-                ))
+                tryResume(CheckResult(service: service, isRunning: false, detail: "Command error: \(error.localizedDescription)"))
                 return
             }
 
             queue.async {
                 process.waitUntilExit()
-                timeoutWork.cancel()
-                guard !resumed else { return }
-                resumed = true
                 let ok = process.terminationStatus == 0
-                continuation.resume(returning: CheckResult(
-                    service: service, isRunning: ok,
-                    detail: ok ? "Exit 0" : "Exit \(process.terminationStatus)"
-                ))
+                tryResume(CheckResult(service: service, isRunning: ok, detail: ok ? "Exit 0" : "Exit \(process.terminationStatus)"))
             }
         }
     }

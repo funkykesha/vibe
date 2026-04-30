@@ -5,8 +5,7 @@ enum TerminalLauncher {
 
     static func openCLI(config: AppConfig) {
         let terminal = config.terminal ?? "terminal"
-        let command = "startwatch status"
-        open(terminal: terminal, command: command)
+        open(terminal: terminal, command: "startwatch --help")
     }
 
     static func open(terminal: String, command: String) {

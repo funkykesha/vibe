@@ -3,11 +3,14 @@ set -e
 
 BINARY_NAME="startwatch"
 INSTALL_DIR="/usr/local/bin"
+CLI_WRAPPER_PATH="$INSTALL_DIR/$BINARY_NAME"
 CONFIG_DIR="$HOME/.config/startwatch"
 STATE_DIR="$HOME/.local/state/startwatch"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 PLIST_NAME="com.user.startwatch.plist"
 PLIST_LABEL="com.user.startwatch"
+MENU_APP="/Applications/StartWatchMenu.app"
+MENU_BIN="$MENU_APP/Contents/MacOS/startwatch"
 
 # Colors
 GREEN=$'\033[0;32m'
@@ -29,18 +32,56 @@ echo "Building release binary..."
 swift build -c release > /tmp/startwatch-build.log 2>&1 || { cat /tmp/startwatch-build.log; fail "Build failed"; }
 ok "Build complete"
 
-# 2. Install binary
+# 2. Build StartWatchMenu.app bundle (single source of truth binary)
 BINARY_PATH=".build/release/StartWatch"
 if [[ ! -f "$BINARY_PATH" ]]; then
     fail "Binary not found at $BINARY_PATH"
 fi
 
-if [[ -w "$INSTALL_DIR" ]]; then
-    cp "$BINARY_PATH" "$INSTALL_DIR/$BINARY_NAME"
+mkdir -p "$MENU_APP/Contents/MacOS"
+if [[ -w "$MENU_APP/Contents/MacOS" ]]; then
+    cp "$BINARY_PATH" "$MENU_BIN"
 else
-    sudo cp "$BINARY_PATH" "$INSTALL_DIR/$BINARY_NAME"
+    sudo cp "$BINARY_PATH" "$MENU_BIN"
 fi
-ok "Binary installed to $INSTALL_DIR/$BINARY_NAME"
+cp "Resources/StartWatchMenu-Info.plist" "$MENU_APP/Contents/Info.plist"
+
+# 2.0 Rotate bundle id to avoid stale LaunchServices cache for menu bar agent.
+BASE_BUNDLE_ID="com.user.startwatch.menu"
+ROTATED_BUNDLE_ID="${BASE_BUNDLE_ID}.$(date +%s)"
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $ROTATED_BUNDLE_ID" \
+    "$MENU_APP/Contents/Info.plist" >/dev/null 2>&1 || \
+    /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $ROTATED_BUNDLE_ID" \
+    "$MENU_APP/Contents/Info.plist" >/dev/null 2>&1
+ok "StartWatchMenu.app bundle id set to $ROTATED_BUNDLE_ID"
+
+ok "StartWatchMenu.app installed at $MENU_APP"
+
+# 2.1 Sign and verify menu app bundle (required for UI agent on newer macOS)
+if codesign --force --deep --sign - "$MENU_APP" >/dev/null 2>&1; then
+    ok "StartWatchMenu.app signed (ad-hoc)"
+else
+    warn "Failed to sign StartWatchMenu.app (menu icon may not appear)"
+fi
+
+if codesign -vvv "$MENU_APP" >/dev/null 2>&1; then
+    ok "StartWatchMenu.app signature verified"
+else
+    warn "StartWatchMenu.app signature verification failed"
+fi
+
+# 2.2 Install CLI wrapper (avoids direct execution policy blocks on /usr/local/bin Mach-O)
+WRAPPER_CONTENT="#!/bin/zsh
+exec \"$MENU_BIN\" \"\$@\"
+"
+if [[ -w "$INSTALL_DIR" ]]; then
+    printf "%s" "$WRAPPER_CONTENT" > "$CLI_WRAPPER_PATH"
+    chmod +x "$CLI_WRAPPER_PATH"
+else
+    printf "%s" "$WRAPPER_CONTENT" | sudo tee "$CLI_WRAPPER_PATH" >/dev/null
+    sudo chmod +x "$CLI_WRAPPER_PATH"
+fi
+ok "CLI wrapper installed to $CLI_WRAPPER_PATH"
 
 # 3. Create directories
 mkdir -p "$CONFIG_DIR"
@@ -60,8 +101,8 @@ fi
 mkdir -p "$LAUNCH_AGENTS_DIR"
 PLIST_DEST="$LAUNCH_AGENTS_DIR/$PLIST_NAME"
 
-# Update plist with actual binary path
-sed "s|/usr/local/bin/startwatch|$INSTALL_DIR/$BINARY_NAME|g" \
+# Update plist to launch daemon from app bundle binary (not /usr/local/bin)
+sed "s|/usr/local/bin/startwatch|$MENU_BIN|g" \
     "$PLIST_NAME" > "$PLIST_DEST"
 
 # Update log paths to use home directory
@@ -79,17 +120,6 @@ else
     launchctl bootstrap "gui/$(id -u)" "$PLIST_DEST" 2>/dev/null && \
         ok "LaunchAgent reloaded" || warn "LaunchAgent reload failed"
 fi
-
-# 7. Build StartWatchMenu.app bundle
-MENU_APP="$HOME/Applications/StartWatchMenu.app"
-mkdir -p "$MENU_APP/Contents/MacOS"
-if [[ -w "$MENU_APP/Contents/MacOS" ]]; then
-    cp "$BINARY_PATH" "$MENU_APP/Contents/MacOS/startwatch"
-else
-    sudo cp "$BINARY_PATH" "$MENU_APP/Contents/MacOS/startwatch"
-fi
-cp "Resources/StartWatchMenu-Info.plist" "$MENU_APP/Contents/Info.plist"
-ok "StartWatchMenu.app installed at $MENU_APP"
 
 echo ""
 echo "Installation complete!"

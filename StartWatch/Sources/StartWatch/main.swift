@@ -36,11 +36,25 @@ let command = args.first ?? "status"
 
 // Определяем, запущены ли мы из app bundle
 let isAppBundle = Bundle.main.bundlePath.hasSuffix(".app")
+let cliCommands: Set<String> = [
+    "status", "s",
+    "check", "c",
+    "start",
+    "restart",
+    "config",
+    "log",
+    "doctor",
+    "help", "-h", "--help",
+    "version", "-v", "--version"
+]
 
 if command == "daemon" {
     DaemonCommand.run()
 } else if command == "menu-agent" {
     MenuAgentCommand.run()
+} else if cliCommands.contains(command) {
+    CLIRouter.route(arguments: args)
+    exit(0)
 } else if isAppBundle {
     // Если запущены из app bundle без явной команды, используем menu-agent
     MenuAgentCommand.run()

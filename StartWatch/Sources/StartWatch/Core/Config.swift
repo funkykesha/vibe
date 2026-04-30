@@ -23,6 +23,7 @@ struct ServiceConfig: Codable {
     let restart: String?
     let cwd: String?
     let tags: [String]?
+    let open: String?
 }
 
 struct CheckConfig: Codable {
@@ -49,9 +50,21 @@ enum ConfigManager {
     }()
 
     static func load() -> AppConfig? {
-        guard let data = try? Data(contentsOf: configURL) else { return nil }
+        Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_LOAD_START", details: ["path": .string(configURL.path)])
+
+        guard let data = try? Data(contentsOf: configURL) else {
+            Logger.log(level: .error, component: "ConfigManager", event: "CONFIG_LOAD_ERROR", details: ["path": .string(configURL.path), "reason": .string("file not found or unreadable")])
+            return nil
+        }
+
         let decoder = JSONDecoder()
-        return try? decoder.decode(AppConfig.self, from: data)
+        guard let config = try? decoder.decode(AppConfig.self, from: data) else {
+            Logger.log(level: .error, component: "ConfigManager", event: "CONFIG_PARSE_ERROR", details: ["reason": .string("JSON decode failed")])
+            return nil
+        }
+
+        Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_PARSE_SUCCESS", details: ["serviceCount": .int(config.services.count)])
+        return config
     }
 
     static func save(_ config: AppConfig) throws {
@@ -64,16 +77,24 @@ enum ConfigManager {
     static func validate(_ config: AppConfig) -> [String] {
         var errors: [String] = []
         if config.services.isEmpty {
-            errors.append("No services configured")
+            errors.append("No services configured. Add at least one service to the config.")
         }
         for svc in config.services {
             if svc.name.isEmpty {
-                errors.append("Service has empty name")
+                errors.append("Service has empty name. Example: {\"name\": \"My Service\", \"check\": {...}}")
             }
             if svc.check.value.isEmpty {
-                errors.append("Service '\(svc.name)' has empty check value")
+                let example = svc.check.type == .http ? "http://localhost:3000" : "service-name"
+                errors.append("Service '\(svc.name)' has empty check value. Example: \"\(example)\"")
             }
         }
+
+        if errors.isEmpty {
+            Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_VALIDATE_SUCCESS", details: ["serviceCount": .int(config.services.count)])
+        } else {
+            Logger.log(level: .error, component: "ConfigManager", event: "CONFIG_VALIDATE_ERROR", details: ["errorCount": .int(errors.count)])
+        }
+
         return errors
     }
 

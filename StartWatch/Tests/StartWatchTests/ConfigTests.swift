@@ -39,7 +39,7 @@ final class ConfigTests: XCTestCase {
         let config = try? JSONDecoder().decode(AppConfig.self, from: json)
         XCTAssertNotNil(config)
         let errors = ConfigManager.validate(config!)
-        XCTAssertTrue(errors.contains("No services configured"))
+        XCTAssertTrue(errors.contains { $0.hasPrefix("No services configured") })
     }
 
     func testValidateValidConfig() {
