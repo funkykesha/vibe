@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Dashboard - theme mockups</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #e7e5df;
+      color: #111827;
+      font-family: Inter, "IBM Plex Sans", system-ui, sans-serif;
+    }
+    .page {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .intro {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+    h1, h2, h3, p { margin: 0; }
+    .intro h1 { font-size: 28px; letter-spacing: 0; }
+    .intro p { color: #5f6368; margin-top: 6px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .mock {
+      min-height: 660px;
+      border: 1px solid rgba(17, 24, 39, 0.16);
+      overflow: hidden;
+      box-shadow: 0 18px 44px rgba(17, 24, 39, 0.12);
+    }
+    .mock.light-paper {
+      background: #fdfbf7;
+      color: #171717;
+      --muted: #6b645b;
+      --line: #ded8cc;
+      --panel: #fffefa;
+      --panel-2: #f5f0e8;
+      --accent: #166534;
+      --danger: #b42318;
+    }
+    .mock.swiss {
+      background: #f8fafc;
+      color: #0f172a;
+      --muted: #64748b;
+      --line: #dbe3ec;
+      --panel: #ffffff;
+      --panel-2: #eef2f7;
+      --accent: #1d4ed8;
+      --danger: #dc2626;
+    }
+    .mock.dark {
+      background: #020617;
+      color: #f8fafc;
+      --muted: #94a3b8;
+      --line: #1e293b;
+      --panel: #0f172a;
+      --panel-2: #111827;
+      --accent: #22c55e;
+      --danger: #f87171;
+      border-color: #334155;
+    }
+    .mock.warm {
+      background: #f6f1ea;
+      color: #1f2933;
+      --muted: #786f65;
+      --line: #e2d6c8;
+      --panel: #fffaf3;
+      --panel-2: #ede2d4;
+      --accent: #0f766e;
+      --danger: #b91c1c;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .top h2 { font-size: 19px; letter-spacing: 0; }
+    .date {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      color: var(--muted);
+      font-size: 13px;
+      background: var(--panel);
+    }
+    .body {
+      display: grid;
+      grid-template-columns: 1.42fr 0.88fr;
+      gap: 16px;
+      padding: 18px;
+    }
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+    .hero { padding: 18px; }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .hero h3 {
+      font-size: 30px;
+      line-height: 1.05;
+      max-width: 520px;
+      letter-spacing: 0;
+    }
+    .hero p {
+      color: var(--muted);
+      line-height: 1.45;
+      margin-top: 10px;
+      max-width: 520px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .step {
+      min-height: 54px;
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: var(--panel-2);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .step strong {
+      display: block;
+      color: inherit;
+      margin-bottom: 3px;
+      font-size: 11px;
+    }
+    .step.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 9%, var(--panel));
+    }
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 16px 0 8px;
+    }
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .field {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 10px;
+    }
+    .field span {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 0;
+      text-align: left;
+    }
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    td:last-child, th:last-child {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .side {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .panel { padding: 14px; }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 0;
+      gap: 12px;
+    }
+    .metric:first-of-type { padding-top: 0; }
+    .metric:last-child { border-bottom: 0; padding-bottom: 0; }
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+      font-size: 17px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .num.good { color: var(--accent); }
+    .num.bad { color: var(--danger); }
+    .actions {
+      display: grid;
+      gap: 8px;
+    }
+    button {
+      min-height: 42px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: transparent;
+      color: var(--accent);
+    }
+    .note {
+      border-left: 3px solid var(--accent);
+      background: var(--panel-2);
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .page { padding: 14px; }
+      .intro { display: block; }
+      .body { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .input-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="intro">
+      <div>
+        <h1>Варианты темы: ritual-first finance dashboard</h1>
+        <p>Один экран, один сценарий: зарплатный день + краткий капитал.</p>
+      </div>
+      <p>Черновой макет для выбора направления, не финальная UI-детализация.</p>
+    </div>
+    <section class="grid">
+      <article class="mock light-paper">
+        <div class="top">
+          <div><div class="brand">Light Paper</div><h2>Финансовый ритуал</h2></div>
+          <div class="date">5 мая 2026</div>
+        </div>
+        <div class="body">
+          <div>
+            <div class="hero">
+              <div class="eyebrow">Главный ритуал</div>
+              <h3>Разложить зарплату и закрыть месяц без шума</h3>
+              <p>Сначала чистая сумма и вычеты. Потом распределение, обновление капитала и снимок.</p>
+              <div class="steps">
+                <div class="step active"><strong>01</strong>ЗП</div><div class="step"><strong>02</strong>Вычеты</div><div class="step"><strong>03</strong>Доли</div><div class="step"><strong>04</strong>Капитал</div><div class="step"><strong>05</strong>Снимок</div>
+              </div>
+              <div class="section-title"><span>Ввод</span><span>сохранено локально</span></div>
+              <div class="input-row">
+                <div class="field"><span>Начислено</span><div class="value">450 000,00 ₽</div></div>
+                <div class="field"><span>Чистыми после вычетов</span><div class="value">386 914,44 ₽</div></div>
+              </div>
+              <div class="section-title"><span>Распределение</span><span>100%</span></div>
+              <table><tr><th>Категория</th><th>%</th><th>Сумма</th></tr><tr><td>НЗ</td><td>15</td><td>58 037,17 ₽</td></tr><tr><td>Ипотека</td><td>32.4</td><td>125 360,28 ₽</td></tr><tr><td>Кредитка Тани</td><td>18.6</td><td>71 966,09 ₽</td></tr></table>
+            </div>
+          </div>
+          <aside class="side">
+            <div class="panel"><div class="section-title" style="margin-top:0"><span>Капитал кратко</span></div><div class="metric"><span class="label">Весь капитал</span><span class="num">8,42 млн ₽</span></div><div class="metric"><span class="label">С долгами</span><span class="num">8,22 млн ₽</span></div><div class="metric"><span class="label">Быстрые</span><span class="num good">1,12 млн ₽</span></div><div class="metric"><span class="label">Ипотечная позиция</span><span class="num bad">-3,52 млн ₽</span></div></div>
+            <div class="panel actions"><button>Продолжить ритуал</button><button class="secondary">Скопировать раскладку</button></div>
+            <div class="note">Последний снимок: 20 апреля. После обновления капитала можно зафиксировать прогресс.</div>
+          </aside>
+        </div>
+      </article>
+
+      <article class="mock swiss">
+        <div class="top">
+          <div><div class="brand">Swiss Finance</div><h2>Финансовый ритуал</h2></div>
+          <div class="date">5 мая 2026</div>
+        </div>
+        <div class="body">
+          <div>
+            <div class="hero">
+              <div class="eyebrow">Зарплатный день</div>
+              <h3>Проверить сумму, разложить платежи, обновить капитал</h3>
+              <p>Строгий cockpit: минимум цвета, четкая сетка, главные числа всегда рядом.</p>
+              <div class="steps">
+                <div class="step active"><strong>01</strong>ЗП</div><div class="step"><strong>02</strong>Вычеты</div><div class="step"><strong>03</strong>Доли</div><div class="step"><strong>04</strong>Капитал</div><div class="step"><strong>05</strong>Снимок</div>
+              </div>
+              <div class="section-title"><span>Ввод</span><span>нет ошибок</span></div>
+              <div class="input-row">
+                <div class="field"><span>Начислено</span><div class="value">450 000,00 ₽</div></div>
+                <div class="field"><span>Чистыми</span><div class="value">386 914,44 ₽</div></div>
+              </div>
+              <div class="section-title"><span>Распределение</span><span>100%</span></div>
+              <table><tr><th>Категория</th><th>%</th><th>Сумма</th></tr><tr><td>НЗ</td><td>15</td><td>58 037,17 ₽</td></tr><tr><td>Ипотека</td><td>32.4</td><td>125 360,28 ₽</td></tr><tr><td>Кредитка Тани</td><td>18.6</td><td>71 966,09 ₽</td></tr></table>
+            </div>
+          </div>
+          <aside class="side">
+            <div class="panel"><div class="section-title" style="margin-top:0"><span>Капитал</span></div><div class="metric"><span class="label">Факт</span><span class="num">8,42 млн ₽</span></div><div class="metric"><span class="label">С долгами</span><span class="num">8,22 млн ₽</span></div><div class="metric"><span class="label">Быстрые</span><span class="num good">1,12 млн ₽</span></div><div class="metric"><span class="label">Ипотека</span><span class="num bad">-11,95 млн ₽</span></div></div>
+            <div class="panel actions"><button>Продолжить</button><button class="secondary">Создать снимок</button></div>
+            <div class="note">Самый профессиональный и масштабируемый вариант. Хорошо переживет новые ритуалы.</div>
+          </aside>
+        </div>
+      </article>
+
+      <article class="mock dark">
+        <div class="top">
+          <div><div class="brand">Dark Finance</div><h2>Финансовый ритуал</h2></div>
+          <div class="date">5 мая 2026</div>
+        </div>
+        <div class="body">
+          <div>
+            <div class="hero">
+              <div class="eyebrow">Активный ритуал</div>
+              <h3>Зарплата готова к распределению</h3>
+              <p>Темная версия без терминального ощущения: больше воздуха, меньше янтаря, зеленый только для статуса.</p>
+              <div class="steps">
+                <div class="step active"><strong>01</strong>ЗП</div><div class="step"><strong>02</strong>Вычеты</div><div class="step"><strong>03</strong>Доли</div><div class="step"><strong>04</strong>Капитал</div><div class="step"><strong>05</strong>Снимок</div>
+              </div>
+              <div class="section-title"><span>Ввод</span><span>локальные данные</span></div>
+              <div class="input-row">
+                <div class="field"><span>Начислено</span><div class="value">450 000,00 ₽</div></div>
+                <div class="field"><span>Чистыми</span><div class="value">386 914,44 ₽</div></div>
+              </div>
+              <div class="section-title"><span>Распределение</span><span>100%</span></div>
+              <table><tr><th>Категория</th><th>%</th><th>Сумма</th></tr><tr><td>НЗ</td><td>15</td><td>58 037,17 ₽</td></tr><tr><td>Ипотека</td><td>32.4</td><td>125 360,28 ₽</td></tr><tr><td>Кредитка Тани</td><td>18.6</td><td>71 966,09 ₽</td></tr></table>
+            </div>
+          </div>
+          <aside class="side">
+            <div class="panel"><div class="section-title" style="margin-top:0"><span>Капитал</span></div><div class="metric"><span class="label">Факт</span><span class="num">8,42 млн ₽</span></div><div class="metric"><span class="label">С долгами</span><span class="num">8,22 млн ₽</span></div><div class="metric"><span class="label">Быстрые</span><span class="num good">1,12 млн ₽</span></div><div class="metric"><span class="label">Ипотечная позиция</span><span class="num bad">-3,52 млн ₽</span></div></div>
+            <div class="panel actions"><button>Продолжить</button><button class="secondary">Скопировать</button></div>
+            <div class="note">Ближе к текущему интерфейсу. Меньше риска, но может остаться ощущение техничности.</div>
+          </aside>
+        </div>
+      </article>
+
+      <article class="mock warm">
+        <div class="top">
+          <div><div class="brand">Warm Minimal</div><h2>Финансовый ритуал</h2></div>
+          <div class="date">5 мая 2026</div>
+        </div>
+        <div class="body">
+          <div>
+            <div class="hero">
+              <div class="eyebrow">Зарплатный день</div>
+              <h3>Спокойно разложить деньги по семейной модели</h3>
+              <p>Теплый минимализм: меньше корпоративности, больше ощущения личного инструмента.</p>
+              <div class="steps">
+                <div class="step active"><strong>01</strong>ЗП</div><div class="step"><strong>02</strong>Вычеты</div><div class="step"><strong>03</strong>Доли</div><div class="step"><strong>04</strong>Капитал</div><div class="step"><strong>05</strong>Снимок</div>
+              </div>
+              <div class="section-title"><span>Ввод</span><span>готово</span></div>
+              <div class="input-row">
+                <div class="field"><span>Начислено</span><div class="value">450 000,00 ₽</div></div>
+                <div class="field"><span>Чистыми</span><div class="value">386 914,44 ₽</div></div>
+              </div>
+              <div class="section-title"><span>Распределение</span><span>100%</span></div>
+              <table><tr><th>Категория</th><th>%</th><th>Сумма</th></tr><tr><td>НЗ</td><td>15</td><td>58 037,17 ₽</td></tr><tr><td>Ипотека</td><td>32.4</td><td>125 360,28 ₽</td></tr><tr><td>Кредитка Тани</td><td>18.6</td><td>71 966,09 ₽</td></tr></table>
+            </div>
+          </div>
+          <aside class="side">
+            <div class="panel"><div class="section-title" style="margin-top:0"><span>Капитал</span></div><div class="metric"><span class="label">Весь капитал</span><span class="num">8,42 млн ₽</span></div><div class="metric"><span class="label">С долгами</span><span class="num">8,22 млн ₽</span></div><div class="metric"><span class="label">Семейные</span><span class="num good">2,03 млн ₽</span></div><div class="metric"><span class="label">Ипотечная позиция</span><span class="num bad">-3,52 млн ₽</span></div></div>
+            <div class="panel actions"><button>Продолжить ритуал</button><button class="secondary">Показать капитал</button></div>
+            <div class="note">Самый личный вариант. Хорош, если продукт должен ощущаться как спокойная домашняя система.</div>
+          </aside>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
