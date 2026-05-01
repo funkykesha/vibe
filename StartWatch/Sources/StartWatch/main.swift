@@ -49,7 +49,7 @@ let cliCommands: Set<String> = [
 ]
 
 if command == "daemon" {
-    DaemonCommand.run()
+    DaemonCommand.run(args: Array(args.dropFirst()))
 } else if command == "menu-agent" {
     MenuAgentCommand.run()
 } else if cliCommands.contains(command) {

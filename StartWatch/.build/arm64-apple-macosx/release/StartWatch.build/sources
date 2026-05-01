@@ -3,10 +3,12 @@
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ConfigCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/DaemonCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/DoctorCommand.swift
+/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ListCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/LogCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/RestartCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StartCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StatusCommand.swift
+/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StopCommand.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/ANSIColors.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/ReportBuilder.swift
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/TableFormatter.swift

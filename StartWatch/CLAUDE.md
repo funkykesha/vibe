@@ -1,5 +1,55 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Build & Test
+
+```bash
+swift build                          # debug build
+swift build -c release               # release build
+swift test                           # all tests
+swift test --filter CheckSchedulerTests/testMethodName  # single test
+```
+
+Run the binary directly (debug):
+```bash
+.build/debug/StartWatch status
+.build/debug/StartWatch check
+```
+
+**Do not run `install.sh`** — requires sudo, installs to `/usr/local/bin` and registers LaunchAgent.
+
+## Architecture
+
+Single binary, three execution modes dispatched in `main.swift`:
+- `daemon` → `DaemonCommand` — background process, runs `CheckScheduler`, serves `IPCServer`
+- `menu-agent` → `MenuAgentCommand` — macOS menu bar NSApp, reads daemon state via IPC
+- CLI commands → `CLIRouter` → individual `*Command` structs (status, check, start, restart, config, log, doctor, etc.)
+
+**IPC**: daemon binds a Unix socket; CLI and menu-agent connect via `IPCClient`. Messages typed via `IPCMessage`. CLI reads daemon's last-check cache (4-hour TTL); `startwatch check` forces live re-check.
+
+**Config**: `~/.config/startwatch/config.json`. Watched by `FileWatcher` (FSEvents + 200 ms debounce); daemon reloads on change.
+
+**Check types** (`CheckResult`): `port` (TCP connect), `http` (GET → 2xx/3xx), `process` (`pgrep -f`), `command` (exit 0).
+
+**Terminal launch** (`TerminalLauncher`): selects adapter via `TerminalProtocol` — one concrete type per terminal (Warp, iTerm, Apple Terminal, Alacritty, Kitty).
+
+**Source layout:**
+```
+Sources/StartWatch/
+  CLI/Commands/       — one file per CLI command
+  CLI/Formatting/     — ANSIColors, ReportBuilder, TableFormatter
+  Core/               — CheckResult, AsyncHelpers, …
+  IPC/                — IPCServer, IPCClient, IPCMessage
+  MenuAgent/          — NSApp menu bar UI
+  Terminal/           — TerminalLauncher + per-terminal adapters
+  Notifications/      — NotificationManager
+```
+
+`startwatch status` exit code = number of failed services (0 = all OK; scriptable in CI/shell prompts).
+
+---
+
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.

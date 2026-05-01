@@ -18,6 +18,7 @@
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/IPCServer.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/ITermTerminal.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/KittyTerminal.swift.o
+/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/ListCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/LogCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/Logger.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/MenuAgentCommand.swift.o
@@ -33,6 +34,7 @@
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/StartCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/StateManager.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/StatusCommand.swift.o
+/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/StopCommand.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/TableFormatter.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/TerminalLauncher.swift.o
 /Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/debug/StartWatch.build/TerminalProtocol.swift.o

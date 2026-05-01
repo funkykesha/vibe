@@ -13,10 +13,15 @@ enum ANSIColors {
     static let bgRed   = "\u{001B}[41m"
     static let bgGreen = "\u{001B}[42m"
 
+    static func cursorUp(_ n: Int) -> String { "\u{001B}[\(n)A" }
+    static let clearLine = "\u{001B}[2K"
+
     static var isEnabled: Bool = {
         guard isatty(STDOUT_FILENO) != 0 else { return false }
         return !CommandLine.arguments.contains("--no-color")
     }()
+
+    static var isTTY: Bool { isEnabled }
 
     static func colored(_ text: String, _ color: String) -> String {
         isEnabled ? "\(color)\(text)\(reset)" : text

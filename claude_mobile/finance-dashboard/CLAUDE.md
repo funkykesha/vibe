@@ -62,6 +62,32 @@ localStorage (key `fin-v3`) holds: cats, deds, accs, usdRate, mortgage
 - Saves after each state change (useEffect dependency)
 - Errors silently (try/catch); resets to defaults if corrupted
 
+## CDN Dependencies (unpkg/cdn, no local install)
+
+- `react@18/umd/react.development.js`
+- `react-dom@18/umd/react-dom.development.js`
+- `@babel/standalone/babel.min.js` — runtime JSX transpile
+- `cdn.tailwindcss.com` — utility CSS
+
+## State Variables
+
+```
+tab, month, year, payDay, gross      — UI / salary inputs
+cats, deds, accs                     — persisted data arrays
+usdRate, mortgage                    — persisted scalars
+flash                                — toast message ("Скопировано!")
+loading                              — blocks render until localStorage read
+expanded                             — {bank: bool} collapse state per bank
+```
+
+## Key Helper Functions
+
+- `fmt(n)` — number → "133 267,46" (Intl ru-RU)
+- `parse(s)` — "133 267,46" → 133267.46
+- `copy(text)` — clipboard write + sets flash
+- `copyDist()` — formats and copies salary distribution
+- `copyCapital()` — formats and copies capital summary
+
 ## Notes
 
 - Number inputs parse loose: "133 267,46" → 133267.46 (space/comma handling)
@@ -69,3 +95,4 @@ localStorage (key `fin-v3`) holds: cats, deds, accs, usdRate, mortgage
 - Toast notification: copy action shows "Скопировано!" for 1.8s
 - Bank colors defined as BANK_COLORS object for UI accent on collapse buttons
 - Monospace font: IBM Plex Mono (or fallback to Courier New)
+- File is 497 lines; all logic in single `<script type="text/babel">` block

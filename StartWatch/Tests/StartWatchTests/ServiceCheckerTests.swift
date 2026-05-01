@@ -12,7 +12,9 @@ final class ServiceCheckerTests: XCTestCase {
             restart: nil,
             cwd: nil,
             tags: nil,
-            open: nil
+            open: nil,
+            autostart: nil,
+            startupTimeout: nil
         )
     }
 

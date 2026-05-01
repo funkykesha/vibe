@@ -48,6 +48,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ListCommand.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/LogCommand.swift"
         },
         {
@@ -61,6 +65,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StatusCommand.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StopCommand.swift"
         },
         {
           "kind" : "file",
@@ -204,10 +212,12 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ConfigCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/DaemonCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/DoctorCommand.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ListCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/LogCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/RestartCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/StartCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/StatusCommand.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/StopCommand.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ANSIColors.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/ReportBuilder.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatch.build/TableFormatter.swift.o",
@@ -246,8 +256,6 @@
         "-incremental",
         "-enable-batch-mode",
         "-serialize-diagnostics",
-        "-index-store-path",
-        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/index/store",
         "-Onone",
         "-enable-testing",
         "-j8",
@@ -257,6 +265,10 @@
         "-module-cache-path",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
         "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "StartWatch_main",
         "-swift-version",
         "5",
         "-Xfrontend",
@@ -307,10 +319,12 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ConfigCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/DaemonCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/DoctorCommand.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ListCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/LogCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/RestartCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StartCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StatusCommand.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StopCommand.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/ANSIColors.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/ReportBuilder.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/TableFormatter.swift",
@@ -380,8 +394,6 @@
         "-incremental",
         "-enable-batch-mode",
         "-serialize-diagnostics",
-        "-index-store-path",
-        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/index/store",
         "-Onone",
         "-enable-testing",
         "-Xfrontend",
@@ -464,6 +476,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/NotificationManagerTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ServiceCheckerTests.swift"
         },
         {
@@ -486,6 +502,7 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/ConfigTests.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/FileWatcherTests.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/FormattingTests.swift.o",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/NotificationManagerTests.swift.o",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/ServiceCheckerTests.swift.o"
       ],
       "otherArguments" : [
@@ -494,8 +511,6 @@
         "-incremental",
         "-enable-batch-mode",
         "-serialize-diagnostics",
-        "-index-store-path",
-        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/index/store",
         "-Onone",
         "-enable-testing",
         "-Xfrontend",
@@ -556,6 +571,7 @@
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ConfigTests.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FileWatcherTests.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FormattingTests.swift",
+        "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/NotificationManagerTests.swift",
         "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ServiceCheckerTests.swift"
       ],
       "tempsPath" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build",
@@ -578,10 +594,12 @@
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ConfigCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/DaemonCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/DoctorCommand.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ListCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/LogCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/RestartCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StartCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StatusCommand.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StopCommand.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/ANSIColors.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/ReportBuilder.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/TableFormatter.swift",
@@ -620,8 +638,6 @@
       "-incremental",
       "-enable-batch-mode",
       "-serialize-diagnostics",
-      "-index-store-path",
-      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/index/store",
       "-Onone",
       "-enable-testing",
       "-j8",
@@ -631,6 +647,10 @@
       "-module-cache-path",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
       "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "StartWatch_main",
       "-swift-version",
       "5",
       "-Xfrontend",
@@ -684,8 +704,6 @@
       "-incremental",
       "-enable-batch-mode",
       "-serialize-diagnostics",
-      "-index-store-path",
-      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/index/store",
       "-Onone",
       "-enable-testing",
       "-Xfrontend",
@@ -747,6 +765,7 @@
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ConfigTests.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FileWatcherTests.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FormattingTests.swift",
+      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/NotificationManagerTests.swift",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ServiceCheckerTests.swift",
       "-I",
       "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/Modules",
@@ -755,8 +774,6 @@
       "-incremental",
       "-enable-batch-mode",
       "-serialize-diagnostics",
-      "-index-store-path",
-      "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/index/store",
       "-Onone",
       "-enable-testing",
       "-Xfrontend",
@@ -861,6 +878,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ListCommand.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/LogCommand.swift"
         },
         {
@@ -874,6 +895,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StatusCommand.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StopCommand.swift"
         },
         {
           "kind" : "file",
@@ -1034,6 +1059,10 @@
         {
           "kind" : "file",
           "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/FormattingTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/NotificationManagerTests.swift"
         },
         {
           "kind" : "file",

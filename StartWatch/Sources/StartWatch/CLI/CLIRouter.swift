@@ -15,6 +15,10 @@ enum CLIRouter {
             StartCommand.run(args: rest)
         case "restart":
             RestartCommand.run(args: rest)
+        case "list":
+            ListCommand.run(args: rest)
+        case "stop":
+            StopCommand.run(args: rest)
         case "config":
             ConfigCommand.run(args: rest)
         case "log":
@@ -42,12 +46,22 @@ enum CLIRouter {
         \(ANSIColors.bold)COMMANDS:\(ANSIColors.reset)
             status, s          Show status of all services
             check, c           Run checks now and show results
-            start <name>       Start a service
+            start <name>       Start a specific service
             restart <name|all> Restart a service or all failed
+            list               List all configured services
+            stop               Stop daemon and menu agent
             config             Open config in $EDITOR
             log                Show check history
             doctor             Diagnose StartWatch itself
-            daemon             Start menu bar agent (internal)
+
+        \(ANSIColors.bold)EXAMPLES:\(ANSIColors.reset)
+            startwatch status              Show service status
+            startwatch check               Run all checks
+            startwatch restart all         Restart all failed (live table)
+            startwatch restart Redis       Restart specific service
+            startwatch list                List configured services
+            startwatch stop                Stop StartWatch
+            startwatch daemon --no-menu    Run daemon without menu bar
 
         \(ANSIColors.bold)OPTIONS:\(ANSIColors.reset)
             --json             Output as JSON

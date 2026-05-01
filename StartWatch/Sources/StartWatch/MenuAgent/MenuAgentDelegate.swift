@@ -75,6 +75,25 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
         if let t = pollTimer { RunLoop.main.add(t, forMode: .common) }
     }
 
+    private func reschedulePolling(interval: TimeInterval) {
+        pollTimer?.invalidate()
+        pollTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
+            self?.pollStatus()
+            self?.reschedulePollingBasedOnResults()
+        }
+        if let t = pollTimer { RunLoop.main.add(t, forMode: .common) }
+    }
+
+    private func reschedulePollingBasedOnResults() {
+        let nextInterval: TimeInterval
+        if let results = IPCClient.getLastResults(), results.contains(where: { $0.isStarting }) {
+            nextInterval = 0.5
+        } else {
+            nextInterval = 3.0
+        }
+        reschedulePolling(interval: nextInterval)
+    }
+
     private func pollStatus() {
         if let results = IPCClient.getLastResults() {
             menuBar.update(results: results)
@@ -94,7 +113,7 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
 
         if !newlyFailed.isEmpty {
             let failed = results.filter { newlyFailed.contains($0.service.name) }
-            NotificationManager.shared.sendAlert(failedServices: failed)
+            NotificationManager.shared.sendAlert(failedServices: failed, showDetails: config.notifications?.showFailureDetails ?? false, sound: config.notifications?.sound ?? false)
         }
 
         previousFailedNames = currentFailedNames

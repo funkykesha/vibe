@@ -4,26 +4,53 @@ import Darwin
 
 enum IPCClient {
     static func getLastResults() -> [CheckResult]? {
-        guard let cached = StateManager.loadLastResults() else { return nil }
+        guard let config = ConfigManager.load() else { return nil }
+
+        guard let cached = StateManager.loadLastResults() else {
+            return config.services.map { service in
+                CheckResult(
+                    service: service,
+                    isRunning: false,
+                    detail: "unknown",
+                    checkedAt: Date.distantPast
+                )
+            }
+        }
 
         if let first = cached.first,
            Date().timeIntervalSince(first.checkedAt) > 4 * 3600 {
-            return nil
-        }
-
-        guard let config = ConfigManager.load() else { return nil }
-
-        return cached.compactMap { item -> CheckResult? in
-            guard let service = config.services.first(where: { $0.name == item.serviceName }) else {
-                return nil
+            return config.services.map { service in
+                CheckResult(
+                    service: service,
+                    isRunning: false,
+                    detail: "unknown",
+                    checkedAt: Date.distantPast
+                )
             }
-            return CheckResult(
-                service: service,
-                isRunning: item.isRunning,
-                detail: item.detail,
-                checkedAt: item.checkedAt
-            )
         }
+
+        var results: [CheckResult] = []
+        let cacheDict = Dictionary(uniqueKeysWithValues: cached.map { ($0.serviceName, $0) })
+
+        for service in config.services {
+            if let cachedItem = cacheDict[service.name] {
+                results.append(CheckResult(
+                    service: service,
+                    isRunning: cachedItem.isRunning,
+                    detail: cachedItem.detail,
+                    checkedAt: cachedItem.checkedAt
+                ))
+            } else {
+                results.append(CheckResult(
+                    service: service,
+                    isRunning: false,
+                    detail: "unknown",
+                    checkedAt: Date.distantPast
+                ))
+            }
+        }
+
+        return results
     }
 
     static func isConnected() -> Bool {

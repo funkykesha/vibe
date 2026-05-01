@@ -23,6 +23,13 @@
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/FormattingTests.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/FormattingTests.dia"
   },
+  "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/NotificationManagerTests.swift": {
+    "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/NotificationManagerTests.d",
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/NotificationManagerTests.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/NotificationManagerTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/NotificationManagerTests.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/NotificationManagerTests.dia"
+  },
   "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Tests/StartWatchTests/ServiceCheckerTests.swift": {
     "dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/ServiceCheckerTests.d",
     "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/index-build/arm64-apple-macosx/debug/StartWatchTests.build/ServiceCheckerTests.swift.o",

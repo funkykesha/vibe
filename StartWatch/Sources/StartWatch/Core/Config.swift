@@ -14,6 +14,7 @@ struct NotificationsConfig: Codable {
     let enabled: Bool?
     let onlyOnFailure: Bool?
     let sound: Bool?
+    let showFailureDetails: Bool?
 }
 
 struct ServiceConfig: Codable {
@@ -25,6 +26,7 @@ struct ServiceConfig: Codable {
     let tags: [String]?
     let open: String?
     let autostart: Bool?
+    let startupTimeout: Int?
 }
 
 struct CheckConfig: Codable {
@@ -43,11 +45,35 @@ enum CheckType: String, Codable {
 // MARK: - ConfigManager
 
 enum ConfigManager {
+    // Thread-safe backing store
+    private static let configQueue = DispatchQueue(label: "com.startwatch.config", attributes: .concurrent)
+    private static var _config: AppConfig?
+
+    /// Thread-safe current config access
+    static var current: AppConfig? {
+        get {
+            configQueue.sync { _config }
+        }
+        set {
+            configQueue.sync(flags: .barrier) {
+                _config = newValue
+            }
+        }
+    }
+
+    // Config file monitoring
+    private static var fileWatcher: FileWatcher?
+    private static var reloadHandler: (() -> Void)?
+
     static let configURL: URL = {
         let dir = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".config/startwatch")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("config.json")
+    }()
+
+    static let configDirectoryURL: URL = {
+        return configURL.deletingLastPathComponent()
     }()
 
     static func load() -> AppConfig? {
@@ -65,7 +91,39 @@ enum ConfigManager {
         }
 
         Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_PARSE_SUCCESS", details: ["serviceCount": .int(config.services.count)])
+        current = config
         return config
+    }
+
+    static func startMonitoring(onChange: @escaping () -> Void) throws {
+        stopMonitoring()
+        reloadHandler = onChange
+        fileWatcher = FileWatcher(configDirectoryURL: configDirectoryURL) {
+            ConfigManager.handleConfigChange()
+        }
+        try fileWatcher?.start()
+        Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_MONITORING_STARTED", details: ["path": .string(configDirectoryURL.path)])
+    }
+
+    static func stopMonitoring() {
+        fileWatcher?.stop()
+        fileWatcher = nil
+        reloadHandler = nil
+        Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_MONITORING_STOPPED", details: [:])
+    }
+
+    private static func handleConfigChange() {
+        guard let newConfig = load() else {
+            Logger.log(level: .error, component: "ConfigManager", event: "CONFIG_RELOAD_FAILED", details: ["reason": .string("load failed")])
+            return
+        }
+        let errors = validate(newConfig)
+        guard errors.isEmpty else {
+            Logger.log(level: .error, component: "ConfigManager", event: "CONFIG_RELOAD_VALIDATION_FAILED", details: ["errorCount": .int(errors.count)])
+            return
+        }
+        reloadHandler?()
+        Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_RELOAD_SUCCESS", details: ["serviceCount": .int(newConfig.services.count)])
     }
 
     static func save(_ config: AppConfig) throws {
@@ -73,6 +131,7 @@ enum ConfigManager {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(config)
         try data.write(to: configURL, options: .atomic)
+        current = config
     }
 
     static func validate(_ config: AppConfig) -> [String] {

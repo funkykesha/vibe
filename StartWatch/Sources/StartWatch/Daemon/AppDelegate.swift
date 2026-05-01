@@ -4,18 +4,29 @@ import Foundation
 final class DaemonCoordinator {
     private var scheduler: CheckScheduler?
     private var ipcServer: IPCServer!
-    private var config: AppConfig?
+    private var _config: AppConfig?
+    private var config: AppConfig? {
+        get {
+            configQueue.sync { _config }
+        }
+        set {
+            configQueue.sync(flags: .barrier) {
+                _config = newValue
+            }
+        }
+    }
     private var processManager = ProcessManager()
     private var fileWatcher: FileWatcher?
     private let configQueue = DispatchQueue(label: "com.startwatch.config", attributes: .concurrent)
     private var menuAgentTimer: Timer?
     private var workItems: [DispatchWorkItem] = []
     private let startTime = Date()
+    private var previousResults: [String: Bool]? = nil
 
-    func start() {
+    func start(noMenu: Bool = false) {
         let pid = getpid()
         let workingDir = FileManager.default.currentDirectoryPath
-        Logger.log(level: .info, component: "DaemonCoordinator", event: "DAEMON_START", details: ["pid": .int(Int(pid)), "workingDir": .string(workingDir)])
+        Logger.log(level: .info, component: "DaemonCoordinator", event: "DAEMON_START", details: ["pid": .int(Int(pid)), "workingDir": .string(workingDir), "noMenu": .bool(noMenu)])
 
         ipcServer = IPCServer()
         loadConfig()
@@ -58,10 +69,14 @@ final class DaemonCoordinator {
         ipcServer.start()
         Logger.log(level: .info, component: "DaemonCoordinator", event: "MONITORING_START", details: ["serviceCount": .int(config?.services.count ?? 0)])
 
-        spawnMenuAgentIfNeeded()
+        if !noMenu {
+            spawnMenuAgentIfNeeded()
 
-        menuAgentTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-            self?.spawnMenuAgentIfNeeded()
+            menuAgentTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+                self?.spawnMenuAgentIfNeeded()
+            }
+        } else {
+            Logger.log(level: .info, component: "DaemonCoordinator", event: "MENU_AGENT_DISABLED", details: ["reason": .string("--no-menu flag")])
         }
 
         let initialCheckItem = DispatchWorkItem { [weak self] in
@@ -73,6 +88,20 @@ final class DaemonCoordinator {
 
     func shutdown() {
         Logger.log(level: .info, component: "DaemonCoordinator", event: "DAEMON_SHUTDOWN_START", details: [:])
+
+        // Clear isStarting state from cache
+        if let config = config {
+            let clearingResults = config.services.map { service in
+                CodableCheckResult(
+                    serviceName: service.name,
+                    isRunning: false,
+                    detail: "stopped",
+                    checkedAt: Date(),
+                    isStarting: false
+                )
+            }
+            StateManager.saveCodableResults(clearingResults)
+        }
 
         // Stop all running services
         if let config = config {
@@ -140,6 +169,13 @@ final class DaemonCoordinator {
         let errors = ConfigManager.validate(newConfig)
         if !errors.isEmpty {
             print("[Daemon] Config reload rejected: \(errors.joined(separator: "; "))")
+
+            if newConfig.notifications?.enabled == true {
+                NotificationManager.shared.sendConfigInvalid(
+                    errors: errors,
+                    sound: newConfig.notifications?.sound ?? false
+                )
+            }
             return
         }
         let oldCount = config?.services.count ?? 0
@@ -156,17 +192,14 @@ final class DaemonCoordinator {
     }
 
     private func watchConfigFile() {
-        let configPath = ConfigManager.configURL.path
-        let logPath = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".config/startwatch/fw.log")
-        let logMsg = "[Daemon] watchConfigFile called, path: \(configPath)\n"
-        if let data = logMsg.data(using: .utf8) {
-            try? data.write(to: logPath, options: .atomic)
-        }
-
-        fileWatcher = FileWatcher(filePath: configPath)
-        fileWatcher?.start { [weak self] in
+        fileWatcher = FileWatcher(configDirectoryURL: ConfigManager.configDirectoryURL) { [weak self] in
             print("[Daemon] Config file changed, reloading...")
             self?.reloadConfig()
+        }
+        do {
+            try fileWatcher?.start()
+        } catch {
+            print("[Daemon] Failed to start config file watcher: \(error)")
         }
     }
 
@@ -191,8 +224,60 @@ final class DaemonCoordinator {
             await MainActor.run {
                 StateManager.saveLastResults(results)
                 HistoryLogger.log(results)
+                handleNotifications(results: results, config: config)
             }
         }
+    }
+
+    private func handleNotifications(results: [CheckResult], config: AppConfig) {
+        guard let notificationsEnabled = config.notifications?.enabled, notificationsEnabled else {
+            return
+        }
+
+        let currentResults = Dictionary(uniqueKeysWithValues: results.map { ($0.service.name, $0.isRunning) })
+
+        guard let previousResults else {
+            self.previousResults = currentResults
+            return
+        }
+
+        let showDetails = config.notifications?.showFailureDetails ?? false
+        let soundEnabled = config.notifications?.sound ?? false
+
+        var newlyFailed: [CheckResult] = []
+        var newlyRecovered: [CheckResult] = []
+
+        for result in results {
+            let serviceName = result.service.name
+            let previousRunning = previousResults[serviceName] ?? true
+
+            if previousRunning && !result.isRunning {
+                newlyFailed.append(result)
+            } else if !previousRunning && result.isRunning {
+                newlyRecovered.append(result)
+            }
+        }
+
+        newlyFailed = newlyFailed.filter { !$0.isStarting }
+
+        if !newlyFailed.isEmpty {
+            if config.notifications?.onlyOnFailure != false {
+                NotificationManager.shared.sendAlert(
+                    failedServices: newlyFailed,
+                    showDetails: showDetails,
+                    sound: soundEnabled
+                )
+            }
+        }
+
+        if !newlyRecovered.isEmpty {
+            NotificationManager.shared.sendRecovered(
+                services: newlyRecovered,
+                sound: soundEnabled
+            )
+        }
+
+        self.previousResults = currentResults
     }
 
     private func spawnMenuAgentIfNeeded() {
@@ -200,13 +285,19 @@ final class DaemonCoordinator {
 
         let appPath = "/Applications/StartWatchMenu.app"
 
+        guard FileManager.default.fileExists(atPath: appPath) else {
+            Logger.log(level: .info, component: "DaemonCoordinator", event: "MENU_AGENT_SKIP", details: ["reason": .string("app bundle not found"), "path": .string(appPath)])
+            return
+        }
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
         process.arguments = ["-na", appPath, "--args", "menu-agent"]
         do {
             try process.run()
+            Logger.log(level: .info, component: "DaemonCoordinator", event: "MENU_AGENT_SPAWNED", details: ["path": .string(appPath)])
         } catch {
-            print("[Daemon] Failed to spawn menu-agent: \(error)")
+            Logger.log(level: .error, component: "DaemonCoordinator", event: "MENU_AGENT_SPAWN_FAILED", details: ["error": .string(error.localizedDescription)])
         }
     }
 

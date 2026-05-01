@@ -1,2 +1,6 @@
 {"ts":"2026-04-30T14:21:56.603Z","model":"deepseek-v3-1-terminus","input":0,"output":0,"cost_usd":0}
 {"ts":"2026-04-30T14:22:19.734Z","model":"qwen3-Coder-480b","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-04-30T17:20:39.223Z","model":"deepseek-v3-1-terminus","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-01T14:30:16.472Z","model":"deepseek-v3-1-terminus","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-01T14:30:31.869Z","model":"deepseek-v3-1-terminus","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-01T14:30:48.357Z","model":"claude-haiku-4-5","input":316,"output":727,"cost_usd":0.0039510000000000005}

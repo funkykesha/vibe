@@ -2,9 +2,10 @@
 import Foundation
 
 enum DaemonCommand {
-    static func run() {
+    static func run(args: [String]) {
+        let noMenu = args.contains("--no-menu")
         let coordinator = DaemonCoordinator()
-        coordinator.start()
+        coordinator.start(noMenu: noMenu)
         RunLoop.main.run()
     }
 }

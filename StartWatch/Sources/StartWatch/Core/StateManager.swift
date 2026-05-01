@@ -21,6 +21,14 @@ enum StateManager {
         try? data.write(to: lastResultsURL, options: .atomic)
     }
 
+    static func saveCodableResults(_ results: [CodableCheckResult]) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted]
+        encoder.dateEncodingStrategy = .iso8601
+        guard let data = try? encoder.encode(results) else { return }
+        try? data.write(to: lastResultsURL, options: .atomic)
+    }
+
     static func loadLastResults() -> [CodableCheckResult]? {
         guard let data = try? Data(contentsOf: lastResultsURL) else { return nil }
         let decoder = JSONDecoder()

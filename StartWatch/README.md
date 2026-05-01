@@ -2,7 +2,13 @@
 
 Menu bar + CLI monitor for developer services (Redis, Postgres, custom processes).
 
-The menu bar icon shows green/red at a glance. Full control from any terminal.
+The menu bar icon shows service status at a glance with four states:
+- ♻️ All services running
+- ⏳ Services starting up
+- ⚠️ Mixed state (some running, some failed)
+- ❌ All services failed
+
+Full control from any terminal.
 
 ## Requirements
 
@@ -36,15 +42,18 @@ Config file: `~/.config/startwatch/config.json`
   "services": [
     {
       "name": "Redis",
-      "check": { "type": "port", "value": "6379" }
+      "check": { "type": "port", "value": "6379" },
+      "startupTimeout": 15
     },
     {
       "name": "Postgres",
-      "check": { "type": "port", "value": "5432" }
+      "check": { "type": "port", "value": "5432" },
+      "startupTimeout": 30
     },
     {
       "name": "Backend",
-      "check": { "type": "http", "value": "http://localhost:3000/health" }
+      "check": { "type": "http", "value": "http://localhost:3000/health" },
+      "startupTimeout": 20
     },
     {
       "name": "Worker",
@@ -53,6 +62,20 @@ Config file: `~/.config/startwatch/config.json`
   ]
 }
 ```
+
+### Service configuration options
+
+| Field           | Type    | Description                                |
+|-----------------|---------|--------------------------------------------|
+| `name`          | string  | Service name (required)                    |
+| `check`         | object  | How to check if service is running         |
+| `start`         | string  | Command to start service (optional)        |
+| `restart`       | string  | Command to restart service (optional)      |
+| `cwd`           | string  | Working directory for commands (optional)  |
+| `tags`          | array   | Tags for filtering (optional)              |
+| `open`          | string  | URL or command to open service (optional)  |
+| `autostart`     | boolean | Start service on daemon launch (optional)  |
+| `startupTimeout`| integer | Seconds to wait for service startup (optional, default: 10) |
 
 ### Check types
 
@@ -95,12 +118,30 @@ startwatch doctor
 | `startwatch check`         | Force live re-check, skip cache           |
 | `startwatch start <svc>`   | Run start command for a service           |
 | `startwatch restart <svc>` | Restart a service (fuzzy name match)      |
+| `startwatch restart all`   | Restart all failed services with live output |
+| `startwatch list`          | List all configured services              |
+| `startwatch stop`          | Stop daemon and menu agent                |
 | `startwatch log`           | Tail check history                        |
 | `startwatch config`        | Open config in $EDITOR                    |
 | `startwatch doctor`        | Diagnose StartWatch itself                |
 | `startwatch daemon`        | Launch menu bar daemon (foreground)       |
+| `startwatch daemon --no-menu` | Launch daemon without menu bar agent  |
 
 Flags available on `status` / `check`: `--json`, `--no-color`.
+
+### Restart with live output
+
+The `startwatch restart all` command provides live feedback during service restarts:
+
+```
+⏳  Redis                          starting... 0.5s
+⏳  Postgres                       starting... 0.5s
+
+✓  Redis                          running      2.1s
+✗  Postgres                       failed       10.0s timeout (10s)
+```
+
+Services that are already running are skipped. The command exits with code 0 on success or the number of failed services.
 
 Exit code of `startwatch status` equals the number of failed services (0 = all OK — scriptable in CI or shell prompts).
 

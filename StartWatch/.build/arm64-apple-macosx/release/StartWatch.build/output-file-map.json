@@ -34,6 +34,12 @@
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/DoctorCommand.dia"
   },
+  "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/ListCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ListCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ListCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ListCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ListCommand.dia"
+  },
   "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/LogCommand.swift": {
     "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand.swift.o",
     "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/LogCommand~partial.swiftmodule",
@@ -57,6 +63,12 @@
     "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StatusCommand~partial.swiftmodule",
     "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StatusCommand.swiftdeps",
     "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StatusCommand.dia"
+  },
+  "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Commands/StopCommand.swift": {
+    "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StopCommand.swift.o",
+    "swiftmodule": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StopCommand~partial.swiftmodule",
+    "swift-dependencies": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StopCommand.swiftdeps",
+    "diagnostics": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/StopCommand.dia"
   },
   "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/Sources/StartWatch/CLI/Formatting/ANSIColors.swift": {
     "object": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch/.build/arm64-apple-macosx/release/StartWatch.build/ANSIColors.swift.o",

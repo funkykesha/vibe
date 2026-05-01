@@ -17,7 +17,7 @@ final class MenuBarController {
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        updateIcon(allOk: true)
+        updateIcon(state: .allOk)
         buildMenu()
     }
 
@@ -27,16 +27,56 @@ final class MenuBarController {
 
     func update(results: [CheckResult]) {
         self.lastResults = results
-        let allOk = results.allSatisfy(\.isRunning)
-        updateIcon(allOk: allOk)
+        let iconState = determineIconState(results: results)
+        updateIcon(state: iconState)
         buildMenu()
     }
 
     // MARK: - Private
 
-    private func updateIcon(allOk: Bool) {
+    private enum IconState {
+        case starting
+        case mixed
+        case failed
+        case allOk
+    }
+
+    private func determineIconState(results: [CheckResult]) -> IconState {
+        guard !results.isEmpty else { return .allOk }
+
+        let anyStarting = results.contains { $0.isStarting }
+        let anyRunning = results.contains { $0.isRunning }
+        let anyNotRunning = results.contains { !$0.isRunning && !$0.isStarting }
+
+        if anyStarting {
+            return .starting
+        }
+
+        if anyRunning && anyNotRunning {
+            return .mixed
+        }
+
+        if anyNotRunning {
+            return .failed
+        }
+
+        return .allOk
+    }
+
+    private func updateIcon(state: IconState) {
         guard let button = statusItem.button else { return }
-        button.image = makeStatusIcon(emoji: allOk ? "♻️" : "⚠️")
+        let emoji: String
+        switch state {
+        case .starting:
+            emoji = "⏳"
+        case .mixed:
+            emoji = "⚠️"
+        case .failed:
+            emoji = "❌"
+        case .allOk:
+            emoji = "♻️"
+        }
+        button.image = makeStatusIcon(emoji: emoji)
         button.title = ""
         button.toolTip = "StartWatch"
     }
