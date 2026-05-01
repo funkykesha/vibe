@@ -165,5 +165,34 @@
             <button id="download-btn" disabled>Скачать</button>
         </div>
     </main>
+
+    <script>
+        const generateBtn = document.getElementById('generate-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const image = document.getElementById('image');
+        const placeholder = document.getElementById('placeholder');
+        const errorDiv = document.getElementById('error');
+        const metadata = document.getElementById('metadata');
+        const idDisplay = document.getElementById('id-display');
+        const sizeDisplay = document.getElementById('size-display');
+
+        let currentImageUrl = '';
+        let currentImageId = '';
+
+        function generateImage() {
+            const timestamp = Date.now();
+            const imageUrl = `https://picsum.photos/800/600?random=${timestamp}`;
+
+            currentImageUrl = imageUrl;
+            currentImageId = timestamp.toString();
+
+            placeholder.style.display = 'none';
+            errorDiv.style.display = 'none';
+            errorDiv.innerHTML = '';
+            image.style.display = 'none';
+
+            image.src = imageUrl;
+        }
+    </script>
 </body>
 </html>
