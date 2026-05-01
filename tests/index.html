@@ -195,6 +195,20 @@
         }
 
         generateBtn.addEventListener('click', generateImage);
+
+        function handleImageLoad() {
+            image.style.display = 'block';
+            downloadBtn.disabled = false;
+
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+
+            idDisplay.textContent = `ID: ${currentImageId}`;
+            sizeDisplay.textContent = `Размер: ${width} × ${height} px`;
+            metadata.style.display = 'block';
+        }
+
+        image.addEventListener('load', handleImageLoad);
     </script>
 </body>
 </html>
