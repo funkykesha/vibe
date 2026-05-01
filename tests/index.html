@@ -223,6 +223,35 @@
         }
 
         image.addEventListener('error', handleImageError);
+
+        async function downloadImage() {
+            try {
+                const response = await fetch(currentImageUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `picsum-${currentImageId}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('Download failed:', error);
+                downloadBtn.disabled = true;
+                metadata.style.display = 'none';
+                errorDiv.innerHTML = `
+                    Не удалось скачать изображение (CORS ограничение браузера).<br>
+                    <a href="${currentImageUrl}" target="_blank">Открыть в новой вкладке →</a>
+                `;
+                errorDiv.style.display = 'block';
+                image.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
