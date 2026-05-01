@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+  <style>
+    .bg { fill: #e7e5df; }
+    .title { font: 700 30px Inter, Arial, sans-serif; fill: #111827; }
+    .sub { font: 400 16px Inter, Arial, sans-serif; fill: #5f6368; }
+    .brand { font: 700 12px Inter, Arial, sans-serif; letter-spacing: 1px; }
+    .h { font: 700 19px Inter, Arial, sans-serif; }
+    .hero { font: 700 27px Inter, Arial, sans-serif; }
+    .p { font: 400 14px Inter, Arial, sans-serif; }
+    .small { font: 600 11px Inter, Arial, sans-serif; letter-spacing: .6px; }
+    .label { font: 400 12px Inter, Arial, sans-serif; }
+    .num { font: 700 17px Inter, Arial, sans-serif; }
+    .cell { font: 500 13px Inter, Arial, sans-serif; }
+    .mono { font-variant-numeric: tabular-nums; }
+  </style>
+  <rect class="bg" width="1600" height="1100"/>
+  <text x="36" y="52" class="title">Варианты темы: ritual-first finance dashboard</text>
+  <text x="36" y="78" class="sub">Один экран: зарплатный день + краткое отображение текущего капитала</text>
+
+  <!-- Light Paper -->
+  <g transform="translate(36 112)">
+    <rect width="746" height="450" fill="#fdfbf7" stroke="#cfc7b8"/>
+    <rect width="746" height="58" fill="#fdfbf7" stroke="#ded8cc"/>
+    <text x="18" y="22" class="brand" fill="#6b645b">LIGHT PAPER</text>
+    <text x="18" y="45" class="h" fill="#171717">Финансовый ритуал</text>
+    <rect x="606" y="15" width="118" height="30" fill="#fffefa" stroke="#ded8cc"/>
+    <text x="623" y="35" class="label" fill="#6b645b">5 мая 2026</text>
+    <rect x="18" y="76" width="456" height="352" fill="#fffefa" stroke="#ded8cc"/>
+    <text x="36" y="104" class="brand" fill="#166534">ГЛАВНЫЙ РИТУАЛ</text>
+    <text x="36" y="139" class="hero" fill="#171717">Разложить зарплату</text>
+    <text x="36" y="171" class="hero" fill="#171717">и закрыть месяц</text>
+    <text x="36" y="199" class="p" fill="#6b645b">Чистая сумма, вычеты, распределение, капитал, снимок.</text>
+    <g transform="translate(36 226)">
+      <rect width="76" height="48" fill="#eaf3eb" stroke="#166534"/><text x="10" y="18" class="small" fill="#166534">01</text><text x="10" y="36" class="label" fill="#166534">ЗП</text>
+      <rect x="84" width="76" height="48" fill="#f5f0e8" stroke="#ded8cc"/><text x="94" y="18" class="small" fill="#6b645b">02</text><text x="94" y="36" class="label" fill="#6b645b">Вычеты</text>
+      <rect x="168" width="76" height="48" fill="#f5f0e8" stroke="#ded8cc"/><text x="178" y="18" class="small" fill="#6b645b">03</text><text x="178" y="36" class="label" fill="#6b645b">Доли</text>
+      <rect x="252" width="76" height="48" fill="#f5f0e8" stroke="#ded8cc"/><text x="262" y="18" class="small" fill="#6b645b">04</text><text x="262" y="36" class="label" fill="#6b645b">Капитал</text>
+      <rect x="336" width="76" height="48" fill="#f5f0e8" stroke="#ded8cc"/><text x="346" y="18" class="small" fill="#6b645b">05</text><text x="346" y="36" class="label" fill="#6b645b">Снимок</text>
+    </g>
+    <text x="36" y="306" class="small" fill="#6b645b">ВВОД</text>
+    <rect x="36" y="318" width="198" height="52" fill="#fffefa" stroke="#ded8cc"/><text x="48" y="338" class="label" fill="#6b645b">Начислено</text><text x="48" y="360" class="num mono" fill="#171717">450 000,00 ₽</text>
+    <rect x="246" y="318" width="198" height="52" fill="#fffefa" stroke="#ded8cc"/><text x="258" y="338" class="label" fill="#6b645b">Чистыми</text><text x="258" y="360" class="num mono" fill="#171717">386 914,44 ₽</text>
+    <text x="36" y="397" class="cell" fill="#171717">НЗ</text><text x="402" y="397" class="cell mono" text-anchor="end" fill="#171717">58 037 ₽</text>
+    <line x1="36" y1="408" x2="444" y2="408" stroke="#ded8cc"/>
+    <text x="36" y="424" class="cell" fill="#171717">Ипотека</text><text x="402" y="424" class="cell mono" text-anchor="end" fill="#171717">125 360 ₽</text>
+    <rect x="490" y="76" width="238" height="186" fill="#fffefa" stroke="#ded8cc"/>
+    <text x="508" y="104" class="small" fill="#6b645b">КАПИТАЛ КРАТКО</text>
+    <text x="508" y="138" class="label" fill="#6b645b">Весь капитал</text><text x="710" y="138" class="num mono" text-anchor="end" fill="#171717">8,42 млн ₽</text>
+    <line x1="508" y1="152" x2="710" y2="152" stroke="#ded8cc"/>
+    <text x="508" y="178" class="label" fill="#6b645b">С долгами</text><text x="710" y="178" class="num mono" text-anchor="end" fill="#171717">8,22 млн ₽</text>
+    <line x1="508" y1="192" x2="710" y2="192" stroke="#ded8cc"/>
+    <text x="508" y="218" class="label" fill="#6b645b">Быстрые</text><text x="710" y="218" class="num mono" text-anchor="end" fill="#166534">1,12 млн ₽</text>
+    <rect x="490" y="278" width="238" height="112" fill="#fffefa" stroke="#ded8cc"/>
+    <rect x="508" y="296" width="202" height="38" fill="#166534"/><text x="609" y="320" class="cell" text-anchor="middle" fill="#fff">Продолжить ритуал</text>
+    <rect x="508" y="344" width="202" height="30" fill="none" stroke="#166534"/><text x="609" y="365" class="label" text-anchor="middle" fill="#166534">Скопировать раскладку</text>
+  </g>
+
+  <!-- Swiss -->
+  <g transform="translate(818 112)">
+    <rect width="746" height="450" fill="#f8fafc" stroke="#cbd5e1"/>
+    <rect width="746" height="58" fill="#f8fafc" stroke="#dbe3ec"/>
+    <text x="18" y="22" class="brand" fill="#64748b">SWISS FINANCE</text>
+    <text x="18" y="45" class="h" fill="#0f172a">Финансовый ритуал</text>
+    <rect x="606" y="15" width="118" height="30" fill="#ffffff" stroke="#dbe3ec"/><text x="623" y="35" class="label" fill="#64748b">5 мая 2026</text>
+    <rect x="18" y="76" width="456" height="352" fill="#ffffff" stroke="#dbe3ec"/>
+    <text x="36" y="104" class="brand" fill="#1d4ed8">ЗАРПЛАТНЫЙ ДЕНЬ</text>
+    <text x="36" y="139" class="hero" fill="#0f172a">Проверить сумму,</text>
+    <text x="36" y="171" class="hero" fill="#0f172a">обновить капитал</text>
+    <text x="36" y="199" class="p" fill="#64748b">Строгая сетка, минимум цвета, главные числа рядом.</text>
+    <g transform="translate(36 226)">
+      <rect width="76" height="48" fill="#e8f0ff" stroke="#1d4ed8"/><text x="10" y="18" class="small" fill="#1d4ed8">01</text><text x="10" y="36" class="label" fill="#1d4ed8">ЗП</text>
+      <rect x="84" width="76" height="48" fill="#eef2f7" stroke="#dbe3ec"/><text x="94" y="18" class="small" fill="#64748b">02</text><text x="94" y="36" class="label" fill="#64748b">Вычеты</text>
+      <rect x="168" width="76" height="48" fill="#eef2f7" stroke="#dbe3ec"/><text x="178" y="18" class="small" fill="#64748b">03</text><text x="178" y="36" class="label" fill="#64748b">Доли</text>
+      <rect x="252" width="76" height="48" fill="#eef2f7" stroke="#dbe3ec"/><text x="262" y="18" class="small" fill="#64748b">04</text><text x="262" y="36" class="label" fill="#64748b">Капитал</text>
+      <rect x="336" width="76" height="48" fill="#eef2f7" stroke="#dbe3ec"/><text x="346" y="18" class="small" fill="#64748b">05</text><text x="346" y="36" class="label" fill="#64748b">Снимок</text>
+    </g>
+    <text x="36" y="306" class="small" fill="#64748b">ВВОД</text>
+    <rect x="36" y="318" width="198" height="52" fill="#ffffff" stroke="#dbe3ec"/><text x="48" y="338" class="label" fill="#64748b">Начислено</text><text x="48" y="360" class="num mono" fill="#0f172a">450 000,00 ₽</text>
+    <rect x="246" y="318" width="198" height="52" fill="#ffffff" stroke="#dbe3ec"/><text x="258" y="338" class="label" fill="#64748b">Чистыми</text><text x="258" y="360" class="num mono" fill="#0f172a">386 914,44 ₽</text>
+    <text x="36" y="397" class="cell" fill="#0f172a">НЗ</text><text x="402" y="397" class="cell mono" text-anchor="end" fill="#0f172a">58 037 ₽</text>
+    <line x1="36" y1="408" x2="444" y2="408" stroke="#dbe3ec"/>
+    <text x="36" y="424" class="cell" fill="#0f172a">Ипотека</text><text x="402" y="424" class="cell mono" text-anchor="end" fill="#0f172a">125 360 ₽</text>
+    <rect x="490" y="76" width="238" height="186" fill="#ffffff" stroke="#dbe3ec"/>
+    <text x="508" y="104" class="small" fill="#64748b">КАПИТАЛ</text>
+    <text x="508" y="138" class="label" fill="#64748b">Факт</text><text x="710" y="138" class="num mono" text-anchor="end" fill="#0f172a">8,42 млн ₽</text>
+    <line x1="508" y1="152" x2="710" y2="152" stroke="#dbe3ec"/>
+    <text x="508" y="178" class="label" fill="#64748b">С долгами</text><text x="710" y="178" class="num mono" text-anchor="end" fill="#0f172a">8,22 млн ₽</text>
+    <line x1="508" y1="192" x2="710" y2="192" stroke="#dbe3ec"/>
+    <text x="508" y="218" class="label" fill="#64748b">Быстрые</text><text x="710" y="218" class="num mono" text-anchor="end" fill="#16a34a">1,12 млн ₽</text>
+    <rect x="490" y="278" width="238" height="112" fill="#ffffff" stroke="#dbe3ec"/>
+    <rect x="508" y="296" width="202" height="38" fill="#1d4ed8"/><text x="609" y="320" class="cell" text-anchor="middle" fill="#fff">Продолжить</text>
+    <rect x="508" y="344" width="202" height="30" fill="none" stroke="#1d4ed8"/><text x="609" y="365" class="label" text-anchor="middle" fill="#1d4ed8">Создать снимок</text>
+  </g>
+
+  <!-- Dark -->
+  <g transform="translate(36 600)">
+    <rect width="746" height="450" fill="#020617" stroke="#334155"/>
+    <rect width="746" height="58" fill="#020617" stroke="#1e293b"/>
+    <text x="18" y="22" class="brand" fill="#94a3b8">DARK FINANCE</text>
+    <text x="18" y="45" class="h" fill="#f8fafc">Финансовый ритуал</text>
+    <rect x="606" y="15" width="118" height="30" fill="#0f172a" stroke="#1e293b"/><text x="623" y="35" class="label" fill="#94a3b8">5 мая 2026</text>
+    <rect x="18" y="76" width="456" height="352" fill="#0f172a" stroke="#1e293b"/>
+    <text x="36" y="104" class="brand" fill="#22c55e">АКТИВНЫЙ РИТУАЛ</text>
+    <text x="36" y="139" class="hero" fill="#f8fafc">Зарплата готова</text>
+    <text x="36" y="171" class="hero" fill="#f8fafc">к распределению</text>
+    <text x="36" y="199" class="p" fill="#94a3b8">Ближе к текущему, но без терминального шума.</text>
+    <rect x="36" y="226" width="76" height="48" fill="#12351f" stroke="#22c55e"/><text x="46" y="244" class="small" fill="#22c55e">01</text><text x="46" y="262" class="label" fill="#22c55e">ЗП</text>
+    <rect x="120" y="226" width="76" height="48" fill="#111827" stroke="#1e293b"/><text x="130" y="244" class="small" fill="#94a3b8">02</text><text x="130" y="262" class="label" fill="#94a3b8">Вычеты</text>
+    <rect x="204" y="226" width="76" height="48" fill="#111827" stroke="#1e293b"/><text x="214" y="244" class="small" fill="#94a3b8">03</text><text x="214" y="262" class="label" fill="#94a3b8">Доли</text>
+    <rect x="288" y="226" width="76" height="48" fill="#111827" stroke="#1e293b"/><text x="298" y="244" class="small" fill="#94a3b8">04</text><text x="298" y="262" class="label" fill="#94a3b8">Капитал</text>
+    <rect x="372" y="226" width="76" height="48" fill="#111827" stroke="#1e293b"/><text x="382" y="244" class="small" fill="#94a3b8">05</text><text x="382" y="262" class="label" fill="#94a3b8">Снимок</text>
+    <text x="36" y="306" class="small" fill="#94a3b8">ВВОД</text>
+    <rect x="36" y="318" width="198" height="52" fill="#0f172a" stroke="#1e293b"/><text x="48" y="338" class="label" fill="#94a3b8">Начислено</text><text x="48" y="360" class="num mono" fill="#f8fafc">450 000,00 ₽</text>
+    <rect x="246" y="318" width="198" height="52" fill="#0f172a" stroke="#1e293b"/><text x="258" y="338" class="label" fill="#94a3b8">Чистыми</text><text x="258" y="360" class="num mono" fill="#f8fafc">386 914,44 ₽</text>
+    <rect x="490" y="76" width="238" height="186" fill="#0f172a" stroke="#1e293b"/>
+    <text x="508" y="104" class="small" fill="#94a3b8">КАПИТАЛ</text>
+    <text x="508" y="138" class="label" fill="#94a3b8">Факт</text><text x="710" y="138" class="num mono" text-anchor="end" fill="#f8fafc">8,42 млн ₽</text>
+    <text x="508" y="178" class="label" fill="#94a3b8">С долгами</text><text x="710" y="178" class="num mono" text-anchor="end" fill="#f8fafc">8,22 млн ₽</text>
+    <text x="508" y="218" class="label" fill="#94a3b8">Быстрые</text><text x="710" y="218" class="num mono" text-anchor="end" fill="#22c55e">1,12 млн ₽</text>
+    <rect x="490" y="278" width="238" height="112" fill="#0f172a" stroke="#1e293b"/>
+    <rect x="508" y="296" width="202" height="38" fill="#22c55e"/><text x="609" y="320" class="cell" text-anchor="middle" fill="#020617">Продолжить</text>
+  </g>
+
+  <!-- Warm -->
+  <g transform="translate(818 600)">
+    <rect width="746" height="450" fill="#f6f1ea" stroke="#d7c8b7"/>
+    <rect width="746" height="58" fill="#f6f1ea" stroke="#e2d6c8"/>
+    <text x="18" y="22" class="brand" fill="#786f65">WARM MINIMAL</text>
+    <text x="18" y="45" class="h" fill="#1f2933">Финансовый ритуал</text>
+    <rect x="606" y="15" width="118" height="30" fill="#fffaf3" stroke="#e2d6c8"/><text x="623" y="35" class="label" fill="#786f65">5 мая 2026</text>
+    <rect x="18" y="76" width="456" height="352" fill="#fffaf3" stroke="#e2d6c8"/>
+    <text x="36" y="104" class="brand" fill="#0f766e">ЗАРПЛАТНЫЙ ДЕНЬ</text>
+    <text x="36" y="139" class="hero" fill="#1f2933">Спокойно разложить</text>
+    <text x="36" y="171" class="hero" fill="#1f2933">деньги по модели</text>
+    <text x="36" y="199" class="p" fill="#786f65">Менее корпоративно, больше личного инструмента.</text>
+    <rect x="36" y="226" width="76" height="48" fill="#e5f3ef" stroke="#0f766e"/><text x="46" y="244" class="small" fill="#0f766e">01</text><text x="46" y="262" class="label" fill="#0f766e">ЗП</text>
+    <rect x="120" y="226" width="76" height="48" fill="#ede2d4" stroke="#e2d6c8"/><text x="130" y="244" class="small" fill="#786f65">02</text><text x="130" y="262" class="label" fill="#786f65">Вычеты</text>
+    <rect x="204" y="226" width="76" height="48" fill="#ede2d4" stroke="#e2d6c8"/><text x="214" y="244" class="small" fill="#786f65">03</text><text x="214" y="262" class="label" fill="#786f65">Доли</text>
+    <rect x="288" y="226" width="76" height="48" fill="#ede2d4" stroke="#e2d6c8"/><text x="298" y="244" class="small" fill="#786f65">04</text><text x="298" y="262" class="label" fill="#786f65">Капитал</text>
+    <rect x="372" y="226" width="76" height="48" fill="#ede2d4" stroke="#e2d6c8"/><text x="382" y="244" class="small" fill="#786f65">05</text><text x="382" y="262" class="label" fill="#786f65">Снимок</text>
+    <text x="36" y="306" class="small" fill="#786f65">ВВОД</text>
+    <rect x="36" y="318" width="198" height="52" fill="#fffaf3" stroke="#e2d6c8"/><text x="48" y="338" class="label" fill="#786f65">Начислено</text><text x="48" y="360" class="num mono" fill="#1f2933">450 000,00 ₽</text>
+    <rect x="246" y="318" width="198" height="52" fill="#fffaf3" stroke="#e2d6c8"/><text x="258" y="338" class="label" fill="#786f65">Чистыми</text><text x="258" y="360" class="num mono" fill="#1f2933">386 914,44 ₽</text>
+    <rect x="490" y="76" width="238" height="186" fill="#fffaf3" stroke="#e2d6c8"/>
+    <text x="508" y="104" class="small" fill="#786f65">КАПИТАЛ</text>
+    <text x="508" y="138" class="label" fill="#786f65">Весь капитал</text><text x="710" y="138" class="num mono" text-anchor="end" fill="#1f2933">8,42 млн ₽</text>
+    <text x="508" y="178" class="label" fill="#786f65">С долгами</text><text x="710" y="178" class="num mono" text-anchor="end" fill="#1f2933">8,22 млн ₽</text>
+    <text x="508" y="218" class="label" fill="#786f65">Семейные</text><text x="710" y="218" class="num mono" text-anchor="end" fill="#0f766e">2,03 млн ₽</text>
+    <rect x="490" y="278" width="238" height="112" fill="#fffaf3" stroke="#e2d6c8"/>
+    <rect x="508" y="296" width="202" height="38" fill="#0f766e"/><text x="609" y="320" class="cell" text-anchor="middle" fill="#fff">Продолжить ритуал</text>
+  </g>
+</svg>
