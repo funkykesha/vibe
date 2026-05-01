@@ -209,6 +209,20 @@
         }
 
         image.addEventListener('load', handleImageLoad);
+
+        function handleImageError() {
+            image.style.display = 'none';
+            downloadBtn.disabled = true;
+            metadata.style.display = 'none';
+
+            errorDiv.innerHTML = `
+                Не удалось загрузить изображение. picsum.photos может быть недоступен.<br>
+                <a href="${currentImageUrl}" target="_blank">Открыть в новой вкладке →</a>
+            `;
+            errorDiv.style.display = 'block';
+        }
+
+        image.addEventListener('error', handleImageError);
     </script>
 </body>
 </html>
