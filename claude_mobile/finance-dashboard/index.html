@@ -8,14 +8,340 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --bg: #f3f6fa;
+      --bg-elevated: #eef3f8;
+      --surface: #ffffff;
+      --surface-2: #f7fafc;
+      --surface-3: #eef2f7;
+      --text: #16202d;
+      --muted: #64748b;
+      --border: #d8e0ea;
+      --border-strong: #bfd0e2;
+      --accent: #1d4ed8;
+      --accent-strong: #153e9f;
+      --accent-soft: rgba(29, 78, 216, 0.08);
+      --accent-contrast: #ffffff;
+      --success: #0f766e;
+      --warning: #b45309;
+      --danger: #dc2626;
+      --shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #060b14;
+      --bg-elevated: #0b1220;
+      --surface: #0f1728;
+      --surface-2: #111c2e;
+      --surface-3: #162135;
+      --text: #edf2f7;
+      --muted: #94a3b8;
+      --border: #253247;
+      --border-strong: #334155;
+      --accent: #60a5fa;
+      --accent-strong: #93c5fd;
+      --accent-soft: rgba(96, 165, 250, 0.14);
+      --accent-contrast: #07111f;
+      --success: #2dd4bf;
+      --warning: #f59e0b;
+      --danger: #f87171;
+      --shadow: 0 18px 42px rgba(2, 6, 23, 0.45);
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; background: #09090b; }
+    html, body, #root { min-height: 100%; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(29, 78, 216, 0.08), transparent 34%),
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      font-family: "IBM Plex Sans", Inter, system-ui, sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
+    ::selection { background: var(--accent-soft); color: var(--text); }
+    .app-shell { min-height: 100vh; color: var(--text); }
+    .topbar {
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+    .kicker {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .title {
+      font-size: clamp(1.25rem, 1.6vw, 1.8rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-soft { background: var(--surface-2); }
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 1rem;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .card-subtitle {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+    .nav-pill {
+      min-width: 0;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 14px;
+      padding: 0.8rem 0.9rem;
+      text-align: left;
+      transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+    .nav-pill:hover { border-color: var(--border-strong); color: var(--text); }
+    .nav-pill[data-active="true"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+    .nav-pill-main {
+      display: block;
+      font-size: 0.94rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .nav-pill-sub {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .theme-pill {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 0.52rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+    }
+    .theme-pill[data-active="true"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+    .ui-input {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 0.76rem 0.9rem;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+    .ui-input--compact {
+      padding-block: 0.56rem;
+      padding-inline: 0.72rem;
+      font-size: 0.94rem;
+    }
+    .ui-input--large {
+      padding-block: 0.94rem;
+      padding-inline: 1rem;
+      font-size: 1.02rem;
+    }
+    .ui-input--right {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .ui-input::placeholder { color: var(--muted); }
+    .ui-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .ui-input:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .ui-button {
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.78rem 0.95rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+    }
+    .ui-button-primary {
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border-color: var(--accent);
+    }
+    .ui-button-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+    .ui-button-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    .ui-button-secondary:hover { border-color: var(--border-strong); }
+    .ui-button-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+    .ui-button-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+    .ui-button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 0.38rem 0.7rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge[data-tone="accent"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+    .badge[data-tone="success"] {
+      border-color: rgba(15, 118, 110, 0.28);
+      background: rgba(15, 118, 110, 0.08);
+      color: var(--success);
+    }
+    .badge[data-tone="danger"] {
+      border-color: rgba(220, 38, 38, 0.28);
+      background: rgba(220, 38, 38, 0.08);
+      color: var(--danger);
+    }
+    .metric {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: 16px;
+      padding: 0.8rem 0.85rem;
+      min-width: 0;
+    }
+    .metric-label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .metric-value {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+      margin-top: 0.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .metric-note {
+      color: var(--muted);
+      font-size: 0.76rem;
+      margin-top: 0.18rem;
+      line-height: 1.3;
+    }
+    .section-grid {
+      display: grid;
+      gap: 1rem;
+      min-width: 0;
+    }
+    .empty-state {
+      border: 1px dashed var(--border-strong);
+      background: var(--surface-2);
+      border-radius: 18px;
+      padding: 1.15rem;
+      color: var(--muted);
+    }
+    .empty-state strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+      font-size: 0.95rem;
+    }
+    .table-row {
+      display: grid;
+      gap: 0.6rem;
+      align-items: center;
+      min-width: 0;
+    }
+    .table-row--salary {
+      grid-template-columns: minmax(0, 1fr) 5.5rem 8.5rem;
+    }
+    .table-row--compact {
+      grid-template-columns: minmax(0, 1fr) 8rem 1.5rem;
+    }
+    .table-row--capital {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 10rem) auto;
+    }
+    .table-row > * { min-width: 0; }
+    @media (max-width: 640px) {
+      .table-row--salary,
+      .table-row--compact,
+      .table-row--capital {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
   </style>
+  <script>
+    (function () {
+      try {
+        const mode = localStorage.getItem("fin-v3-theme") || "system";
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = mode === "system" ? (prefersDark ? "dark" : "light") : mode;
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <div id="root"></div>
@@ -120,6 +446,35 @@
       "Долги":     "#ef4444",
     };
 
+    const NAV_ITEMS = [
+      { id: "rituals", label: "Ритуалы", hint: "Зарплатный день" },
+      { id: "capital", label: "Капитал", hint: "Счета и баланс" },
+      { id: "history", label: "История", hint: "Снимки" },
+      { id: "settings", label: "Настройки", hint: "Модель" },
+    ];
+
+    const THEME_STORAGE_KEY = "fin-v3-theme";
+    const THEME_MODES = [
+      { id: "system", label: "System" },
+      { id: "light", label: "Light" },
+      { id: "dark", label: "Dark" },
+    ];
+
+    const safeStorageGet = (key, fallback = null) => {
+      try {
+        const value = localStorage.getItem(key);
+        return value === null ? fallback : value;
+      } catch (e) {
+        return fallback;
+      }
+    };
+
+    const safeStorageSet = (key, value) => {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {}
+    };
+
     function NumInput({ value, onChange, placeholder = "0", right = false, large = false, className = "" }) {
       return (
         <input
@@ -128,14 +483,70 @@
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`bg-zinc-900 border border-zinc-700 text-white rounded focus:border-amber-500 focus:outline-none transition-colors ${large ? "text-xl px-4 py-3" : "text-sm px-3 py-2"} ${right ? "text-right tabular-nums" : ""} ${className}`}
+          className={`ui-input ${large ? "ui-input--large" : "ui-input--compact"} ${right ? "ui-input--right" : ""} ${className}`}
         />
+      );
+    }
+
+    function Card({ className = "", children }) {
+      return <section className={`card ${className}`}>{children}</section>;
+    }
+
+    function SectionHeader({ kicker, title, summary, action }) {
+      return (
+        <div className="card-header">
+          <div className="min-w-0">
+            <div className="kicker">{kicker}</div>
+            <div className="card-title mt-1">{title}</div>
+            {summary && <div className="card-subtitle">{summary}</div>}
+          </div>
+          {action && <div className="shrink-0">{action}</div>}
+        </div>
+      );
+    }
+
+    function Metric({ label, value, note, tone }) {
+      return (
+        <div className="metric">
+          <div className="metric-label">{label}</div>
+          <div className={`metric-value ${tone === "danger" ? "text-[var(--danger)]" : tone === "success" ? "text-[var(--success)]" : tone === "accent" ? "text-[var(--accent)]" : ""}`}>
+            {value}
+          </div>
+          {note && <div className="metric-note">{note}</div>}
+        </div>
+      );
+    }
+
+    function NavTab({ active, label, hint, onClick }) {
+      return (
+        <button
+          type="button"
+          onClick={onClick}
+          data-active={active ? "true" : "false"}
+          className="nav-pill w-full"
+        >
+          <span className="nav-pill-main">{label}</span>
+          <span className="nav-pill-sub">{hint}</span>
+        </button>
+      );
+    }
+
+    function ThemeTab({ active, label, onClick }) {
+      return (
+        <button
+          type="button"
+          onClick={onClick}
+          data-active={active ? "true" : "false"}
+          className="theme-pill"
+        >
+          {label}
+        </button>
       );
     }
 
     function App() {
       const now = new Date();
-      const [tab, setTab]           = useState("zp");
+      const [tab, setTab]           = useState("rituals");
       const [month, setMonth]       = useState(now.getMonth());
       const [year, setYear]         = useState(now.getFullYear() % 100);
       const [payDay, setPayDay]     = useState("5");
@@ -147,6 +558,14 @@
       const [mortgage, setMortgage] = useState("11948583");
       const [flash, setFlash]       = useState("");
       const [loading, setLoading]   = useState(true);
+      const [themeMode, setThemeMode] = useState(() => safeStorageGet(THEME_STORAGE_KEY, "system"));
+      const [prefersDark, setPrefersDark] = useState(() => {
+        try {
+          return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        } catch (e) {
+          return false;
+        }
+      });
       const [expanded, setExpanded] = useState(
         Object.fromEntries(BANK_ORDER.map(b => [b, true]))
       );
@@ -167,6 +586,31 @@
           setLoading(false);
         })();
       }, []);
+
+      useEffect(() => {
+        safeStorageSet(THEME_STORAGE_KEY, themeMode);
+      }, [themeMode]);
+
+      useEffect(() => {
+        const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+        if (!mq) return;
+        const onChange = (event) => setPrefersDark(event.matches);
+        setPrefersDark(mq.matches);
+        if (mq.addEventListener) {
+          mq.addEventListener("change", onChange);
+          return () => mq.removeEventListener("change", onChange);
+        }
+        mq.addListener(onChange);
+        return () => mq.removeListener(onChange);
+      }, []);
+
+      const resolvedTheme = themeMode === "system" ? (prefersDark ? "dark" : "light") : themeMode;
+
+      useEffect(() => {
+        const root = document.documentElement;
+        root.dataset.theme = resolvedTheme;
+        root.style.colorScheme = resolvedTheme;
+      }, [resolvedTheme]);
 
       useEffect(() => {
         if (loading) return;
@@ -212,278 +656,551 @@
         copy(rows + sum);
       };
 
+      const themeLabel = THEME_MODES.find(t => t.id === themeMode)?.label || "System";
+
       if (loading) return (
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-500 text-sm">
+        <div className="min-h-screen flex items-center justify-center text-sm" style={{ color: "var(--muted)" }}>
           Загрузка…
         </div>
       );
 
       return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100" style={{ fontFamily: "'IBM Plex Mono', 'Courier New', monospace" }}>
+        <div className="app-shell min-h-screen">
           {flash && (
-            <div className="fixed top-4 right-4 z-50 bg-amber-400 text-zinc-950 text-xs font-bold px-4 py-2 rounded shadow-lg">
+            <div className="fixed top-4 right-4 z-50 badge" data-tone="accent">
               {flash}
             </div>
           )}
 
-          <div className="border-b border-zinc-800 px-5 py-4">
-            <div className="text-amber-400 text-xs tracking-widest uppercase mb-0.5">Финансовый помощник</div>
-            <h1 className="text-white text-base font-bold">ЗП → Распределение · Капитал</h1>
-          </div>
-
-          <div className="flex border-b border-zinc-800 px-4">
-            {[
-              { id: "zp",       label: "Раскидать ЗП" },
-              { id: "capital",  label: "Капитал" },
-              { id: "settings", label: "Настройки" },
-            ].map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`px-4 py-3 text-xs tracking-widest uppercase border-b-2 transition-all ${
-                  tab === t.id ? "border-amber-400 text-amber-400" : "border-transparent text-zinc-500 hover:text-zinc-300"
-                }`}
-              >{t.label}</button>
-            ))}
-          </div>
-
-          <div className="max-w-lg mx-auto p-4 space-y-4">
-
-            {/* ═══ ЗП ═══ */}
-            {tab === "zp" && (
-              <>
-                <div className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Месяц</div>
-                    <select value={month} onChange={e => setMonth(+e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:border-amber-500 focus:outline-none">
-                      {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Год</div>
-                    <input type="number" value={year} onChange={e => setYear(+e.target.value)}
-                      className="w-14 bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-2 py-2 focus:border-amber-500 focus:outline-none" />
-                  </div>
-                  <div>
-                    <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Выплата</div>
-                    <div className="flex gap-1">
-                      {["5","20"].map(d => (
-                        <button key={d} onClick={() => setPayDay(d)}
-                          className={`px-3 py-2 text-xs rounded transition-all ${
-                            payDay === d ? "bg-amber-400 text-zinc-950 font-bold" : "bg-zinc-900 border border-zinc-700 text-zinc-400"
-                          }`}>{d}-е</button>
-                      ))}
-                    </div>
-                  </div>
+          <div className="mx-auto max-w-7xl px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
+            <div className="topbar rounded-3xl px-4 py-4 sm:px-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0">
+                  <div className="kicker">Финансовый помощник</div>
+                  <h1 className="title mt-2">Ритуалы, капитал и модель без лишнего шума</h1>
+                  <p className="lead mt-2 max-w-2xl">
+                    Первый экран ведёт в зарплатный ритуал, а тяжелые действия остаются честно отключенными до появления backend.
+                  </p>
                 </div>
-
-                <div>
-                  <div className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">Начислено (до вычетов) ₽</div>
-                  <NumInput value={gross} onChange={setGross} placeholder="133 267,46" right large className="w-full" />
+                <div className="flex items-center gap-2 self-start lg:self-auto">
+                  <span className="badge" data-tone="accent">Theme: {themeLabel}</span>
                 </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {THEME_MODES.map(mode => (
+                  <ThemeTab
+                    key={mode.id}
+                    active={themeMode === mode.id}
+                    label={mode.label}
+                    onClick={() => setThemeMode(mode.id)}
+                  />
+                ))}
+              </div>
+            </div>
 
-                <div className="border border-zinc-800 rounded">
-                  <div className="flex justify-between items-center px-4 py-2 border-b border-zinc-800 bg-zinc-900/60">
-                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Вычеты</span>
-                    <span className="text-red-400 text-xs tabular-nums">−{fmt(totalDeds)} ₽</span>
-                  </div>
-                  <div className="p-3 grid grid-cols-2 gap-2">
-                    {deds.map(d => (
-                      <div key={d.id}>
-                        <div className="text-zinc-600 text-xs mb-1">{d.name}</div>
-                        <NumInput value={d.val} onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))} right className="w-full" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {NAV_ITEMS.map(item => (
+                <NavTab
+                  key={item.id}
+                  active={tab === item.id}
+                  label={item.label}
+                  hint={item.hint}
+                  onClick={() => setTab(item.id)}
+                />
+              ))}
+            </div>
 
-                <div className={`rounded border flex justify-between items-center px-4 py-3 ${net > 0 ? "border-amber-500/40 bg-amber-500/5" : "border-zinc-800"}`}>
-                  <span className="text-zinc-400 text-xs uppercase tracking-wider">Чистыми на руки</span>
-                  <span className={`text-xl tabular-nums font-bold ${net > 0 ? "text-amber-300" : "text-zinc-600"}`}>
-                    {net > 0 ? fmt(net) : "—"} ₽
-                  </span>
-                </div>
-
-                <div className="border border-zinc-800 rounded overflow-hidden">
-                  <div className="flex justify-between items-center px-4 py-2 border-b border-zinc-800 bg-zinc-900/60">
-                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Распределение</span>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs tabular-nums ${pctOk ? "text-green-500" : "text-orange-400"}`}>
-                        Σ {fmt(totalPct)}% {pctOk ? "✓" : "⚠"}
-                      </span>
-                      {net > 0 && (
-                        <button onClick={copyDist} className="text-xs bg-amber-400 text-zinc-950 font-bold px-3 py-1 rounded hover:bg-amber-300 transition-colors">
-                          Копировать
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  {net === 0 ? (
-                    <div className="px-4 py-8 text-center text-zinc-600 text-xs">Введите сумму начисления</div>
-                  ) : (
-                    <>
-                      {dist.map((d, i) => (
-                        <div key={d.id} className={`flex items-center px-4 py-2 ${i%2===0?"":"bg-zinc-900/30"}`}>
-                          <span className="flex-1 text-sm text-zinc-200">{d.name}</span>
-                          <span className="text-zinc-600 text-xs w-10 text-right tabular-nums">{d.pct}%</span>
-                          <span className={`text-sm tabular-nums w-36 text-right ml-4 ${d.amount>0?"text-white font-medium":"text-zinc-700"}`}>
-                            {fmt(d.amount)} ₽
-                          </span>
+            <div className="mt-4">
+              {tab === "rituals" && (
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.78fr)]">
+                  <div className="section-grid">
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Ритуалы"
+                        title="Зарплатный день"
+                        summary="Всё важное для распределения зарплаты на одном экране."
+                        action={<span className="badge" data-tone="accent">Локальные расчеты</span>}
+                      />
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div>
+                          <div className="kicker mb-2">Месяц</div>
+                          <select
+                            value={month}
+                            onChange={e => setMonth(+e.target.value)}
+                            className="ui-input ui-input--compact"
+                          >
+                            {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                          </select>
                         </div>
-                      ))}
-                      <div className="flex justify-between px-4 py-2.5 border-t border-zinc-700 bg-zinc-900/60">
-                        <span className="text-zinc-400 text-xs uppercase tracking-wider">Итого</span>
-                        <span className="text-white font-bold tabular-nums text-sm">{fmt(dist.reduce((s,d)=>s+d.amount,0))} ₽</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* ═══ КАПИТАЛ ═══ */}
-            {tab === "capital" && (
-              <>
-                <div className="flex items-center gap-3 border border-zinc-800 rounded px-4 py-3">
-                  <span className="flex-1 text-zinc-400 text-xs uppercase tracking-wider">Курс $ / ₽</span>
-                  <NumInput value={usdRate} onChange={setUsdRate} right className="w-24" />
-                </div>
-
-                {BANK_ORDER.map(bank => {
-                  const bankAccs = accsF.filter(a => a.bank === bank);
-                  if (!bankAccs.length) return null;
-                  const bankTotal = bankAccs.reduce((s,a) => s+a.final, 0);
-                  const color = BANK_COLORS[bank] || "#9ca3af";
-                  const isOpen = expanded[bank];
-                  return (
-                    <div key={bank} className="border border-zinc-800 rounded overflow-hidden">
-                      <button
-                        onClick={() => setExpanded(p => ({...p, [bank]: !p[bank]}))}
-                        className="w-full flex items-center justify-between px-4 py-2.5 bg-zinc-900/80 hover:bg-zinc-800/60 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                          <span className="text-xs font-bold uppercase tracking-wider" style={{ color }}>{bank}</span>
+                        <div>
+                          <div className="kicker mb-2">Год</div>
+                          <input
+                            type="number"
+                            value={year}
+                            onChange={e => setYear(+e.target.value)}
+                            className="ui-input ui-input--compact ui-input--right"
+                          />
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-xs tabular-nums ${bank === "Долги" ? "text-red-400" : "text-zinc-300"}`}>
-                            {bankTotal < 0 ? "−" : ""}{fmt(Math.abs(bankTotal))} ₽
-                          </span>
-                          <span className="text-zinc-600 text-xs">{isOpen ? "▲" : "▼"}</span>
-                        </div>
-                      </button>
-                      {isOpen && bankAccs.map(a => (
-                        <div key={a.id} className="flex items-center px-4 py-2.5 border-t border-zinc-800/60 hover:bg-zinc-900/20 transition-colors">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm text-zinc-200 truncate">{a.name}</div>
-                            <div className="text-zinc-600 text-xs">{a.type} · {a.cat}</div>
+                        <div>
+                          <div className="kicker mb-2">Выплата</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {["5", "20"].map(d => (
+                              <button
+                                key={d}
+                                type="button"
+                                onClick={() => setPayDay(d)}
+                                className={`ui-button ${payDay === d ? "ui-button-primary" : "ui-button-secondary"}`}
+                              >
+                                {d}-е
+                              </button>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-2 ml-3">
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="kicker mb-2">Начислено (до вычетов) ₽</div>
+                        <NumInput value={gross} onChange={setGross} placeholder="133 267,46" right large className="w-full" />
+                      </div>
+                    </Card>
+
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Вычеты"
+                        title="Текущие удержания"
+                        summary="Модель удержаний влияет только на локальный расчет чистыми."
+                      />
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {deds.map(d => (
+                          <div key={d.id} className="min-w-0">
+                            <div className="kicker mb-2">{d.name}</div>
                             <NumInput
-                              value={a.val}
-                              onChange={v => setAccs(p => p.map(x => x.id === a.id ? {...x, val: v} : x))}
-                              right className="w-36"
-                              placeholder="0"
+                              value={d.val}
+                              onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))}
+                              right
+                              className="w-full"
                             />
-                            <span className="text-zinc-600 text-xs w-6">{a.currency === "USD" ? "$" : "₽"}</span>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
-
-                <div className="flex items-center gap-3 border border-zinc-800 rounded px-4 py-3">
-                  <span className="flex-1 text-zinc-400 text-xs uppercase tracking-wider">Остаток ипотеки ₽</span>
-                  <NumInput value={mortgage} onChange={setMortgage} right className="w-40" />
-                </div>
-
-                <div className="border border-amber-500/20 bg-amber-500/5 rounded overflow-hidden">
-                  <div className="px-4 py-2 border-b border-amber-500/10">
-                    <span className="text-amber-400 text-xs uppercase tracking-wider">Итоги</span>
-                  </div>
-                  {[
-                    { label: "Весь капитал (факт)",  val: totalFact,    usd: true,  bold: true                    },
-                    { label: "Капитал с долгами",     val: totalCapital, usd: true,  bold: false                   },
-                    { label: "└ Быстрые",             val: rychlye,      usd: false, indent: true                  },
-                    { label: "└ Семейные",            val: semejnye,     usd: false, indent: true                  },
-                    { label: "└ Сын",                 val: syn,          usd: false, indent: true                  },
-                    { label: "└ ИИС",                 val: invest,       usd: false, indent: true                  },
-                    { label: "С ипотекой",            val: withMortgage, usd: true,  red: withMortgage < 0         },
-                  ].map(r => (
-                    <div key={r.label} className={`flex justify-between items-center px-4 py-2 border-b border-amber-500/5 last:border-0 ${r.indent?"bg-zinc-950/30":""}`}>
-                      <span className={`text-xs uppercase tracking-wider ${r.indent?"text-zinc-600 pl-2":"text-zinc-400"}`}>{r.label}</span>
-                      <div className="text-right">
-                        <div className={`tabular-nums text-sm ${r.bold?"text-amber-300 font-bold text-base":r.red?"text-red-400":"text-zinc-200"}`}>
-                          {fmt(r.val)} ₽
-                        </div>
-                        {r.usd && rate > 0 && <div className="text-zinc-600 text-xs tabular-nums">${fmt(r.val / rate)}</div>}
+                        ))}
                       </div>
-                    </div>
-                  ))}
+                    </Card>
+
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Распределение"
+                        title="Результат после вычетов"
+                        summary="Сумма распределяется по текущим процентам без изменения формулы."
+                        action={
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="badge" data-tone={pctOk ? "success" : "danger"}>
+                              Σ {fmt(totalPct)}% {pctOk ? "✓" : "⚠"}
+                            </span>
+                            {net > 0 && (
+                              <button
+                                type="button"
+                                onClick={copyDist}
+                                className="ui-button ui-button-primary"
+                              >
+                                Копировать
+                              </button>
+                            )}
+                          </div>
+                        }
+                      />
+                      <div className="grid gap-2">
+                        <div className="card-soft rounded-2xl border border-[var(--border)] px-4 py-3 flex items-center justify-between gap-3">
+                          <span className="kicker">Чистыми на руки</span>
+                          <span className={`text-lg font-bold tabular-nums ${net > 0 ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>
+                            {net > 0 ? fmt(net) : "—"} ₽
+                          </span>
+                        </div>
+                        {net === 0 ? (
+                          <div className="empty-state">
+                            <strong>Введите сумму начисления</strong>
+                            После этого распределение покажет все ритуальные строки и итог.
+                          </div>
+                        ) : (
+                          <>
+                            {dist.map((d, i) => (
+                              <div key={d.id} className={`table-row table-row--salary rounded-2xl px-3 py-3 ${i % 2 === 0 ? "bg-[var(--surface-2)]" : "bg-[var(--surface-3)]"}`}>
+                                <div className="min-w-0">
+                                  <div className="text-sm font-medium">{d.name}</div>
+                                </div>
+                                <div className="text-right text-xs text-[var(--muted)] tabular-nums">{d.pct}%</div>
+                                <div className={`text-right text-sm font-medium tabular-nums ${d.amount > 0 ? "text-[var(--text)]" : "text-[var(--muted)]"}`}>
+                                  {fmt(d.amount)} ₽
+                                </div>
+                              </div>
+                            ))}
+                            <div className="table-row table-row--salary rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
+                              <div className="kicker">Итого</div>
+                              <div />
+                              <div className="text-right text-sm font-bold tabular-nums">{fmt(dist.reduce((s, d) => s + d.amount, 0))} ₽</div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </Card>
+                  </div>
+
+                  <div className="section-grid">
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Капитал"
+                        title="Компактный контекст"
+                        summary="Derived totals без истории и без графиков."
+                      />
+                      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                        <Metric label="Весь капитал (факт)" value={`${fmt(totalFact)} ₽`} note={`$ ${fmt(rate > 0 ? totalFact / rate : 0)}`} tone="accent" />
+                        <Metric label="Капитал с долгами" value={`${fmt(totalCapital)} ₽`} note={`$ ${fmt(rate > 0 ? totalCapital / rate : 0)}`} />
+                        <Metric label="Быстрые" value={`${fmt(rychlye)} ₽`} />
+                        <Metric label="Семейные" value={`${fmt(semejnye)} ₽`} />
+                        <Metric label="Сын" value={`${fmt(syn)} ₽`} />
+                        <Metric label="ИИС" value={`${fmt(invest)} ₽`} />
+                        <Metric label="С ипотекой" value={`${fmt(withMortgage)} ₽`} tone={withMortgage < 0 ? "danger" : "accent"} />
+                        <Metric label="Курс $" value={`${fmt(rate)}`} note="локально сохранён" />
+                      </div>
+                    </Card>
+
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Финиш"
+                        title="Действия и статус"
+                        summary="Backend-зависимые действия показаны честно как недоступные."
+                      />
+                      <div className="grid gap-2">
+                        <button
+                          type="button"
+                          onClick={copyCapital}
+                          className="ui-button ui-button-secondary"
+                        >
+                          Копировать капитал
+                        </button>
+                        <button
+                          type="button"
+                          disabled
+                          className="ui-button ui-button-secondary"
+                          title="Снимки появятся после подключения backend"
+                        >
+                          Снять snapshot
+                        </button>
+                        <button
+                          type="button"
+                          disabled
+                          className="ui-button ui-button-secondary"
+                          title="Синхронизация недоступна до следующего этапа"
+                        >
+                          Синхронизировать backend
+                        </button>
+                        <div className="empty-state">
+                          <strong>Капитал обновляется локально</strong>
+                          Финансовые формулы работают, но внешний API для снимков и истории еще не подключен.
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
                 </div>
+              )}
 
-                <button onClick={copyCapital}
-                  className="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold py-3 rounded text-xs uppercase tracking-widest transition-colors">
-                  Скопировать для таблицы
-                </button>
-              </>
-            )}
+              {tab === "capital" && (
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+                  <div className="section-grid">
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Капитал"
+                        title="Счета и банки"
+                        summary="Редактирование баланса не меняет формулы расчета капитала."
+                      />
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                        <div className="min-w-0 flex-1">
+                          <div className="kicker mb-2">Курс $ / ₽</div>
+                          <NumInput value={usdRate} onChange={setUsdRate} right className="w-full sm:w-28" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="kicker mb-2">Остаток ипотеки ₽</div>
+                          <NumInput value={mortgage} onChange={setMortgage} right className="w-full sm:w-40" />
+                        </div>
+                      </div>
+                    </Card>
 
-            {/* ═══ НАСТРОЙКИ ═══ */}
-            {tab === "settings" && (
-              <>
-                <div className="border border-zinc-800 rounded overflow-hidden">
-                  <div className="flex justify-between items-center px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/60">
-                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Категории и %</span>
-                    <span className={`text-xs tabular-nums ${pctOk ? "text-green-500" : "text-orange-400"}`}>
-                      Σ {fmt(totalPct)}% {pctOk ? "✓" : `→ ${fmt(100 - totalPct)}%`}
-                    </span>
+                    {BANK_ORDER.map(bank => {
+                      const bankAccs = accsF.filter(a => a.bank === bank);
+                      if (!bankAccs.length) return null;
+                      const bankTotal = bankAccs.reduce((s, a) => s + a.final, 0);
+                      const color = BANK_COLORS[bank] || "#9ca3af";
+                      const isOpen = expanded[bank];
+                      return (
+                        <Card key={bank} className="overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setExpanded(p => ({...p, [bank]: !p[bank]}))}
+                            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                            style={{ background: "var(--surface-2)" }}
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              <div className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+                              <span className="truncate text-xs font-bold uppercase tracking-[0.14em]" style={{ color }}>{bank}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className={`text-xs font-bold tabular-nums ${bank === "Долги" ? "text-[var(--danger)]" : "text-[var(--text)]"}`}>
+                                {bankTotal < 0 ? "−" : ""}{fmt(Math.abs(bankTotal))} ₽
+                              </span>
+                              <span className="text-xs text-[var(--muted)]">{isOpen ? "▲" : "▼"}</span>
+                            </div>
+                          </button>
+                          {isOpen && (
+                            <div className="divide-y divide-[var(--border)]">
+                              {bankAccs.map(a => (
+                                <div key={a.id} className="table-row table-row--capital px-4 py-3">
+                                  <div className="min-w-0">
+                                    <div className="truncate text-sm font-medium">{a.name}</div>
+                                    <div className="text-xs text-[var(--muted)]">{a.type} · {a.cat}</div>
+                                  </div>
+                                  <div className="min-w-0">
+                                    <NumInput
+                                      value={a.val}
+                                      onChange={v => setAccs(p => p.map(x => x.id === a.id ? {...x, val: v} : x))}
+                                      right
+                                      className="w-full"
+                                      placeholder="0"
+                                    />
+                                  </div>
+                                  <div className="text-xs text-[var(--muted)]">{a.currency === "USD" ? "$" : "₽"}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </Card>
+                      );
+                    })}
                   </div>
-                  {cats.map(c => (
-                    <div key={c.id} className="flex items-center px-3 py-2 gap-2 border-b border-zinc-800/40 last:border-0">
-                      <input type="text" value={c.name}
-                        onChange={e => setCats(p => p.map(x => x.id===c.id?{...x,name:e.target.value}:x))}
-                        className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:border-amber-500 focus:outline-none" />
-                      <input type="number" value={c.pct} step="0.1"
-                        onChange={e => setCats(p => p.map(x => x.id===c.id?{...x,pct:e.target.value}:x))}
-                        className="w-20 bg-zinc-900 border border-zinc-700 text-amber-300 text-sm rounded px-2 py-1.5 text-right tabular-nums focus:border-amber-500 focus:outline-none" />
-                      <span className="text-zinc-600 text-xs">%</span>
-                      <button onClick={() => setCats(p => p.filter(x => x.id!==c.id))} className="text-zinc-700 hover:text-red-400 text-lg w-5 transition-colors">×</button>
-                    </div>
-                  ))}
-                  <div className="px-4 py-2 border-t border-zinc-800">
-                    <button onClick={() => setCats(p => [...p, {id: Date.now(), name: "Новая", pct: "0"}])}
-                      className="text-amber-400 hover:text-amber-300 text-xs transition-colors">
-                      + Добавить категорию
-                    </button>
+
+                  <div className="section-grid">
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Итоги"
+                        title="Капитал сегодня"
+                        summary="Все значения считаются из текущих локальных данных."
+                        action={<button type="button" onClick={copyCapital} className="ui-button ui-button-primary">Копировать</button>}
+                      />
+                      <div className="grid gap-2">
+                        {[
+                          { label: "Весь капитал (факт)", val: totalFact, usd: true, bold: true },
+                          { label: "Капитал с долгами", val: totalCapital, usd: true, bold: false },
+                          { label: "Быстрые", val: rychlye, usd: false, indent: true },
+                          { label: "Семейные", val: semejnye, usd: false, indent: true },
+                          { label: "Сын", val: syn, usd: false, indent: true },
+                          { label: "ИИС", val: invest, usd: false, indent: true },
+                          { label: "С ипотекой", val: withMortgage, usd: true, red: withMortgage < 0 },
+                        ].map(r => (
+                          <div key={r.label} className="flex items-start justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                            <span className={`text-xs uppercase tracking-[0.12em] ${r.indent ? "pl-2 text-[var(--muted)]" : "text-[var(--muted)]"}`}>{r.label}</span>
+                            <div className="text-right">
+                              <div className={`tabular-nums ${r.bold ? "text-base font-bold text-[var(--accent)]" : r.red ? "text-[var(--danger)]" : "text-sm font-semibold text-[var(--text)]"}`}>
+                                {fmt(r.val)} ₽
+                              </div>
+                              {r.usd && rate > 0 && <div className="text-xs tabular-nums text-[var(--muted)]">${fmt(r.val / rate)}</div>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Статус"
+                        title="Backend-подсказки"
+                        summary="Эти действия оставлены как недоступные заглушки."
+                      />
+                      <div className="grid gap-2">
+                        <button type="button" disabled className="ui-button ui-button-secondary">Обновить snapshot</button>
+                        <button type="button" disabled className="ui-button ui-button-secondary">Синхронизировать backend</button>
+                        <div className="empty-state">
+                          <strong>Текущий режим</strong>
+                          Ручная работа со счетами и курсом доступна локально. Внешние операции отключены до backend-stage.
+                        </div>
+                      </div>
+                    </Card>
                   </div>
                 </div>
+              )}
 
-                <div className="border border-zinc-800 rounded overflow-hidden">
-                  <div className="px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/60">
-                    <span className="text-zinc-400 text-xs uppercase tracking-wider">Вычеты (дефолтные значения)</span>
-                  </div>
-                  {deds.map(d => (
-                    <div key={d.id} className="flex items-center px-3 py-2 gap-2 border-b border-zinc-800/40 last:border-0">
-                      <input type="text" value={d.name}
-                        onChange={e => setDeds(p => p.map(x => x.id===d.id?{...x,name:e.target.value}:x))}
-                        className="flex-1 bg-zinc-900 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:border-amber-500 focus:outline-none" />
-                      <NumInput value={d.val} onChange={v => setDeds(p => p.map(x => x.id===d.id?{...x,val:v}:x))} right className="w-28" />
-                      <button onClick={() => setDeds(p => p.filter(x => x.id!==d.id))} className="text-zinc-700 hover:text-red-400 text-lg w-5 transition-colors">×</button>
+              {tab === "history" && (
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+                  <Card className="p-4 sm:p-5">
+                    <SectionHeader
+                      kicker="История"
+                      title="Снимки пока недоступны"
+                      summary="Мы не придумываем графики или timeline без надежного snapshot-источника."
+                      action={<span className="badge" data-tone="danger">Unavailable</span>}
+                    />
+                    <div className="empty-state">
+                      <strong>Нет подтвержденных снимков</strong>
+                      Экрана истории пока хватает только для честного статуса. Когда появится snapshot API, сюда можно будет подставить реальные периоды, сравнения и ленту изменений.
                     </div>
-                  ))}
-                  <div className="px-4 py-2 border-t border-zinc-800">
-                    <button onClick={() => setDeds(p => [...p, {id: Date.now(), name: "Новый", val: ""}])}
-                      className="text-amber-400 hover:text-amber-300 text-xs transition-colors">
-                      + Добавить вычет
-                    </button>
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      <button type="button" disabled className="ui-button ui-button-secondary">Построить историю</button>
+                      <button type="button" disabled className="ui-button ui-button-secondary">Обновить snapshot API</button>
+                    </div>
+                  </Card>
+
+                  <div className="section-grid">
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Проверка"
+                        title="Что можно сказать сейчас"
+                        summary="Только локальная модель и текущие расчеты."
+                      />
+                      <div className="grid gap-2">
+                        <Metric label="Последний период" value="Нет данных" note="История не подключена" tone="danger" />
+                        <Metric label="Готовность" value="Shell only" note="Без invented data" />
+                      </div>
+                    </Card>
                   </div>
                 </div>
+              )}
 
-                <div className="text-zinc-600 text-xs text-center py-2">Всё сохраняется автоматически</div>
-              </>
-            )}
+              {tab === "settings" && (
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
+                  <div className="section-grid">
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Тема"
+                        title="System / Light / Dark"
+                        summary="Меняет только семантические токены, не финансовые данные."
+                      />
+                      <div className="grid grid-cols-3 gap-2">
+                        {THEME_MODES.map(mode => (
+                          <ThemeTab
+                            key={mode.id}
+                            active={themeMode === mode.id}
+                            label={mode.label}
+                            onClick={() => setThemeMode(mode.id)}
+                          />
+                        ))}
+                      </div>
+                    </Card>
 
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Категории"
+                        title="Модель распределения"
+                        summary="Текущие ритуальные проценты и названия редактируются локально."
+                        action={<span className="badge" data-tone={pctOk ? "success" : "danger"}>Σ {fmt(totalPct)}%</span>}
+                      />
+                      <div className="grid gap-2">
+                        {cats.map(c => (
+                          <div key={c.id} className="table-row table-row--compact rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
+                            <input
+                              type="text"
+                              value={c.name}
+                              onChange={e => setCats(p => p.map(x => x.id === c.id ? {...x, name: e.target.value} : x))}
+                              className="ui-input ui-input--compact"
+                            />
+                            <input
+                              type="number"
+                              value={c.pct}
+                              step="0.1"
+                              onChange={e => setCats(p => p.map(x => x.id === c.id ? {...x, pct: e.target.value} : x))}
+                              className="ui-input ui-input--compact ui-input--right"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setCats(p => p.filter(x => x.id !== c.id))}
+                              className="ui-button ui-button-ghost px-0 py-0 text-lg"
+                              aria-label={`Удалить категорию ${c.name}`}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={() => setCats(p => [...p, { id: Date.now(), name: "Новая", pct: "0" }])}
+                          className="ui-button ui-button-secondary"
+                        >
+                          Добавить категорию
+                        </button>
+                      </div>
+                    </Card>
+
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Вычеты"
+                        title="Дефолтные значения"
+                        summary="Данные здесь используются в зарплатном ритуале."
+                      />
+                      <div className="grid gap-2">
+                        {deds.map(d => (
+                          <div key={d.id} className="table-row table-row--compact rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
+                            <input
+                              type="text"
+                              value={d.name}
+                              onChange={e => setDeds(p => p.map(x => x.id === d.id ? {...x, name: e.target.value} : x))}
+                              className="ui-input ui-input--compact"
+                            />
+                            <NumInput value={d.val} onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))} right className="w-full" />
+                            <button
+                              type="button"
+                              onClick={() => setDeds(p => p.filter(x => x.id !== d.id))}
+                              className="ui-button ui-button-ghost px-0 py-0 text-lg"
+                              aria-label={`Удалить вычет ${d.name}`}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3">
+                        <button
+                          type="button"
+                          onClick={() => setDeds(p => [...p, { id: Date.now(), name: "Новый", val: "" }])}
+                          className="ui-button ui-button-secondary"
+                        >
+                          Добавить вычет
+                        </button>
+                      </div>
+                    </Card>
+                  </div>
+
+                  <div className="section-grid">
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Модель"
+                        title="Текущее состояние"
+                        summary="Сводка того, что сейчас поддерживает финансовую модель."
+                      />
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Metric label="Категорий" value={String(cats.length)} />
+                        <Metric label="Вычетов" value={String(deds.length)} />
+                        <Metric label="Счетов" value={String(accs.length)} />
+                        <Metric label="Курс $" value={fmt(rate)} />
+                        <Metric label="Ипотека" value={fmt(mortgage)} />
+                        <Metric label="Капитал (факт)" value={`${fmt(totalFact)} ₽`} />
+                      </div>
+                    </Card>
+
+                    <Card className="p-4 sm:p-5">
+                      <SectionHeader
+                        kicker="Поддержка"
+                        title="Backend действия"
+                        summary="Пока только заглушки, чтобы не обещать работающий API."
+                      />
+                      <div className="grid gap-2">
+                        <button type="button" disabled className="ui-button ui-button-secondary">Сохранить snapshot модели</button>
+                        <button type="button" disabled className="ui-button ui-button-secondary">Синхронизировать backend</button>
+                        <div className="empty-state">
+                          <strong>Сейчас доступно только локальное редактирование</strong>
+                          Категории, вычеты, счета, курс и ипотека поддерживаются в текущем состоянии без внешнего источника.
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       );
