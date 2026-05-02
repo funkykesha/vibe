@@ -741,8 +741,22 @@
         }
       };
 
-      const totalDeds = useMemo(() => deds.reduce((s, d) => s + parse(d.val), 0), [deds]);
-      const net       = useMemo(() => Math.max(0, parse(gross) - totalDeds), [gross, totalDeds]);
+const badgeValue = useMemo(() => {
+      const badgeDeduction = deds.find(d => d.name === "Бейдж");
+      return parse(badgeDeduction?.val || 0);
+    }, [deds]);
+    
+    const ndflFromBadge = useMemo(() => badgeValue * 0.13, [badgeValue]);
+    
+    const totalDeds = useMemo(() => {
+      // Считаем все вычеты, кроме бейджа, но добавляем НДФЛ от бейджа
+      const otherDeds = deds
+        .filter(d => d.name !== "Бейдж")
+        .reduce((s, d) => s + parse(d.val), 0);
+      return otherDeds + ndflFromBadge;
+    }, [deds, ndflFromBadge]);
+    
+    const net = useMemo(() => Math.max(0, parse(gross) - totalDeds), [gross, totalDeds]);
       const totalPct  = useMemo(() => cats.reduce((s, c) => s + parse(c.pct), 0), [cats]);
       const dist      = useMemo(() => cats.map(c => ({ ...c, amount: net * parse(c.pct) / 100 })), [cats, net]);
       const pctOk     = Math.abs(totalPct - 100) < 0.05;
@@ -771,7 +785,11 @@
 
       const copyDist = () => {
         const rows = dist.map(d => `${d.name}\t${fmt(d.amount)}`).join("\n");
-        copy(`${MONTHS[month]} ${year}, ${payDay} число\n${rows}\n\nЧистыми: ${fmt(net)}\nВычеты: ${fmt(totalDeds)}`);
+        let deductionsInfo = `Вычеты: ${fmt(totalDeds)}`;
+        if (badgeValue > 0) {
+          deductionsInfo += `\n(в т.ч. НДФЛ от бейджа: ${fmt(ndflFromBadge)})`;
+        }
+        copy(`${MONTHS[month]} ${year}, ${payDay} число\n${rows}\n\nЧистыми: ${fmt(net)}\n${deductionsInfo}`);
       };
 
       const copyCapital = () => {
@@ -958,26 +976,34 @@
                       </div>
                     </Card>
 
-                    <Card className="p-4 sm:p-5">
-                      <SectionHeader
-                        kicker="Вычеты"
-                        title="Текущие удержания"
-                        summary="Модель удержаний влияет только на локальный расчет чистыми."
-                      />
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {deds.map(d => (
-                          <div key={d.id} className="min-w-0">
-                            <div className="kicker mb-2">{d.name}</div>
-                            <NumInput
-                              value={d.val}
-                              onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))}
-                              right
-                              className="w-full"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
+<Card className="p-4 sm:p-5">
+      <SectionHeader
+        kicker="Вычеты"
+        title="Текущие удержания"
+        summary="Модель удержаний влияет только на локальный расчет чистыми."
+      />
+      <div className="grid gap-2 sm:grid-cols-2">
+        {deds.map(d => (
+          <div key={d.id} className="min-w-0">
+            <div className="kicker mb-2">{d.name}</div>
+            <NumInput
+              value={d.val}
+              onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))}
+              right
+              className="w-full"
+            />
+          </div>
+        ))}
+        {badgeValue > 0 && (
+          <div className="min-w-0">
+            <div className="kicker mb-2">НДФЛ от бейджа (13%)</div>
+            <div className="ui-input ui-input--compact ui-input--right w-full bg-[var(--surface-3)]">
+              {fmt(ndflFromBadge)}
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
 
                     <Card className="p-4 sm:p-5">
                       <SectionHeader
