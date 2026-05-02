@@ -346,20 +346,6 @@
 <body>
   <div id="root"></div>
 
-  <script>
-    window.storage = {
-      get: async (key) => {
-        try {
-          const value = localStorage.getItem(key);
-          return value ? { value } : null;
-        } catch(e) { return null; }
-      },
-      set: async (key, value) => {
-        try { localStorage.setItem(key, value); } catch(e) {}
-      }
-    };
-  </script>
-
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
@@ -459,6 +445,7 @@
       { id: "light", label: "Light" },
       { id: "dark", label: "Dark" },
     ];
+    const DATA_STORAGE_KEY = "fin-v3";
 
     const safeStorageGet = (key, fallback = null) => {
       try {
@@ -569,23 +556,89 @@
       const [expanded, setExpanded] = useState(
         Object.fromEntries(BANK_ORDER.map(b => [b, true]))
       );
+      const [startupError, setStartupError] = useState("");
+      const [saveState, setSaveState] = useState({ settings: "idle", accounts: {} });
+      const [importDraft, setImportDraft] = useState(null);
+      const [retryToken, setRetryToken] = useState(0);
+      const startupReqRef = React.useRef(0);
+      const settingsTimerRef = React.useRef(null);
+      const accountTimersRef = React.useRef({});
+
+      const patchSettings = async (payload) => {
+        const res = await fetch("/api/settings", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("settings patch failed");
+      };
+
+      const patchAccount = async (id, payload) => {
+        const res = await fetch(`/api/accounts/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("account patch failed");
+      };
+
+      const applyLocalImport = async () => {
+        if (!importDraft) return;
+        setSaveState({ settings: "pending", accounts: {} });
+        try {
+          await patchSettings({
+            categories: importDraft.cats || cats,
+            deductions: importDraft.deds || deds,
+            usdRate: importDraft.usdRate || usdRate,
+            mortgage: importDraft.mortgage || mortgage,
+          });
+          await Promise.all((importDraft.accs || []).map(a => patchAccount(a.id, { val: a.val || "", currency: a.currency || "RUB" })));
+          setImportDraft(null);
+          setRetryToken(t => t + 1);
+        } catch (e) {
+          setSaveState(p => ({ ...p, settings: "failed" }));
+        }
+      };
 
       useEffect(() => {
+        const reqId = startupReqRef.current + 1;
+        startupReqRef.current = reqId;
+        let ignore = false;
         (async () => {
+          setStartupError("");
+          setImportDraft(null);
+          setLoading(true);
           try {
-            const r = await window.storage.get("fin-v3");
-            if (r) {
-              const d = JSON.parse(r.value);
-              if (d.cats)     setCats(d.cats);
-              if (d.deds)     setDeds(d.deds);
-              if (d.accs)     setAccs(d.accs);
-              if (d.usdRate)  setUsdRate(d.usdRate);
-              if (d.mortgage) setMortgage(d.mortgage);
+            const [accRes, settingsRes] = await Promise.all([fetch("/api/accounts"), fetch("/api/settings")]);
+            if (ignore || startupReqRef.current !== reqId) return;
+            if (!accRes.ok || !settingsRes.ok) throw new Error("startup fetch failed");
+            const apiAccounts = await accRes.json();
+            const apiSettings = await settingsRes.json();
+
+            const isBackendEmpty = !Array.isArray(apiAccounts) || apiAccounts.length === 0;
+            if (isBackendEmpty) {
+              const raw = safeStorageGet(DATA_STORAGE_KEY, null);
+              if (raw) {
+                try {
+                  const d = JSON.parse(raw);
+                  setImportDraft(d);
+                } catch (e) {}
+              }
+            } else {
+              setAccs(apiAccounts);
+              if (apiSettings.categories) setCats(apiSettings.categories);
+              if (apiSettings.deductions) setDeds(apiSettings.deductions);
+              if (apiSettings.usdRate) setUsdRate(apiSettings.usdRate);
+              if (apiSettings.mortgage) setMortgage(apiSettings.mortgage);
             }
-          } catch(e) {}
-          setLoading(false);
+          } catch (e) {
+            if (!ignore && startupReqRef.current === reqId) setStartupError("Не удалось загрузить данные с backend.");
+          } finally {
+            if (!ignore && startupReqRef.current === reqId) setLoading(false);
+          }
         })();
-      }, []);
+        return () => { ignore = true; };
+      }, [retryToken]);
 
       useEffect(() => {
         safeStorageSet(THEME_STORAGE_KEY, themeMode);
@@ -612,10 +665,60 @@
         root.style.colorScheme = resolvedTheme;
       }, [resolvedTheme]);
 
+      useEffect(() => () => {
+        if (settingsTimerRef.current) clearTimeout(settingsTimerRef.current);
+        Object.values(accountTimersRef.current).forEach((t) => clearTimeout(t));
+      }, []);
+
       useEffect(() => {
-        if (loading) return;
-        window.storage.set("fin-v3", JSON.stringify({ cats, deds, accs, usdRate, mortgage })).catch(() => {});
-      }, [cats, deds, accs, usdRate, mortgage, loading]);
+        if (loading || importDraft) return;
+        if (settingsTimerRef.current) clearTimeout(settingsTimerRef.current);
+        setSaveState(p => ({ ...p, settings: "pending" }));
+        settingsTimerRef.current = setTimeout(async () => {
+          try {
+            await patchSettings({ categories: cats, deductions: deds, usdRate, mortgage });
+            setSaveState(p => ({ ...p, settings: "ok" }));
+          } catch (e) {
+            setSaveState(p => ({ ...p, settings: "failed" }));
+          }
+        }, 350);
+      }, [cats, deds, usdRate, mortgage, loading, importDraft]);
+
+      const updateAccountVal = (id, val) => {
+        setAccs(p => p.map(x => x.id === id ? { ...x, val } : x));
+        if (accountTimersRef.current[id]) clearTimeout(accountTimersRef.current[id]);
+        setSaveState(p => ({ ...p, accounts: { ...p.accounts, [id]: "pending" } }));
+        accountTimersRef.current[id] = setTimeout(async () => {
+          try {
+            await patchAccount(id, { val });
+            setSaveState(p => ({ ...p, accounts: { ...p.accounts, [id]: "ok" } }));
+          } catch (e) {
+            setSaveState(p => ({ ...p, accounts: { ...p.accounts, [id]: "failed" } }));
+          }
+        }, 300);
+      };
+
+      const retrySettingsSave = async () => {
+        setSaveState(p => ({ ...p, settings: "pending" }));
+        try {
+          await patchSettings({ categories: cats, deductions: deds, usdRate, mortgage });
+          setSaveState(p => ({ ...p, settings: "ok" }));
+        } catch (e) {
+          setSaveState(p => ({ ...p, settings: "failed" }));
+        }
+      };
+
+      const retryAccountSave = async (id) => {
+        const row = accs.find(a => a.id === id);
+        if (!row) return;
+        setSaveState(p => ({ ...p, accounts: { ...p.accounts, [id]: "pending" } }));
+        try {
+          await patchAccount(id, { val: row.val });
+          setSaveState(p => ({ ...p, accounts: { ...p.accounts, [id]: "ok" } }));
+        } catch (e) {
+          setSaveState(p => ({ ...p, accounts: { ...p.accounts, [id]: "failed" } }));
+        }
+      };
 
       const totalDeds = useMemo(() => deds.reduce((s, d) => s + parse(d.val), 0), [deds]);
       const net       = useMemo(() => Math.max(0, parse(gross) - totalDeds), [gross, totalDeds]);
@@ -663,6 +766,30 @@
           Загрузка…
         </div>
       );
+      if (startupError) return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="card p-5 max-w-md w-full">
+            <div className="card-title">Ошибка запуска</div>
+            <div className="card-subtitle mt-2">{startupError}</div>
+            <button type="button" className="ui-button ui-button-primary mt-4" onClick={() => setRetryToken(t => t + 1)}>Повторить</button>
+          </div>
+        </div>
+      );
+      if (importDraft) return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="card p-5 max-w-md w-full">
+            <div className="card-title">Найдены локальные данные</div>
+            <div className="card-subtitle mt-2">
+              Backend пустой, а в `fin-v3` есть совместимые данные. Импорт должен быть явным, чтобы не перезаписать источник правды молча.
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="button" className="ui-button ui-button-primary" onClick={applyLocalImport}>Импортировать в backend</button>
+              <button type="button" className="ui-button ui-button-secondary" onClick={() => setImportDraft(null)}>Начать с backend</button>
+            </div>
+            {saveState.settings === "failed" && <div className="mt-3 badge" data-tone="danger">Импорт не сохранён</div>}
+          </div>
+        </div>
+      );
 
       return (
         <div className="app-shell min-h-screen">
@@ -684,6 +811,10 @@
                 </div>
                 <div className="flex items-center gap-2 self-start lg:self-auto">
                   <span className="badge" data-tone="accent">Theme: {themeLabel}</span>
+                  <span className="badge" data-tone={saveState.settings === "failed" ? "danger" : saveState.settings === "pending" ? "accent" : "success"}>
+                    {saveState.settings === "failed" ? "Сохранение настроек: ошибка" : saveState.settings === "pending" ? "Сохранение настроек…" : "Настройки сохранены"}
+                  </span>
+                  {saveState.settings === "failed" && <button type="button" className="ui-button ui-button-secondary" onClick={retrySettingsSave}>Повторить</button>}
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -959,13 +1090,17 @@
                                   <div className="min-w-0">
                                     <NumInput
                                       value={a.val}
-                                      onChange={v => setAccs(p => p.map(x => x.id === a.id ? {...x, val: v} : x))}
+                                      onChange={v => updateAccountVal(a.id, v)}
                                       right
                                       className="w-full"
                                       placeholder="0"
                                     />
                                   </div>
-                                  <div className="text-xs text-[var(--muted)]">{a.currency === "USD" ? "$" : "₽"}</div>
+                                  <div className="text-xs text-[var(--muted)]">
+                                    {a.currency === "USD" ? "$" : "₽"}
+                                    {saveState.accounts[a.id] === "pending" && <div>Сохр…</div>}
+                                    {saveState.accounts[a.id] === "failed" && <button type="button" className="ui-button ui-button-ghost px-0 py-0" onClick={() => retryAccountSave(a.id)}>retry</button>}
+                                  </div>
                                 </div>
                               ))}
                             </div>
