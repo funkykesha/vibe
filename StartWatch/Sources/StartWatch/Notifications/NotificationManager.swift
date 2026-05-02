@@ -91,8 +91,8 @@ final class NotificationManager: NSObject {
 
     private override init() {
         super.init()
-        // UNUserNotificationCenter crashes without .app bundle (no bundleIdentifier)
-        guard Bundle.main.bundleIdentifier != nil else { return }
+        // UNUserNotificationCenter crashes without .app bundle
+        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
         setupCategories()
     }
 
@@ -105,9 +105,8 @@ final class NotificationManager: NSObject {
         self.onOpenReport = onOpenReport
         self.onRestartFailed = onRestartFailed
 
-        guard skipSetup == false else { return }
-        // UNUserNotificationCenter crashes without .app bundle (no bundleIdentifier)
-        guard Bundle.main.bundleIdentifier != nil else { return }
+        // UNUserNotificationCenter crashes without .app bundle
+        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
         setupCategories()
     }
 
@@ -127,7 +126,7 @@ final class NotificationManager: NSObject {
     }
 
     private func setupCategories() {
-        guard Bundle.main.bundleIdentifier != nil else { return }
+        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
 
         let openAction = UNNotificationAction(
             identifier: actionOpenID,
@@ -194,7 +193,7 @@ final class NotificationManager: NSObject {
         let delivery = NotificationDelivery(identifier: identifier, status: .sent)
         deliveryHistory.append(delivery)
 
-        guard Bundle.main.bundleIdentifier != nil else { return }
+        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
 
         UNUserNotificationCenter.current().add(request) { [weak self] error in
             guard let self = self else { return }
