@@ -28,6 +28,7 @@ The product stays personal and single-user. Later backend and deployment stages 
 
 - Inventory routing: `docs/superpowers/plans/rebuild-finance-spec-roadmap-inventory.md`.
 - Archived decision log D4 and D6: snapshots are versioned interpretations; local-first still needs deployed access boundaries.
+- This product-contract stage has no direct external library, API, provider, browser, or hosting dependency. External evidence is carried in the downstream implementation stages that depend on React/Tailwind, FastAPI/SQLAlchemy/Pydantic, python-telegram-bot, TBank fallback docs, deployment platforms, and OCR providers.
 
 ## Handoff
 
