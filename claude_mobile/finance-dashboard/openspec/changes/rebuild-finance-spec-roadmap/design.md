@@ -94,8 +94,8 @@ Alternative: duplicate all research notes into every spec. Rejected because dupl
 
 Rollback is conceptual: if the rebuilt roadmap is rejected, keep the existing active changes and archive this meta-change without touching production code.
 
-## Open Questions
+## Resolved Questions
 
-1. Should product contract normalization and dashboard UX be one implementation change or two separate changes if both only affect `index.html` at first?
-2. Should deployment readiness target Railway, Render, local-only first, or a provider-neutral deployment spec?
-3. Should historical spreadsheet import be a deferred standalone change or part of snapshots after the first snapshot UI exists?
+1. Product contract normalization and dashboard UX are separate replacement changes. `finance-product-contract` owns product meaning and surface boundaries; `dashboard-ritual-ux` owns visual hierarchy and current-dashboard UX without redefining product scope.
+2. Deployment readiness is provider-neutral at the roadmap level, with managed Postgres as the deployed persistence default. Railway and Render remain evidence-backed candidates, but the replacement change must choose the concrete target before implementation.
+3. Historical spreadsheet import is deferred outside core snapshots. `salary-events-snapshots` owns app-created salary events and snapshots first; `deferred-ocr-photo-flow` keeps historical import visible as later reviewable-candidate tooling.
