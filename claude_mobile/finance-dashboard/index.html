@@ -537,6 +537,7 @@
       const [month, setMonth]       = useState(now.getMonth());
       const [year, setYear]         = useState(now.getFullYear() % 100);
       const [payDay, setPayDay]     = useState("5");
+      const [salaryEventType, setSalaryEventType] = useState("5th_payday");
       const [gross, setGross]       = useState("");
       const [cats, setCats]         = useState(INIT_CATS);
       const [deds, setDeds]         = useState(INIT_DEDS);
@@ -560,6 +561,9 @@
       const [saveState, setSaveState] = useState({ settings: "idle", accounts: {} });
       const [importDraft, setImportDraft] = useState(null);
       const [retryToken, setRetryToken] = useState(0);
+      const [actionFlash, setActionFlash] = useState("");
+      const [snapshots, setSnapshots] = useState([]);
+      const [snapshotCompare, setSnapshotCompare] = useState(null);
       const startupReqRef = React.useRef(0);
       const settingsTimerRef = React.useRef(null);
       const accountTimersRef = React.useRef({});
@@ -580,6 +584,21 @@
           body: JSON.stringify(payload),
         });
         if (!res.ok) throw new Error("account patch failed");
+      };
+
+      const refreshSnapshots = async () => {
+        const res = await fetch("/api/snapshots");
+        if (!res.ok) throw new Error("snapshots load failed");
+        setSnapshots(await res.json());
+      };
+
+      const compareLatestSnapshots = async () => {
+        if (snapshots.length < 2) return;
+        const right = snapshots[0];
+        const left = snapshots[1];
+        const res = await fetch(`/api/snapshots/compare?left_id=${left.id}&right_id=${right.id}`);
+        if (!res.ok) throw new Error("snapshot compare failed");
+        setSnapshotCompare(await res.json());
       };
 
       const applyLocalImport = async () => {
@@ -609,11 +628,13 @@
           setImportDraft(null);
           setLoading(true);
           try {
-            const [accRes, settingsRes] = await Promise.all([fetch("/api/accounts"), fetch("/api/settings")]);
+            const [accRes, settingsRes, snapshotRes] = await Promise.all([fetch("/api/accounts"), fetch("/api/settings"), fetch("/api/snapshots")]);
             if (ignore || startupReqRef.current !== reqId) return;
-            if (!accRes.ok || !settingsRes.ok) throw new Error("startup fetch failed");
+            if (!accRes.ok || !settingsRes.ok || !snapshotRes.ok) throw new Error("startup fetch failed");
             const apiAccounts = await accRes.json();
             const apiSettings = await settingsRes.json();
+            const apiSnapshots = await snapshotRes.json();
+            setSnapshots(apiSnapshots);
 
             const isBackendEmpty = !Array.isArray(apiAccounts) || apiAccounts.length === 0;
             if (isBackendEmpty) {
@@ -759,6 +780,38 @@
         copy(rows + sum);
       };
 
+      const saveSalaryEvent = async () => {
+        const isoDate = `20${String(year).padStart(2, "0")}-${String(month + 1).padStart(2, "0")}-${String(payDay).padStart(2, "0")}`;
+        const payload = {
+          eventDate: isoDate,
+          eventType: salaryEventType,
+          gross: String(gross || ""),
+          deductions: String(totalDeds),
+          net: String(net),
+          distribution: dist.map(d => ({ id: d.id, name: d.name, pct: d.pct, amount: d.amount })),
+        };
+        const res = await fetch("/api/salary-events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("salary event save failed");
+        setActionFlash("Salary event сохранен");
+      };
+
+      const createSnapshot = async () => {
+        const label = `${MONTHS[month]} ${year} / ${payDay}`;
+        const res = await fetch("/api/snapshots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label }),
+        });
+        if (!res.ok) throw new Error("snapshot create failed");
+        await refreshSnapshots();
+        setSnapshotCompare(null);
+        setActionFlash("Snapshot создан");
+      };
+
       const themeLabel = THEME_MODES.find(t => t.id === themeMode)?.label || "System";
 
       if (loading) return (
@@ -887,6 +940,16 @@
                             ))}
                           </div>
                         </div>
+                        <div>
+                          <div className="kicker mb-2">Тип события</div>
+                          <select value={salaryEventType} onChange={e => setSalaryEventType(e.target.value)} className="ui-input ui-input--compact">
+                            <option value="5th_payday">5th payday</option>
+                            <option value="20th_payday">20th payday</option>
+                            <option value="vacation">vacation</option>
+                            <option value="bonus">bonus</option>
+                            <option value="other">other</option>
+                          </select>
+                        </div>
                       </div>
 
                       <div className="mt-4">
@@ -1000,6 +1063,9 @@
                         summary="Backend-зависимые действия показаны честно как недоступные."
                       />
                       <div className="grid gap-2">
+                        <button type="button" onClick={() => saveSalaryEvent().catch(() => setActionFlash("Ошибка сохранения salary event"))} className="ui-button ui-button-primary">
+                          Сохранить salary event
+                        </button>
                         <button
                           type="button"
                           onClick={copyCapital}
@@ -1009,9 +1075,8 @@
                         </button>
                         <button
                           type="button"
-                          disabled
+                          onClick={() => createSnapshot().catch(() => setActionFlash("Ошибка создания snapshot"))}
                           className="ui-button ui-button-secondary"
-                          title="Снимки появятся после подключения backend"
                         >
                           Снять snapshot
                         </button>
@@ -1025,8 +1090,9 @@
                         </button>
                         <div className="empty-state">
                           <strong>Капитал обновляется локально</strong>
-                          Финансовые формулы работают, но внешний API для снимков и истории еще не подключен.
+                          Финансовые формулы работают локально; snapshot и salary event сохраняются только по явной кнопке.
                         </div>
+                        {actionFlash && <div className="text-xs text-[var(--accent)]">{actionFlash}</div>}
                       </div>
                     </Card>
                   </div>
@@ -1165,18 +1231,51 @@
                   <Card className="p-4 sm:p-5">
                     <SectionHeader
                       kicker="История"
-                      title="Снимки пока недоступны"
-                      summary="Мы не придумываем графики или timeline без надежного snapshot-источника."
-                      action={<span className="badge" data-tone="danger">Unavailable</span>}
+                      title={snapshots.length ? "App-created snapshots" : "Снимков пока нет"}
+                      summary="История показывает только явные snapshot-записи из backend."
+                      action={<span className="badge" data-tone={snapshots.length ? "success" : "danger"}>{snapshots.length} snapshots</span>}
                     />
-                    <div className="empty-state">
-                      <strong>Нет подтвержденных снимков</strong>
-                      Экрана истории пока хватает только для честного статуса. Когда появится snapshot API, сюда можно будет подставить реальные периоды, сравнения и ленту изменений.
+                    {snapshots.length === 0 ? (
+                      <div className="empty-state">
+                        <strong>Нет подтвержденных снимков</strong>
+                        История не импортирует старые таблицы и не строит вымышленные графики. Создайте snapshot в ритуале, чтобы здесь появилась реальная точка.
+                      </div>
+                    ) : (
+                      <div className="grid gap-2">
+                        {snapshots.slice(0, 8).map(s => (
+                          <div key={s.id} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="font-bold">{s.label}</div>
+                                <div className="text-xs text-[var(--muted)]">{s.timestamp} · {s.payloadVersion}</div>
+                              </div>
+                              <div className="text-right tabular-nums text-sm font-bold text-[var(--accent)]">
+                                {fmt(s.totals.fullCapital)} ₽
+                              </div>
+                            </div>
+                            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                              <Metric label="Без долгов" value={`${fmt(s.totals.capitalExcludingDebts)} ₽`} />
+                              <Metric label="С ипотекой" value={`${fmt(s.totals.mortgageAdjustedPosition)} ₽`} />
+                              <Metric label="Курс $" value={fmt(s.totals.currencyAdjustedTotals?.usdRate)} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button type="button" className="ui-button ui-button-secondary" onClick={() => refreshSnapshots().catch(() => setActionFlash("Ошибка обновления snapshots"))}>Обновить snapshots</button>
+                      <button type="button" disabled={snapshots.length < 2} className="ui-button ui-button-primary" onClick={() => compareLatestSnapshots().catch(() => setActionFlash("Ошибка сравнения snapshots"))}>Сравнить 2 последних</button>
                     </div>
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                      <button type="button" disabled className="ui-button ui-button-secondary">Построить историю</button>
-                      <button type="button" disabled className="ui-button ui-button-secondary">Обновить snapshot API</button>
-                    </div>
+                    {snapshotCompare && (
+                      <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                        <div className="kicker">Comparison</div>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                          <Metric label="Капитал" value={`${fmt(snapshotCompare.delta.fullCapital)} ₽`} />
+                          <Metric label="Без долгов" value={`${fmt(snapshotCompare.delta.capitalExcludingDebts)} ₽`} />
+                          <Metric label="С ипотекой" value={`${fmt(snapshotCompare.delta.mortgageAdjustedPosition)} ₽`} />
+                        </div>
+                      </div>
+                    )}
                   </Card>
 
                   <div className="section-grid">
@@ -1187,8 +1286,8 @@
                         summary="Только локальная модель и текущие расчеты."
                       />
                       <div className="grid gap-2">
-                        <Metric label="Последний период" value="Нет данных" note="История не подключена" tone="danger" />
-                        <Metric label="Готовность" value="Shell only" note="Без invented data" />
+                        <Metric label="Последний период" value={snapshots[0]?.label || "Нет данных"} note="Только explicit snapshots" tone={snapshots.length ? "success" : "danger"} />
+                        <Metric label="Готовность" value={snapshots.length >= 2 ? "Comparison ready" : "Need 2 snapshots"} note={snapshotCompare ? "Сравнение загружено" : "API сравнения готов для двух снимков"} />
                       </div>
                     </Card>
                   </div>

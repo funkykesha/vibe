@@ -50,3 +50,46 @@ class SettingsPatch(BaseModel):
     mortgage: str | None = None
 
     model_config = ConfigDict(extra="forbid")
+
+
+class SalaryEventIn(BaseModel):
+    eventDate: str
+    eventType: str
+    gross: str
+    deductions: str
+    net: str
+    distribution: list[dict]
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class SalaryEventOut(SalaryEventIn):
+    id: int
+    createdAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SnapshotCreateIn(BaseModel):
+    label: str | None = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class SnapshotOut(BaseModel):
+    id: int
+    label: str
+    timestamp: str
+    payloadVersion: str
+    mortgage: str
+    usdRate: str
+    accounts: list[dict]
+    categories: list[dict]
+    currencies: dict
+    totals: dict
+
+
+class SnapshotCompareOut(BaseModel):
+    left: SnapshotOut
+    right: SnapshotOut
+    delta: dict
