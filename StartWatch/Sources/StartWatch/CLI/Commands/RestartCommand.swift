@@ -28,7 +28,38 @@ enum RestartCommand {
                 runAppendOnlyRestart(services: failed, config: config)
             }
         } else {
-            StartCommand.run(args: args)
+            guard let service = StartCommand.fuzzyMatch(name: target, in: config.services) else {
+                fputs("\(ANSIColors.red)Service '\(target)' not found\(ANSIColors.reset)\n", stderr)
+                fputs("Available: \(config.services.map(\.name).joined(separator: ", "))\n", stderr)
+                exit(1)
+            }
+
+            if service.background == true {
+                print("\(ANSIColors.cyan)Restarting \(service.name) in background...\((ANSIColors.reset))")
+                guard let response = IPCClient.sendAndReceive(.restartService(name: service.name)) else {
+                    fputs("\(ANSIColors.red)Failed to communicate with daemon\(ANSIColors.reset)\n", stderr)
+                    exit(1)
+                }
+
+                switch response {
+                case .ok:
+                    print("\(ANSIColors.green)\(service.name) restarted successfully\(ANSIColors.reset)")
+                case .executeInTerminal:
+                    fputs("\(ANSIColors.red)Unexpected terminal execution request for background service\(ANSIColors.reset)\n", stderr)
+                    exit(1)
+                case .error(let message):
+                    fputs("\(ANSIColors.red)Failed to restart \(service.name): \(message)\(ANSIColors.reset)\n", stderr)
+                    exit(1)
+                }
+            } else {
+                guard let restartCmd = service.restart, !restartCmd.isEmpty else {
+                    fputs("\(ANSIColors.red)No restart command for '\(service.name)'. Add 'restart' in config.\(ANSIColors.reset)\n", stderr)
+                    exit(1)
+                }
+                print("\(ANSIColors.cyan)Restarting \(service.name)...\(ANSIColors.reset)")
+                print("\(ANSIColors.dim)$ \(restartCmd)\(ANSIColors.reset)\n")
+                ServiceRunner.exec(command: restartCmd, cwd: service.cwd)
+            }
         }
     }
 

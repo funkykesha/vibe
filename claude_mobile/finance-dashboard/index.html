@@ -380,14 +380,6 @@
       { id: 13, name: "На себя",             pct: "4"    },
     ];
 
-    const INIT_DEDS = [
-      { id: 1, name: "Бейдж",          val: ""        },
-      { id: 2, name: "НДФЛ",           val: ""        },
-      { id: 3, name: "ДМС Тани",       val: "1601.72" },
-      { id: 4, name: "Страховка Тани", val: "203.84"  },
-      { id: 5, name: "Перерасход",     val: ""        },
-    ];
-
     const INIT_ACCS = [
       { id: 101, bank: "Тинькоф", name: "НЗ",                  type: "Счет",   cat: "Быстрые",   val: "" },
       { id: 102, bank: "Тинькоф", name: "НЗ (накопит.)",       type: "Счет",   cat: "Быстрые",   val: "" },
@@ -440,12 +432,21 @@
     ];
 
     const THEME_STORAGE_KEY = "fin-v3-theme";
+    const DEFAULT_DMS_AMOUNT = "1601.72";
+    const DEFAULT_INS_AMOUNT = "203.84";
+    const DEFAULT_DEDUCTION_MAPPING = { ndfl: 13, dms: 7, insurance: 7, overspend: 10 };
     const THEME_MODES = [
       { id: "system", label: "System" },
       { id: "light", label: "Light" },
       { id: "dark", label: "Dark" },
     ];
     const DATA_STORAGE_KEY = "fin-v3";
+    const DEDUCTION_OPTIONS = [
+      { key: "ndfl", label: "НДФЛ" },
+      { key: "dms", label: "ДМС Тани" },
+      { key: "insurance", label: "Страховка" },
+      { key: "overspend", label: "Перерасход" },
+    ];
 
     const safeStorageGet = (key, fallback = null) => {
       try {
@@ -461,6 +462,26 @@
         localStorage.setItem(key, value);
       } catch (e) {}
     };
+
+    const readLegacyDeductionValue = (draft, name, fallback = "") => {
+      const row = draft?.deds?.find((item) => item.name === name);
+      return row?.val ?? fallback;
+    };
+
+    const normalizeDeductionMapping = (value) => ({
+      ndfl: Number(value?.ndfl) || DEFAULT_DEDUCTION_MAPPING.ndfl,
+      dms: Number(value?.dms) || DEFAULT_DEDUCTION_MAPPING.dms,
+      insurance: Number(value?.insurance) || DEFAULT_DEDUCTION_MAPPING.insurance,
+      overspend: Number(value?.overspend) || DEFAULT_DEDUCTION_MAPPING.overspend,
+    });
+
+    const extractDeductionState = (draft = {}) => ({
+      badge: draft.badge ?? readLegacyDeductionValue(draft, "Бейдж", ""),
+      dmsAmount: draft.dmsAmount ?? readLegacyDeductionValue(draft, "ДМС Тани", DEFAULT_DMS_AMOUNT),
+      insAmount: draft.insAmount ?? readLegacyDeductionValue(draft, "Страховка Тани", DEFAULT_INS_AMOUNT),
+      overspend: draft.overspend ?? readLegacyDeductionValue(draft, "Перерасход", ""),
+      deductionMapping: normalizeDeductionMapping(draft.deductionMapping),
+    });
 
     function NumInput({ value, onChange, placeholder = "0", right = false, large = false, className = "" }) {
       return (
@@ -536,11 +557,15 @@
       const [tab, setTab]           = useState("rituals");
       const [month, setMonth]       = useState(now.getMonth());
       const [year, setYear]         = useState(now.getFullYear() % 100);
-      const [payDay, setPayDay]     = useState("5");
       const [salaryEventType, setSalaryEventType] = useState("5th_payday");
       const [gross, setGross]       = useState("");
       const [cats, setCats]         = useState(INIT_CATS);
-      const [deds, setDeds]         = useState(INIT_DEDS);
+      const [badge, setBadge]       = useState("");
+      const [dmsAmount, setDmsAmount] = useState(DEFAULT_DMS_AMOUNT);
+      const [insAmount, setInsAmount] = useState(DEFAULT_INS_AMOUNT);
+      const [overspend, setOverspend] = useState("");
+      const [deductionMapping, setDeductionMapping] = useState(DEFAULT_DEDUCTION_MAPPING);
+      const [showDeductions, setShowDeductions] = useState(false);
       const [accs, setAccs]         = useState(INIT_ACCS);
       const [usdRate, setUsdRate]   = useState("80.33");
       const [mortgage, setMortgage] = useState("11948583");
@@ -605,13 +630,20 @@
         if (!importDraft) return;
         setSaveState({ settings: "pending", accounts: {} });
         try {
+          const importedDeductions = extractDeductionState(importDraft);
           await patchSettings({
             categories: importDraft.cats || cats,
-            deductions: importDraft.deds || deds,
             usdRate: importDraft.usdRate || usdRate,
             mortgage: importDraft.mortgage || mortgage,
           });
           await Promise.all((importDraft.accs || []).map(a => patchAccount(a.id, { val: a.val || "", currency: a.currency || "RUB" })));
+          safeStorageSet(DATA_STORAGE_KEY, JSON.stringify({
+            cats: importDraft.cats || cats,
+            accs: importDraft.accs || accs,
+            usdRate: importDraft.usdRate || usdRate,
+            mortgage: importDraft.mortgage || mortgage,
+            ...importedDeductions,
+          }));
           setImportDraft(null);
           setRetryToken(t => t + 1);
         } catch (e) {
@@ -648,9 +680,21 @@
             } else {
               setAccs(apiAccounts);
               if (apiSettings.categories) setCats(apiSettings.categories);
-              if (apiSettings.deductions) setDeds(apiSettings.deductions);
               if (apiSettings.usdRate) setUsdRate(apiSettings.usdRate);
               if (apiSettings.mortgage) setMortgage(apiSettings.mortgage);
+            }
+
+            const rawLocal = safeStorageGet(DATA_STORAGE_KEY, null);
+            if (rawLocal) {
+              try {
+                const localDraft = JSON.parse(rawLocal);
+                const restored = extractDeductionState(localDraft);
+                setBadge(restored.badge);
+                setDmsAmount(restored.dmsAmount);
+                setInsAmount(restored.insAmount);
+                setOverspend(restored.overspend);
+                setDeductionMapping(restored.deductionMapping);
+              } catch (e) {}
             }
           } catch (e) {
             if (!ignore && startupReqRef.current === reqId) setStartupError("Не удалось загрузить данные с backend.");
@@ -697,13 +741,28 @@
         setSaveState(p => ({ ...p, settings: "pending" }));
         settingsTimerRef.current = setTimeout(async () => {
           try {
-            await patchSettings({ categories: cats, deductions: deds, usdRate, mortgage });
+            await patchSettings({ categories: cats, usdRate, mortgage });
             setSaveState(p => ({ ...p, settings: "ok" }));
           } catch (e) {
             setSaveState(p => ({ ...p, settings: "failed" }));
           }
         }, 350);
-      }, [cats, deds, usdRate, mortgage, loading, importDraft]);
+      }, [cats, usdRate, mortgage, loading, importDraft]);
+
+      useEffect(() => {
+        if (loading || importDraft) return;
+        safeStorageSet(DATA_STORAGE_KEY, JSON.stringify({
+          cats,
+          accs,
+          usdRate,
+          mortgage,
+          badge,
+          dmsAmount,
+          insAmount,
+          overspend,
+          deductionMapping,
+        }));
+      }, [cats, accs, usdRate, mortgage, badge, dmsAmount, insAmount, overspend, deductionMapping, loading, importDraft]);
 
       const updateAccountVal = (id, val) => {
         setAccs(p => p.map(x => x.id === id ? { ...x, val } : x));
@@ -722,7 +781,7 @@
       const retrySettingsSave = async () => {
         setSaveState(p => ({ ...p, settings: "pending" }));
         try {
-          await patchSettings({ categories: cats, deductions: deds, usdRate, mortgage });
+          await patchSettings({ categories: cats, usdRate, mortgage });
           setSaveState(p => ({ ...p, settings: "ok" }));
         } catch (e) {
           setSaveState(p => ({ ...p, settings: "failed" }));
@@ -741,25 +800,35 @@
         }
       };
 
-const badgeValue = useMemo(() => {
-      const badgeDeduction = deds.find(d => d.name === "Бейдж");
-      return parse(badgeDeduction?.val || 0);
-    }, [deds]);
-    
-    const ndflFromBadge = useMemo(() => badgeValue * 0.13, [badgeValue]);
-    
-    const totalDeds = useMemo(() => {
-      // Считаем все вычеты, кроме бейджа, но добавляем НДФЛ от бейджа
-      const otherDeds = deds
-        .filter(d => d.name !== "Бейдж")
-        .reduce((s, d) => s + parse(d.val), 0);
-      return otherDeds + ndflFromBadge;
-    }, [deds, ndflFromBadge]);
-    
-    const net = useMemo(() => Math.max(0, parse(gross) - totalDeds), [gross, totalDeds]);
+      const payDay = salaryEventType === "20th_payday" ? 20 : 5;
+      const ndfl = useMemo(() => parse(badge) * 0.13, [badge]);
+      const totalDeds = useMemo(() => ndfl + parse(dmsAmount) + parse(insAmount) + parse(overspend), [ndfl, dmsAmount, insAmount, overspend]);
+      const net = useMemo(() => Math.max(0, parse(gross) - totalDeds), [gross, totalDeds]);
       const totalPct  = useMemo(() => cats.reduce((s, c) => s + parse(c.pct), 0), [cats]);
-      const dist      = useMemo(() => cats.map(c => ({ ...c, amount: net * parse(c.pct) / 100 })), [cats, net]);
+      const dist = useMemo(() => {
+        const selfCategory = cats.find((c) => c.id === 13);
+        const otherCategories = cats.filter((c) => c.id !== 13);
+        const allocated = otherCategories.map((c) => ({ ...c, amount: Math.floor(net * parse(c.pct) / 100) }));
+        const used = allocated.reduce((sum, c) => sum + c.amount, 0);
+        const selfAmount = net - used;
+        if (!selfCategory) return allocated;
+        return [...allocated, { ...selfCategory, amount: selfAmount }];
+      }, [cats, net]);
+      const deductionsByCategory = useMemo(() => {
+        const mapped = [
+          [deductionMapping.ndfl, ndfl],
+          [deductionMapping.dms, parse(dmsAmount)],
+          [deductionMapping.insurance, parse(insAmount)],
+          [deductionMapping.overspend, parse(overspend)],
+        ];
+        return mapped.reduce((acc, [categoryId, amount]) => {
+          if (!categoryId || amount <= 0) return acc;
+          acc[categoryId] = (acc[categoryId] || 0) + amount;
+          return acc;
+        }, {});
+      }, [deductionMapping, ndfl, dmsAmount, insAmount, overspend]);
       const pctOk     = Math.abs(totalPct - 100) < 0.05;
+      const deductionsVisible = salaryEventType === "5th_payday" || showDeductions;
 
       const rate = useMemo(() => parse(usdRate) || 80, [usdRate]);
 
@@ -784,11 +853,12 @@ const badgeValue = useMemo(() => {
       };
 
       const copyDist = () => {
-        const rows = dist.map(d => `${d.name}\t${fmt(d.amount)}`).join("\n");
-        let deductionsInfo = `Вычеты: ${fmt(totalDeds)}`;
-        if (badgeValue > 0) {
-          deductionsInfo += `\n(в т.ч. НДФЛ от бейджа: ${fmt(ndflFromBadge)})`;
-        }
+        const rows = dist.map(d => {
+          const spent = deductionsByCategory[d.id] || 0;
+          const available = d.amount - spent;
+          return `${d.name}\t${fmt(d.amount)}\t${spent > 0 ? fmt(spent) : "—"}\t${fmt(available)}`;
+        }).join("\n");
+        const deductionsInfo = `Вычеты: ${fmt(totalDeds)}\nНДФЛ: ${fmt(ndfl)}\nДМС: ${fmt(parse(dmsAmount))}\nСтраховка: ${fmt(parse(insAmount))}\nПерерасход: ${fmt(parse(overspend))}`;
         copy(`${MONTHS[month]} ${year}, ${payDay} число\n${rows}\n\nЧистыми: ${fmt(net)}\n${deductionsInfo}`);
       };
 
@@ -944,72 +1014,83 @@ const badgeValue = useMemo(() => {
                           />
                         </div>
                         <div>
-                          <div className="kicker mb-2">Выплата</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            {["5", "20"].map(d => (
-                              <button
-                                key={d}
-                                type="button"
-                                onClick={() => setPayDay(d)}
-                                className={`ui-button ${payDay === d ? "ui-button-primary" : "ui-button-secondary"}`}
-                              >
-                                {d}-е
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
                           <div className="kicker mb-2">Тип события</div>
-                          <select value={salaryEventType} onChange={e => setSalaryEventType(e.target.value)} className="ui-input ui-input--compact">
-                            <option value="5th_payday">5th payday</option>
-                            <option value="20th_payday">20th payday</option>
-                            <option value="vacation">vacation</option>
-                            <option value="bonus">bonus</option>
-                            <option value="other">other</option>
+                          <select
+                            value={salaryEventType}
+                            onChange={e => {
+                              const nextType = e.target.value;
+                              setSalaryEventType(nextType);
+                              if (nextType === "5th_payday") setShowDeductions(false);
+                            }}
+                            className="ui-input ui-input--compact"
+                          >
+                            <option value="5th_payday">5-е (зарплата)</option>
+                            <option value="20th_payday">20-е (аванс)</option>
+                            <option value="vacation">Отпускные</option>
+                            <option value="bonus">Бонус</option>
+                            <option value="other">Прочее</option>
                           </select>
                         </div>
                       </div>
 
-                      <div className="mt-4">
-                        <div className="kicker mb-2">Начислено (до вычетов) ₽</div>
-                        <NumInput value={gross} onChange={setGross} placeholder="133 267,46" right large className="w-full" />
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        <div>
+                          <div className="kicker mb-2">Начислено ₽</div>
+                          <NumInput value={gross} onChange={setGross} placeholder="133 267,46" right large className="w-full" />
+                        </div>
+                        {deductionsVisible && (
+                          <>
+                            <div>
+                              <div className="kicker mb-2">Бейдж ₽</div>
+                              <NumInput value={badge} onChange={setBadge} right className="w-full" />
+                            </div>
+                            <div>
+                              <div className="kicker mb-2">ДМС Тани ₽</div>
+                              <NumInput value={dmsAmount} onChange={setDmsAmount} right className="w-full" />
+                            </div>
+                            <div>
+                              <div className="kicker mb-2">Страховка Тани ₽</div>
+                              <NumInput value={insAmount} onChange={setInsAmount} right className="w-full" />
+                            </div>
+                            <div>
+                              <div className="kicker mb-2">Перерасход ₽</div>
+                              <NumInput value={overspend} onChange={setOverspend} right className="w-full" />
+                            </div>
+                            <div>
+                              <div className="kicker mb-2">НДФЛ ₽</div>
+                              <div className="ui-input ui-input--compact ui-input--right w-full bg-[var(--surface-3)]">
+                                {fmt(ndfl)} ₽
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
+                      {!deductionsVisible && salaryEventType !== "5th_payday" && (
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            onClick={() => setShowDeductions(true)}
+                            className="ui-button ui-button-secondary"
+                          >
+                            + Вычеты
+                          </button>
+                        </div>
+                      )}
+                      {deductionsVisible && (
+                        <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="kicker">Вычеты</span>
+                            <span className="text-sm font-semibold tabular-nums">{fmt(totalDeds)} ₽</span>
+                          </div>
+                        </div>
+                      )}
                     </Card>
-
-<Card className="p-4 sm:p-5">
-      <SectionHeader
-        kicker="Вычеты"
-        title="Текущие удержания"
-        summary="Модель удержаний влияет только на локальный расчет чистыми."
-      />
-      <div className="grid gap-2 sm:grid-cols-2">
-        {deds.map(d => (
-          <div key={d.id} className="min-w-0">
-            <div className="kicker mb-2">{d.name}</div>
-            <NumInput
-              value={d.val}
-              onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))}
-              right
-              className="w-full"
-            />
-          </div>
-        ))}
-        {badgeValue > 0 && (
-          <div className="min-w-0">
-            <div className="kicker mb-2">НДФЛ от бейджа (13%)</div>
-            <div className="ui-input ui-input--compact ui-input--right w-full bg-[var(--surface-3)]">
-              {fmt(ndflFromBadge)}
-            </div>
-          </div>
-        )}
-      </div>
-    </Card>
 
                     <Card className="p-4 sm:p-5">
                       <SectionHeader
                         kicker="Распределение"
                         title="Результат после вычетов"
-                        summary="Сумма распределяется по текущим процентам без изменения формулы."
+                        summary="Сумма распределяется по текущим процентам с остатком в категории «На себя»."
                         action={
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="badge" data-tone={pctOk ? "success" : "danger"}>
@@ -1041,20 +1122,31 @@ const badgeValue = useMemo(() => {
                           </div>
                         ) : (
                           <>
-                            {dist.map((d, i) => (
+                            <div className="table-row table-row--salary rounded-2xl px-3 py-2 bg-[var(--surface)]">
+                              <div className="kicker">Категория</div>
+                              <div className="text-right kicker">Потрачено</div>
+                              <div className="text-right kicker">Доступно</div>
+                            </div>
+                            {dist.map((d, i) => {
+                              const spent = deductionsByCategory[d.id] || 0;
+                              const available = d.amount - spent;
+                              return (
                               <div key={d.id} className={`table-row table-row--salary rounded-2xl px-3 py-3 ${i % 2 === 0 ? "bg-[var(--surface-2)]" : "bg-[var(--surface-3)]"}`}>
                                 <div className="min-w-0">
                                   <div className="text-sm font-medium">{d.name}</div>
+                                  <div className="text-xs text-[var(--muted)] tabular-nums">{fmt(d.amount)} ₽ выделено{d.id === 13 ? " · остаток" : ""}</div>
                                 </div>
-                                <div className="text-right text-xs text-[var(--muted)] tabular-nums">{d.pct}%</div>
-                                <div className={`text-right text-sm font-medium tabular-nums ${d.amount > 0 ? "text-[var(--text)]" : "text-[var(--muted)]"}`}>
-                                  {fmt(d.amount)} ₽
+                                <div className="text-right text-sm font-medium tabular-nums text-[var(--muted)]">
+                                  {spent > 0 ? `${fmt(spent)} ₽` : "—"}
+                                </div>
+                                <div className={`text-right text-sm font-medium tabular-nums ${available < 0 ? "text-red-400" : available > 0 ? "text-[var(--text)]" : "text-[var(--muted)]"}`}>
+                                  {fmt(available)} ₽
                                 </div>
                               </div>
-                            ))}
+                            )})}
                             <div className="table-row table-row--salary rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
                               <div className="kicker">Итого</div>
-                              <div />
+                              <div className="text-right text-sm font-medium tabular-nums text-[var(--muted)]">{fmt(Object.values(deductionsByCategory).reduce((s, value) => s + value, 0))} ₽</div>
                               <div className="text-right text-sm font-bold tabular-nums">{fmt(dist.reduce((s, d) => s + d.amount, 0))} ₽</div>
                             </div>
                           </>
@@ -1357,21 +1449,32 @@ const badgeValue = useMemo(() => {
                               onChange={e => setCats(p => p.map(x => x.id === c.id ? {...x, name: e.target.value} : x))}
                               className="ui-input ui-input--compact"
                             />
-                            <input
-                              type="number"
-                              value={c.pct}
-                              step="0.1"
-                              onChange={e => setCats(p => p.map(x => x.id === c.id ? {...x, pct: e.target.value} : x))}
-                              className="ui-input ui-input--compact ui-input--right"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setCats(p => p.filter(x => x.id !== c.id))}
-                              className="ui-button ui-button-ghost px-0 py-0 text-lg"
-                              aria-label={`Удалить категорию ${c.name}`}
-                            >
-                              ×
-                            </button>
+                            {c.id === 13 ? (
+                              <>
+                                <div className="flex items-center justify-end rounded-[14px] border border-[var(--border)] bg-[var(--surface-3)] px-3 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+                                  остаток
+                                </div>
+                                <div className="text-center text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">фикс.</div>
+                              </>
+                            ) : (
+                              <>
+                                <input
+                                  type="number"
+                                  value={c.pct}
+                                  step="0.1"
+                                  onChange={e => setCats(p => p.map(x => x.id === c.id ? {...x, pct: e.target.value} : x))}
+                                  className="ui-input ui-input--compact ui-input--right"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setCats(p => p.filter(x => x.id !== c.id))}
+                                  className="ui-button ui-button-ghost px-0 py-0 text-lg"
+                                  aria-label={`Удалить категорию ${c.name}`}
+                                >
+                                  ×
+                                </button>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1388,39 +1491,25 @@ const badgeValue = useMemo(() => {
 
                     <Card className="p-4 sm:p-5">
                       <SectionHeader
-                        kicker="Вычеты"
-                        title="Дефолтные значения"
-                        summary="Данные здесь используются в зарплатном ритуале."
+                        kicker="Маппинг"
+                        title="Маппинг вычетов"
+                        summary="Каждый вычет списывается из выбранной категории бюджета."
                       />
                       <div className="grid gap-2">
-                        {deds.map(d => (
-                          <div key={d.id} className="table-row table-row--compact rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
-                            <input
-                              type="text"
-                              value={d.name}
-                              onChange={e => setDeds(p => p.map(x => x.id === d.id ? {...x, name: e.target.value} : x))}
+                        {DEDUCTION_OPTIONS.map((option) => (
+                          <div key={option.key} className="grid gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,12rem)] sm:items-center">
+                            <div className="text-sm font-medium">{option.label}</div>
+                            <select
+                              value={deductionMapping[option.key]}
+                              onChange={e => setDeductionMapping(p => ({ ...p, [option.key]: Number(e.target.value) }))}
                               className="ui-input ui-input--compact"
-                            />
-                            <NumInput value={d.val} onChange={v => setDeds(p => p.map(x => x.id === d.id ? {...x, val: v} : x))} right className="w-full" />
-                            <button
-                              type="button"
-                              onClick={() => setDeds(p => p.filter(x => x.id !== d.id))}
-                              className="ui-button ui-button-ghost px-0 py-0 text-lg"
-                              aria-label={`Удалить вычет ${d.name}`}
                             >
-                              ×
-                            </button>
+                              {cats.map((cat) => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                              ))}
+                            </select>
                           </div>
                         ))}
-                      </div>
-                      <div className="mt-3">
-                        <button
-                          type="button"
-                          onClick={() => setDeds(p => [...p, { id: Date.now(), name: "Новый", val: "" }])}
-                          className="ui-button ui-button-secondary"
-                        >
-                          Добавить вычет
-                        </button>
                       </div>
                     </Card>
                   </div>
@@ -1434,7 +1523,7 @@ const badgeValue = useMemo(() => {
                       />
                       <div className="grid gap-2 sm:grid-cols-2">
                         <Metric label="Категорий" value={String(cats.length)} />
-                        <Metric label="Вычетов" value={String(deds.length)} />
+                        <Metric label="Маппингов" value={String(DEDUCTION_OPTIONS.length)} />
                         <Metric label="Счетов" value={String(accs.length)} />
                         <Metric label="Курс $" value={fmt(rate)} />
                         <Metric label="Ипотека" value={fmt(mortgage)} />

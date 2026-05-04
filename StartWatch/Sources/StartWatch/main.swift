@@ -1,6 +1,13 @@
 // StartWatch — точка входа, роутинг daemon vs menu-agent vs CLI
 import Foundation
 
+enum LaunchMode: Equatable {
+    case daemon([String])
+    case menuAgent
+    case cli([String])
+    case appBundleDefault
+}
+
 // Логирование аргументов командной строки для отладки launchd
 func logCommandLineArguments() {
     let homeDir = FileManager.default.homeDirectoryForCurrentUser
@@ -32,11 +39,26 @@ func logCommandLineArguments() {
 logCommandLineArguments()
 
 let args = Array(CommandLine.arguments.dropFirst())
-let command = args.first ?? "status"
-
-// Определяем, запущены ли мы из app bundle
 let isAppBundle = Bundle.main.bundlePath.hasSuffix(".app")
-let cliCommands: Set<String> = [
+let mode = resolveLaunchMode(arguments: args, isAppBundle: isAppBundle)
+
+switch mode {
+case .daemon(let daemonArgs):
+    DaemonCommand.run(args: daemonArgs)
+case .menuAgent:
+    MenuAgentCommand.run()
+case .cli(let cliArgs):
+    CLIRouter.route(arguments: cliArgs)
+    exit(0)
+case .appBundleDefault:
+    // App bundle launch without explicit CLI command => menu-agent mode
+    DaemonCommand.ensureDaemonRunning()
+    MenuAgentCommand.run()
+}
+
+func resolveLaunchMode(arguments: [String], isAppBundle: Bool) -> LaunchMode {
+    let command = arguments.first
+    let cliCommands: Set<String> = [
     "status", "s",
     "check", "c",
     "start",
@@ -48,17 +70,15 @@ let cliCommands: Set<String> = [
     "version", "-v", "--version"
 ]
 
-if command == "daemon" {
-    DaemonCommand.run(args: Array(args.dropFirst()))
-} else if command == "menu-agent" {
-    MenuAgentCommand.run()
-} else if cliCommands.contains(command) {
-    CLIRouter.route(arguments: args)
-    exit(0)
-} else if isAppBundle {
-    // Если запущены из app bundle без явной команды, используем menu-agent
-    MenuAgentCommand.run()
-} else {
-    CLIRouter.route(arguments: args)
-    exit(0)
+    if command == "daemon" {
+        return .daemon(Array(arguments.dropFirst()))
+    } else if command == "menu-agent" {
+        return .menuAgent
+    } else if let command, cliCommands.contains(command) {
+        return .cli(arguments)
+    } else if isAppBundle {
+        return .appBundleDefault
+    } else {
+        return .cli(arguments)
+    }
 }

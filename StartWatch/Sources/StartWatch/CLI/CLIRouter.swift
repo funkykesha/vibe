@@ -61,6 +61,7 @@ enum CLIRouter {
             startwatch restart Redis       Restart specific service
             startwatch list                List configured services
             startwatch stop                Stop StartWatch
+            startwatch doctor --repair-ui  Repair signature + menubar cache
             startwatch daemon --no-menu    Run daemon without menu bar
 
         \(ANSIColors.bold)OPTIONS:\(ANSIColors.reset)

@@ -92,7 +92,7 @@ final class NotificationManager: NSObject {
     private override init() {
         super.init()
         // UNUserNotificationCenter crashes without .app bundle
-        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
+        guard Self.isAppBundleContext() else { return }
         setupCategories()
     }
 
@@ -106,14 +106,14 @@ final class NotificationManager: NSObject {
         self.onRestartFailed = onRestartFailed
 
         // UNUserNotificationCenter crashes without .app bundle
-        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
+        guard Self.isAppBundleContext() else { return }
         setupCategories()
     }
 
     // MARK: - Setup
 
     func requestAuthorization() {
-        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
+        guard Self.isAppBundleContext() else { return }
 
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound, .badge]
@@ -126,7 +126,7 @@ final class NotificationManager: NSObject {
     }
 
     private func setupCategories() {
-        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
+        guard Self.isAppBundleContext() else { return }
 
         let openAction = UNNotificationAction(
             identifier: actionOpenID,
@@ -193,7 +193,7 @@ final class NotificationManager: NSObject {
         let delivery = NotificationDelivery(identifier: identifier, status: .sent)
         deliveryHistory.append(delivery)
 
-        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
+        guard Self.isAppBundleContext() else { return }
 
         UNUserNotificationCenter.current().add(request) { [weak self] error in
             guard let self = self else { return }
@@ -209,6 +209,10 @@ final class NotificationManager: NSObject {
                 }
             }
         }
+    }
+
+    static func isAppBundleContext(bundlePathExtension: String = Bundle.main.bundleURL.pathExtension) -> Bool {
+        bundlePathExtension == "app"
     }
 
     private func getRecentDeliveries(limit: Int = 10) -> [NotificationDelivery] {

@@ -33,9 +33,15 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
             NSWorkspace.shared.open(ConfigManager.configURL)
         }
 
-        menuBar.onStartService = { name in IPCClient.send(.startService(name: name)) }
+        menuBar.onStartService = { name in
+            guard let response = IPCClient.sendAndReceive(.startService(name: name)) else { return }
+            handleTerminalIntent(response)
+        }
         menuBar.onStopService  = { name in IPCClient.send(.stopService(name: name)) }
-        menuBar.onRestartService = { name in IPCClient.send(.restartService(name: name)) }
+        menuBar.onRestartService = { name in
+            guard let response = IPCClient.sendAndReceive(.restartService(name: name)) else { return }
+            handleTerminalIntent(response)
+        }
 
         menuBar.onSetTerminal = { terminal in
             guard var config = ConfigManager.load() else { return }
@@ -117,6 +123,15 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousFailedNames = currentFailedNames
+    }
+}
+
+private func handleTerminalIntent(_ response: IPCServiceResponse) {
+    guard case .executeInTerminal(let cmd) = response else { return }
+    DispatchQueue.main.async {
+        guard let config = ConfigManager.load() else { return }
+        let terminal = config.terminal ?? "terminal"
+        TerminalLauncher.open(terminal: terminal, command: cmd.command)
     }
 }
 

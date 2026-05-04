@@ -6,9 +6,9 @@ final class IPCServer {
     private var serverFD: Int32 = -1
 
     var onTriggerCheck: (() -> Void)?
-    var onStartService: ((String) -> Void)?
+    var onStartService: ((String) -> IPCServiceResponse)?
     var onStopService: ((String) -> Void)?
-    var onRestartService: ((String) -> Void)?
+    var onRestartService: ((String) -> IPCServiceResponse)?
     var onQuit: (() -> Void)?
 
     func start() {
@@ -84,28 +84,34 @@ final class IPCServer {
         }
         Logger.log(level: .info, component: "IPCServer", event: "COMMAND_RECEIVED", details: ["action": .string(cmd.action), "name": cmd.name.map { AnyCodable.string($0) } ?? .null])
 
-        let ok = Data("{\"ok\":true}".utf8)
-        _ = ok.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
-
-        DispatchQueue.main.async { self.dispatch(cmd) }
+        let response = DispatchQueue.main.sync { self.dispatch(cmd) }
+        if let resp = response, let data = try? JSONEncoder().encode(resp) {
+            _ = data.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
+        } else {
+            let ok = Data("{\"ok\":true}".utf8)
+            _ = ok.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
+        }
     }
 
-    private func dispatch(_ cmd: IPCCommand) {
+    private func dispatch(_ cmd: IPCCommand) -> IPCServiceResponse? {
         switch cmd.action {
         case "trigger_check", "check_now":
             onTriggerCheck?()
         case "start_service":
-            if let n = cmd.name { onStartService?(n) }
+            if let n = cmd.name { return onStartService?(n) }
+            return .ok
         case "stop_service":
             if let n = cmd.name { onStopService?(n) }
         case "restart_service":
-            if let n = cmd.name { onRestartService?(n) }
+            if let n = cmd.name { return onRestartService?(n) }
+            return .ok
         case "quit":
             Logger.log(level: .info, component: "IPCServer", event: "QUIT_RECEIVED", details: ["action": .string("Received quit command, calling onQuit callback")])
             onQuit?()
         default:
             break
         }
+        return nil
     }
 
     deinit { stop() }

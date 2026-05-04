@@ -76,6 +76,7 @@ Config file: `~/.config/startwatch/config.json`
 | `open`          | string  | URL or command to open service (optional)  |
 | `autostart`     | boolean | Start service on daemon launch (optional)  |
 | `startupTimeout`| integer | Seconds to wait for service startup (optional, default: 10) |
+| `background`    | boolean | Run start command in background (optional, default: nil = interactive terminal) |
 
 ### Check types
 
