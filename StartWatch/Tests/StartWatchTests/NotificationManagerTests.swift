@@ -34,7 +34,8 @@ final class NotificationManagerTests: XCTestCase {
             tags: nil,
             open: nil,
             autostart: nil,
-            startupTimeout: nil
+            startupTimeout: nil,
+            background: nil
         )
     }
 
@@ -245,6 +246,12 @@ final class NotificationManagerTests: XCTestCase {
     }
 
     func testSend_withNilSound() {
+    }
+
+    func testAppBundleContextGuard() {
+        XCTAssertTrue(NotificationManager.isAppBundleContext(bundlePathExtension: "app"))
+        XCTAssertFalse(NotificationManager.isAppBundleContext(bundlePathExtension: ""))
+        XCTAssertFalse(NotificationManager.isAppBundleContext(bundlePathExtension: "xctest"))
     }
 
     // MARK: - Request Authorization

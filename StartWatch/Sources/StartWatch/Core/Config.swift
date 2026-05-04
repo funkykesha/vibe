@@ -27,6 +27,7 @@ struct ServiceConfig: Codable {
     let open: String?
     let autostart: Bool?
     let startupTimeout: Int?
+    let background: Bool?
 }
 
 struct CheckConfig: Codable {
@@ -175,6 +176,7 @@ enum ConfigManager {
                     "start": "brew services start redis",
                     "restart": "brew services restart redis",
                     "autostart": true,
+                    "background": true,
                     "tags": ["infra"]
                 },
                 {

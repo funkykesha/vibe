@@ -10,3 +10,14 @@ enum IPCMessage: Codable {
     case restartAllFailed
     case quit
 }
+
+struct TerminalCommand: Codable {
+    let serviceName: String
+    let command: String
+}
+
+enum IPCServiceResponse: Codable {
+    case ok
+    case executeInTerminal(TerminalCommand)
+    case error(String)
+}
