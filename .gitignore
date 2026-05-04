@@ -1,2 +1,5 @@
-**/.*/
+.codex/
+.opencode/
+.sisyphus/
+.build/
 !.git/
