@@ -6,9 +6,9 @@ enum StatusCommand {
         let jsonOutput = args.contains("--json")
         let tagFilter = extractTag(from: args)
 
-        // Попробовать кэш от daemon
-        if let cached = IPCClient.getLastResults() {
-            let filtered = filterByTag(cached, tag: tagFilter)
+        if IPCClient.isConnected(), let live = IPCClient.getStatusSnapshot() {
+            let mapped = mapToResults(live)
+            let filtered = filterByTag(mapped, tag: tagFilter)
             if jsonOutput {
                 printJSON(filtered)
             } else {
@@ -17,7 +17,22 @@ enum StatusCommand {
             exit(Int32(filtered.filter { !$0.isRunning }.count))
         }
 
-        // Daemon не запущен — live проверка
+        // Daemon offline: checkpoint fallback
+        if let checkpoint = IPCClient.getLastResults() {
+            let filtered = filterByTag(checkpoint, tag: tagFilter)
+            if !jsonOutput, let checkedAt = filtered.first?.checkedAt {
+                let seconds = Int(Date().timeIntervalSince(checkedAt))
+                print("⚠️ Daemon offline. Last state from \(seconds)s ago:")
+            }
+            if jsonOutput {
+                printJSON(filtered)
+            } else {
+                ReportBuilder.printStatusReport(filtered)
+            }
+            exit(Int32(filtered.filter { !$0.isRunning }.count))
+        }
+
+        // No checkpoint -> live check fallback
         guard let config = ConfigManager.load() else {
             fputs("\(ANSIColors.red)Error: No config found.\(ANSIColors.reset)\n", stderr)
             fputs("Run: startwatch config\n", stderr)
@@ -59,6 +74,21 @@ enum StatusCommand {
         if let data = try? encoder.encode(codable),
            let str = String(data: data, encoding: .utf8) {
             print(str)
+        }
+    }
+
+    private static func mapToResults(_ items: [CodableCheckResult]) -> [CheckResult] {
+        guard let config = ConfigManager.load() else { return [] }
+        let byName = Dictionary(uniqueKeysWithValues: items.map { ($0.serviceName, $0) })
+        return config.services.compactMap { service in
+            guard let item = byName[service.name] else { return nil }
+            return CheckResult(
+                service: service,
+                isRunning: item.isRunning,
+                detail: item.detail,
+                checkedAt: item.checkedAt,
+                isStarting: item.isStarting
+            )
         }
     }
 }

@@ -1,21 +1,23 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Daemon exits cleanly on shutdown signal
-The daemon SHALL terminate completely with exit code 0 when shutdown is initiated, with all resources released and no processes or timers left running.
+The daemon SHALL terminate completely with exit code 0 when shutdown is initiated, with all daemon-owned resources released and no daemon-owned timers left running.
 
 #### Scenario: User clicks quit button
 - **WHEN** user clicks quit button in UI
+- **THEN** menu-agent sends quit command to daemon
 - **THEN** IPC server receives quit command and calls shutdown()
 - **THEN** all services are stopped gracefully
-- **THEN** all timers (menu agent spawn, scheduled checks) are cancelled
-- **THEN** all pending dispatch queue operations are cancelled
+- **THEN** all daemon-owned timers and scheduled checks are cancelled
+- **THEN** all pending daemon DispatchWorkItem operations are cancelled
 - **THEN** daemon logs DAEMON_SHUTDOWN_COMPLETE
 - **THEN** daemon calls exit(0) and terminates
+- **THEN** menu-agent terminates after quit request is sent
 
 #### Scenario: No orphan timers after shutdown
-- **WHEN** shutdown() is called with active repeating timer (menu agent spawn every 30s)
-- **THEN** timer is invalidated immediately
-- **THEN** no timer fires after shutdown completes
+- **WHEN** shutdown() is called with active repeating timers
+- **THEN** daemon timers are invalidated immediately
+- **THEN** no daemon timer fires after shutdown completes
 
 #### Scenario: No orphan dispatch queue operations after shutdown
 - **WHEN** shutdown() is called with pending asyncAfter operations in queue
@@ -47,3 +49,22 @@ The shutdown process SHALL complete within reasonable time (< 5s) even if compon
 - **WHEN** scheduler = nil is executed
 - **THEN** scheduler instance deinitializes without blocking
 - **THEN** any pending check operations are discarded
+
+### Requirement: CLI stop terminates daemon and menu-agent
+The `startwatch stop` command SHALL stop both runtime processes: the LaunchAgent-backed daemon and the app/menu-agent UI.
+
+#### Scenario: User runs CLI stop while both processes run
+- **WHEN** user runs `startwatch stop`
+- **THEN** the command requests daemon shutdown
+- **THEN** the command terminates the menu-agent process if it remains running
+- **THEN** no `startwatch daemon` or `startwatch menu-agent` process remains
+
+#### Scenario: User runs CLI stop while daemon is already stopped
+- **WHEN** user runs `startwatch stop` and daemon is not running
+- **THEN** the command still terminates any remaining menu-agent process
+- **THEN** the command exits without hanging
+
+#### Scenario: User runs CLI stop while menu-agent is already stopped
+- **WHEN** user runs `startwatch stop` and menu-agent is not running
+- **THEN** the command still requests daemon shutdown
+- **THEN** the command exits without hanging

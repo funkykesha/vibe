@@ -37,7 +37,8 @@ enum RestartCommand {
             if service.background == true {
                 print("\(ANSIColors.cyan)Restarting \(service.name) in background...\((ANSIColors.reset))")
                 guard let response = IPCClient.sendAndReceive(.restartService(name: service.name)) else {
-                    fputs("\(ANSIColors.red)Failed to communicate with daemon\(ANSIColors.reset)\n", stderr)
+                    let uid = String(getuid())
+                    fputs("\(ANSIColors.red)Daemon not running. Run: startwatch install or launchctl kickstart -k gui/\(uid)/com.startwatch.daemon\(ANSIColors.reset)\n", stderr)
                     exit(1)
                 }
 
@@ -65,7 +66,7 @@ enum RestartCommand {
 
     private static func runLiveRestart(services: [CheckResult], config: AppConfig) {
         let defaults = UserDefaults(suiteName: "com.user.startwatch")
-        let defaultTimeout = defaults?.integer(forKey: "startupTimeout") ?? 10
+        let defaultTimeout = (defaults?.object(forKey: "startupTimeout") as? Int) ?? 10
 
         var renderer = RestartLiveRenderer()
         var results: [String: (status: String, elapsed: Double, detail: String)] = [:]
@@ -155,7 +156,7 @@ enum RestartCommand {
 
     private static func runAppendOnlyRestart(services: [CheckResult], config: AppConfig) {
         let defaults = UserDefaults(suiteName: "com.user.startwatch")
-        let defaultTimeout = defaults?.integer(forKey: "startupTimeout") ?? 10
+        let defaultTimeout = (defaults?.object(forKey: "startupTimeout") as? Int) ?? 10
 
         var totalFailed = 0
 

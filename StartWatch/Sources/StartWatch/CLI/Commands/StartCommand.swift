@@ -32,7 +32,8 @@ enum StartCommand {
         if executionPath(for: service) == .daemonIPC {
             print("\(ANSIColors.cyan)Starting \(service.name) in background...\((ANSIColors.reset))")
             guard let response = IPCClient.sendAndReceive(.startService(name: service.name)) else {
-                fputs("\(ANSIColors.red)Failed to communicate with daemon\(ANSIColors.reset)\n", stderr)
+                let uid = String(getuid())
+                fputs("\(ANSIColors.red)Daemon not running. Run: startwatch install or launchctl kickstart -k gui/\(uid)/com.startwatch.daemon\(ANSIColors.reset)\n", stderr)
                 exit(1)
             }
 

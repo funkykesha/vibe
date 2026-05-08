@@ -28,6 +28,73 @@ struct ServiceConfig: Codable {
     let autostart: Bool?
     let startupTimeout: Int?
     let background: Bool?
+
+    init(
+        name: String,
+        check: CheckConfig,
+        start: String?,
+        restart: String?,
+        cwd: String?,
+        tags: [String]?,
+        open: String?,
+        autostart: Bool?,
+        startupTimeout: Int?,
+        background: Bool?
+    ) {
+        self.name = name
+        self.check = check
+        self.start = start
+        self.restart = restart
+        self.cwd = cwd
+        self.tags = tags
+        self.open = open
+        self.autostart = autostart
+        self.startupTimeout = startupTimeout
+        self.background = background
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case check
+        case start
+        case restart
+        case cwd
+        case tags
+        case open
+        case autostart
+        case autorestart
+        case startupTimeout
+        case background
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        check = try container.decode(CheckConfig.self, forKey: .check)
+        start = try container.decodeIfPresent(String.self, forKey: .start)
+        restart = try container.decodeIfPresent(String.self, forKey: .restart)
+        cwd = try container.decodeIfPresent(String.self, forKey: .cwd)
+        tags = try container.decodeIfPresent([String].self, forKey: .tags)
+        open = try container.decodeIfPresent(String.self, forKey: .open)
+        autostart = try container.decodeIfPresent(Bool.self, forKey: .autostart)
+            ?? container.decodeIfPresent(Bool.self, forKey: .autorestart)
+        startupTimeout = try container.decodeIfPresent(Int.self, forKey: .startupTimeout)
+        background = try container.decodeIfPresent(Bool.self, forKey: .background)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(check, forKey: .check)
+        try container.encodeIfPresent(start, forKey: .start)
+        try container.encodeIfPresent(restart, forKey: .restart)
+        try container.encodeIfPresent(cwd, forKey: .cwd)
+        try container.encodeIfPresent(tags, forKey: .tags)
+        try container.encodeIfPresent(open, forKey: .open)
+        try container.encodeIfPresent(autostart, forKey: .autostart)
+        try container.encodeIfPresent(startupTimeout, forKey: .startupTimeout)
+        try container.encodeIfPresent(background, forKey: .background)
+    }
 }
 
 struct CheckConfig: Codable {

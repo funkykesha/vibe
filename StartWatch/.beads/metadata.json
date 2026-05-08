@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "startwatch",
+  "project_id": "3b091a35-ee58-47b8-90bf-e3bf67f0f704"
+}

@@ -14,6 +14,9 @@ final class MenuBarController {
     var onStopService: ((String) -> Void)?
     var onRestartService: ((String) -> Void)?
     var onSetTerminal: ((String) -> Void)?
+    var onStartDaemon: (() -> Void)?
+    private var isDaemonOffline = false
+    private var staleSeconds: Int?
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -26,9 +29,27 @@ final class MenuBarController {
     }
 
     func update(results: [CheckResult]) {
+        isDaemonOffline = false
+        staleSeconds = nil
         self.lastResults = results
         let iconState = determineIconState(results: results)
         updateIcon(state: iconState)
+        buildMenu()
+    }
+
+    func showDaemonOffline() {
+        isDaemonOffline = true
+        lastResults = []
+        staleSeconds = nil
+        updateIcon(state: .failed)
+        buildMenu()
+    }
+
+    func showDaemonOffline(lastKnown: [CheckResult], staleSeconds: Int?) {
+        isDaemonOffline = true
+        self.lastResults = lastKnown
+        self.staleSeconds = staleSeconds
+        updateIcon(state: .failed)
         buildMenu()
     }
 
@@ -121,10 +142,23 @@ final class MenuBarController {
         menu.addItem(NSMenuItem.separator())
 
         if lastResults.isEmpty {
-            let item = NSMenuItem(title: "  No checks yet", action: nil, keyEquivalent: "")
+            let text = isDaemonOffline ? "  Daemon not running" : "  No checks yet"
+            let item = NSMenuItem(title: text, action: nil, keyEquivalent: "")
             item.isEnabled = false
             menu.addItem(item)
         } else {
+            if isDaemonOffline {
+                let staleText: String
+                if let seconds = staleSeconds, seconds >= 30 {
+                    staleText = "  ⚠️ Daemon offline. Last state from \(seconds)s ago"
+                } else {
+                    staleText = "  Daemon offline. Showing last known state"
+                }
+                let staleItem = NSMenuItem(title: staleText, action: nil, keyEquivalent: "")
+                staleItem.isEnabled = false
+                menu.addItem(staleItem)
+                menu.addItem(NSMenuItem.separator())
+            }
             for result in lastResults {
                 let menuItem = NSMenuItem()
                 menuItem.isEnabled = true
@@ -161,7 +195,18 @@ final class MenuBarController {
         )
         checkNow.keyEquivalentModifierMask = [.command]
         checkNow.target = self
+        checkNow.isEnabled = !isDaemonOffline
         menu.addItem(checkNow)
+
+        if isDaemonOffline {
+            let startDaemon = NSMenuItem(
+                title: "Start Daemon",
+                action: #selector(startDaemonClicked),
+                keyEquivalent: ""
+            )
+            startDaemon.target = self
+            menu.addItem(startDaemon)
+        }
 
         menu.addItem(NSMenuItem.separator())
 
@@ -194,6 +239,7 @@ final class MenuBarController {
 
     @objc private func openCLIClicked() { onOpenCLI?() }
     @objc private func checkNowClicked() { onCheckNow?() }
+    @objc private func startDaemonClicked() { onStartDaemon?() }
     @objc private func openConfigClicked() { onOpenConfig?() }
     @objc private func quitClicked() { onQuit?() }
 

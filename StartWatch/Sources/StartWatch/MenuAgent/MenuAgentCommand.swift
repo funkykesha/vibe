@@ -9,9 +9,15 @@ enum MenuAgentCommand {
         if isAnotherMenuAgentRunning() {
             return
         }
+        run(delegate: MenuAgentDelegate())
+    }
+
+    static func run(delegate: MenuAgentDelegate) {
+        if isAnotherMenuAgentRunning() {
+            return
+        }
         let app = NSApplication.shared
         app.setActivationPolicy(.accessory)
-        let delegate = MenuAgentDelegate()
         retainedDelegate = delegate
         app.delegate = delegate
         app.run()

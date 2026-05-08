@@ -35,12 +35,12 @@ enum DoctorCommand {
 
         // 3. Daemon running
         check("Daemon is running", &allOk) {
-            IPCClient.isConnected()
+            isLaunchAgentRunning(label: "com.startwatch.daemon")
         }
 
         // 4. LaunchAgent installed
         let plistPath = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/LaunchAgents/com.user.startwatch.plist").path
+            .appendingPathComponent("Library/LaunchAgents/com.startwatch.daemon.plist").path
         check("LaunchAgent installed", &allOk) {
             FileManager.default.fileExists(atPath: plistPath)
         }
@@ -65,10 +65,12 @@ enum DoctorCommand {
         }
 
         // 8. LaunchAgent binary path consistency
-        let launchAgentProgram = launchAgentProgramPath(plistPath: plistPath)
+        let launchAgentArgs = launchAgentProgramArguments(plistPath: plistPath)
         check("LaunchAgent binary path matches installed app", &allOk) {
-            guard let launchAgentProgram else { return false }
-            return launchAgentProgram == "\(menuAppPath)/Contents/MacOS/startwatch"
+            guard let launchAgentArgs, launchAgentArgs.count >= 2 else { return false }
+            return launchAgentArgs[0] == "\(menuAppPath)/Contents/MacOS/startwatch"
+                && launchAgentArgs[1] == "daemon"
+                && !launchAgentArgs.contains("--no-menu")
         }
 
         // 9. Notification permission (requires .app bundle — only meaningful in daemon mode)
@@ -145,15 +147,34 @@ enum DoctorCommand {
         }
     }
 
-    private static func launchAgentProgramPath(plistPath: String) -> String? {
+    private static func launchAgentProgramArguments(plistPath: String) -> [String]? {
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: plistPath)),
               let object = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
               let dict = object as? [String: Any],
-              let programArgs = dict["ProgramArguments"] as? [String],
-              let first = programArgs.first else {
+              let programArgs = dict["ProgramArguments"] as? [String] else {
             return nil
         }
-        return first
+        return programArgs
+    }
+
+    private static func isLaunchAgentRunning(label: String) -> Bool {
+        let uid = String(getuid())
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        process.arguments = ["print", "gui/\(uid)/\(label)"]
+        let out = Pipe()
+        process.standardOutput = out
+        process.standardError = Pipe()
+        do {
+            try process.run()
+            process.waitUntilExit()
+            guard process.terminationStatus == 0 else { return false }
+            let data = out.fileHandleForReading.readDataToEndOfFile()
+            let text = String(data: data, encoding: .utf8) ?? ""
+            return text.contains("state = running")
+        } catch {
+            return false
+        }
     }
 
     private static func repairSignature(menuAppPath: String) -> Bool {

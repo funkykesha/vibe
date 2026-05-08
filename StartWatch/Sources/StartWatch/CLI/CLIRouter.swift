@@ -25,6 +25,10 @@ enum CLIRouter {
             LogCommand.run(args: rest)
         case "doctor":
             DoctorCommand.run(args: rest)
+        case "install":
+            InstallCommand.run(args: rest)
+        case "uninstall":
+            UninstallCommand.run(args: rest)
         case "help", "-h", "--help":
             printHelp()
         case "version", "-v", "--version":
@@ -50,6 +54,8 @@ enum CLIRouter {
             restart <name|all> Restart a service or all failed
             list               List all configured services
             stop               Stop daemon and menu agent
+            install            Install + bootstrap LaunchAgent daemon autostart
+            uninstall          Uninstall LaunchAgent daemon autostart
             config             Open config in $EDITOR
             log                Show check history
             doctor             Diagnose StartWatch itself

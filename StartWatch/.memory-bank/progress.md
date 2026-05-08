@@ -21,6 +21,10 @@
   - [x] `MenuAgentDelegate` — editor + service buttons
   - [x] `NotificationManager` crash fix (bundleIdentifier guard)
   - [x] Иконка в menu bar работает
+- [x] LaunchAgent menu regression fix
+  - [x] Installed plist repaired to run app bundle binary with `daemon`, without `--no-menu`
+  - [x] `install.sh` now generates plist from resolved `MENU_BIN`
+  - [x] `DoctorCommand` now checks LaunchAgent args and rejects `--no-menu`
 
 ## In Progress
 - [ ] Проверить кнопки Запустить/Остановить/Перезапустить через UI

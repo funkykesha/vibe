@@ -3,23 +3,34 @@ import Foundation
 import Darwin
 
 final class IPCServer {
+    enum StartResult: Equatable {
+        case started
+        case addressInUse
+        case failed(Int32)
+    }
+
     private var serverFD: Int32 = -1
+    private let subscribersQueue = DispatchQueue(label: "com.startwatch.ipc.subscribers", attributes: .concurrent)
+    private let connectionsQueue = DispatchQueue(label: "com.startwatch.ipc.connections", attributes: .concurrent)
+    private var subscribers: Set<Int32> = []
+    private var connections: [Int32: ClientConnection] = [:]
 
     var onTriggerCheck: (() -> Void)?
     var onStartService: ((String) -> IPCServiceResponse)?
     var onStopService: ((String) -> Void)?
     var onRestartService: ((String) -> IPCServiceResponse)?
     var onQuit: (() -> Void)?
+    var onSubscribeSnapshot: (() -> [CodableCheckResult])?
+    var onGetStatusSnapshot: (() -> [CodableCheckResult])?
 
-    func start() {
+    func start() -> StartResult {
         let path = StateManager.socketURL.path
         Logger.log(level: .info, component: "IPCServer", event: "START_SERVER", details: ["socketPath": .string(path)])
-        try? FileManager.default.removeItem(atPath: path)
 
         serverFD = socket(AF_UNIX, SOCK_STREAM, 0)
         guard serverFD >= 0 else {
             Logger.log(level: .error, component: "IPCServer", event: "SOCKET_CREATE_FAILED", details: ["errno": .int(Int(errno))])
-            return
+            return .failed(errno)
         }
 
         var addr = sockaddr_un()
@@ -36,22 +47,42 @@ final class IPCServer {
             }
         }
         guard bound == 0 else {
-            Logger.log(level: .error, component: "IPCServer", event: "SOCKET_BIND_FAILED", details: ["errno": .int(Int(errno))])
-            Darwin.close(serverFD); serverFD = -1; return
+            let bindErrno = errno
+            if bindErrno == EADDRINUSE {
+                Logger.log(level: .info, component: "IPCServer", event: "SOCKET_ALREADY_IN_USE", details: ["errno": .int(Int(bindErrno))])
+                Darwin.close(serverFD)
+                serverFD = -1
+                return .addressInUse
+            }
+            Logger.log(level: .error, component: "IPCServer", event: "SOCKET_BIND_FAILED", details: ["errno": .int(Int(bindErrno))])
+            Darwin.close(serverFD)
+            serverFD = -1
+            return .failed(bindErrno)
         }
         guard Darwin.listen(serverFD, 5) == 0 else {
-            Logger.log(level: .error, component: "IPCServer", event: "SOCKET_LISTEN_FAILED", details: ["errno": .int(Int(errno))])
-            Darwin.close(serverFD); serverFD = -1; return
+            let listenErrno = errno
+            Logger.log(level: .error, component: "IPCServer", event: "SOCKET_LISTEN_FAILED", details: ["errno": .int(Int(listenErrno))])
+            Darwin.close(serverFD)
+            serverFD = -1
+            return .failed(listenErrno)
         }
         Logger.log(level: .info, component: "IPCServer", event: "SERVER_STARTED", details: [:])
 
         Thread.detachNewThread { self.acceptLoop() }
+        return .started
     }
 
     func stop() {
         guard serverFD >= 0 else { return }
         Darwin.close(serverFD)
         serverFD = -1
+        let snapshot = connectionsQueue.sync { Array(connections.values) }
+        for connection in snapshot {
+            connection.close()
+        }
+        connectionsQueue.sync(flags: .barrier) {
+            connections.removeAll()
+        }
         try? FileManager.default.removeItem(at: StateManager.socketURL)
     }
 
@@ -64,33 +95,133 @@ final class IPCServer {
                 Logger.log(level: .error, component: "IPCServer", event: "ACCEPT_FAILED", details: ["errno": .int(Int(errno))])
                 break
             }
-            Thread.detachNewThread { self.handle(clientFD) }
+            registerConnection(clientFD)
         }
     }
 
-    private func handle(_ fd: Int32) {
-        defer {
-            Logger.log(level: .info, component: "IPCServer", event: "SOCKET_CLOSED", details: [:])
-            Darwin.close(fd)
+    private func registerConnection(_ fd: Int32) {
+        let connection = ClientConnection(
+            fd: fd,
+            onPayload: { [weak self] payload, framed in
+                self?.process(payload: payload, fd: fd, framed: framed)
+            },
+            onDisconnect: { [weak self] in
+                self?.removeConnection(fd)
+                self?.removeSubscriber(fd)
+                Logger.log(level: .info, component: "IPCServer", event: "SOCKET_CLOSED", details: ["fd": .int(Int(fd))])
+            }
+        )
+
+        connectionsQueue.sync(flags: .barrier) {
+            connections[fd] = connection
         }
-        var buf = [UInt8](repeating: 0, count: 4096)
-        let n = Darwin.read(fd, &buf, buf.count)
-        Logger.log(level: .info, component: "IPCServer", event: "SOCKET_READ", details: ["bytesRead": .int(n)])
-        guard n > 0,
-              let cmd = try? JSONDecoder().decode(IPCCommand.self, from: Data(buf[..<n]))
-        else {
-            Logger.log(level: .error, component: "IPCServer", event: "READ_FAILED", details: ["bytesRead": .int(n)])
+
+        connection.start()
+    }
+
+    private func removeConnection(_ fd: Int32) {
+        _ = connectionsQueue.sync(flags: .barrier) {
+            connections.removeValue(forKey: fd)
+        }
+    }
+
+    private func process(payload: Data, fd: Int32, framed: Bool) {
+        guard let cmd = try? JSONDecoder().decode(IPCCommand.self, from: payload) else {
+            Logger.log(level: .error, component: "IPCServer", event: "COMMAND_DECODE_FAILED", details: ["framed": .bool(framed)])
             return
         }
+
         Logger.log(level: .info, component: "IPCServer", event: "COMMAND_RECEIVED", details: ["action": .string(cmd.action), "name": cmd.name.map { AnyCodable.string($0) } ?? .null])
 
-        let response = DispatchQueue.main.sync { self.dispatch(cmd) }
-        if let resp = response, let data = try? JSONEncoder().encode(resp) {
-            _ = data.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
-        } else {
-            let ok = Data("{\"ok\":true}".utf8)
-            _ = ok.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
+        if cmd.action == "subscribe" {
+            addSubscriber(fd)
+            let snapshot = IPCStatusSnapshot(services: onSubscribeSnapshot?() ?? [])
+            send(message: .statusSnapshot(snapshot), fd: fd, framed: framed)
+            return
         }
+
+        if cmd.action == "get_status" {
+            let snapshot = IPCStatusSnapshot(services: onGetStatusSnapshot?() ?? [])
+            send(message: .statusSnapshot(snapshot), fd: fd, framed: framed)
+            return
+        }
+
+        let response = DispatchQueue.main.sync { self.dispatch(cmd) } ?? .ok
+        send(response: response, fd: fd, framed: framed)
+    }
+
+    private func send(response: IPCServiceResponse, fd: Int32, framed: Bool) {
+        guard let payload = try? JSONEncoder().encode(response) else {
+            return
+        }
+
+        let data: Data
+        if framed, let framedPayload = try? IPCFrameCodec.encode(payload) {
+            data = framedPayload
+        } else {
+            data = payload
+        }
+
+        send(data: data, fd: fd)
+    }
+
+    private func send(message: IPCMessage, fd: Int32, framed: Bool) {
+        guard let payload = try? JSONEncoder().encode(message) else {
+            return
+        }
+
+        let data: Data
+        if framed, let framedPayload = try? IPCFrameCodec.encode(payload) {
+            data = framedPayload
+        } else {
+            data = payload
+        }
+
+        send(data: data, fd: fd)
+    }
+
+    private func addSubscriber(_ fd: Int32) {
+        _ = subscribersQueue.sync(flags: .barrier) {
+            subscribers.insert(fd)
+        }
+    }
+
+    private func removeSubscriber(_ fd: Int32) {
+        _ = subscribersQueue.sync(flags: .barrier) {
+            subscribers.remove(fd)
+        }
+    }
+
+    func broadcastServiceChanged(_ service: CodableCheckResult) {
+        let snapshot = subscribersQueue.sync { Array(subscribers) }
+        guard !snapshot.isEmpty else { return }
+
+        let message = IPCMessage.serviceChanged(IPCServiceChange(service: service))
+        guard let payload = try? JSONEncoder().encode(message),
+              let framed = try? IPCFrameCodec.encode(payload) else {
+            return
+        }
+
+        var failed: [Int32] = []
+        for fd in snapshot {
+            let wrote = framed.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
+            if wrote < 0 {
+                failed.append(fd)
+            }
+        }
+
+        if !failed.isEmpty {
+            subscribersQueue.sync(flags: .barrier) {
+                for fd in failed {
+                    subscribers.remove(fd)
+                }
+            }
+        }
+    }
+
+    private func send(data: Data, fd: Int32) {
+        let connection = connectionsQueue.sync { connections[fd] }
+        connection?.send(data)
     }
 
     private func dispatch(_ cmd: IPCCommand) -> IPCServiceResponse? {

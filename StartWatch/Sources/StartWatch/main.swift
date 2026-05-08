@@ -1,4 +1,5 @@
 // StartWatch — точка входа, роутинг daemon vs menu-agent vs CLI
+import AppKit
 import Foundation
 
 enum LaunchMode: Equatable {
@@ -44,16 +45,15 @@ let mode = resolveLaunchMode(arguments: args, isAppBundle: isAppBundle)
 
 switch mode {
 case .daemon(let daemonArgs):
-    DaemonCommand.run(args: daemonArgs)
+    startApp(showMenu: !daemonArgs.contains("--no-menu"))
 case .menuAgent:
-    MenuAgentCommand.run()
+    startApp(showMenu: true)
 case .cli(let cliArgs):
     CLIRouter.route(arguments: cliArgs)
     exit(0)
 case .appBundleDefault:
-    // App bundle launch without explicit CLI command => menu-agent mode
-    DaemonCommand.ensureDaemonRunning()
-    MenuAgentCommand.run()
+    // App bundle launch without explicit CLI command => full mode
+    startApp(showMenu: true)
 }
 
 func resolveLaunchMode(arguments: [String], isAppBundle: Bool) -> LaunchMode {
@@ -63,6 +63,8 @@ func resolveLaunchMode(arguments: [String], isAppBundle: Bool) -> LaunchMode {
     "check", "c",
     "start",
     "restart",
+    "install",
+    "uninstall",
     "config",
     "log",
     "doctor",
@@ -80,5 +82,23 @@ func resolveLaunchMode(arguments: [String], isAppBundle: Bool) -> LaunchMode {
         return .appBundleDefault
     } else {
         return .cli(arguments)
+    }
+}
+
+private func startApp(showMenu: Bool) {
+    let coordinator = DaemonCoordinator()
+    let outcome = coordinator.start(noMenu: !showMenu)
+    switch resolveStartupAction(showMenu: showMenu, outcome: outcome) {
+    case .ownerWithMenu:
+            let control = LocalMenuControlPlane(coordinator: coordinator)
+            MenuAgentCommand.run(delegate: MenuAgentDelegate(controlPlane: control))
+    case .ownerHeadless:
+        RunLoop.main.run()
+    case .clientWithMenu:
+        MenuAgentCommand.run(delegate: MenuAgentDelegate(controlPlane: RemoteMenuControlPlane()))
+    case .duplicateHeadlessExit:
+        exit(0)
+    case .fatalExit:
+        exit(1)
     }
 }

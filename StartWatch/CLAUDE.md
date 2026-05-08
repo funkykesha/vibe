@@ -21,32 +21,47 @@ Run the binary directly (debug):
 
 ## Architecture
 
-Single binary, three execution modes dispatched in `main.swift`:
-- `daemon` → `DaemonCommand` — background process, runs `CheckScheduler`, serves `IPCServer`
-- `menu-agent` → `MenuAgentCommand` — macOS menu bar NSApp, reads daemon state via IPC
-- CLI commands → `CLIRouter` → individual `*Command` structs (status, check, start, restart, config, log, doctor, etc.)
+Single binary, four execution modes dispatched in `main.swift` via `resolveLaunchMode()`:
+- `daemon` → `DaemonCommand` — headless LaunchAgent process, owns `CheckScheduler`, `DaemonCoordinator`, IPC server, `ProcessManager`
+- `menu-agent` → `MenuAgentCommand` — macOS menu bar NSApp (`LSUIElement=YES`), owns `NSStatusItem` + `NSMenu`
+- CLI commands → `CLIRouter` → individual `*Command` structs
+- `appBundleDefault` — when launched as `.app` bundle without explicit command → menu-agent mode
 
-**IPC**: daemon binds a Unix socket; CLI and menu-agent connect via `IPCClient`. Messages typed via `IPCMessage`. CLI reads daemon's last-check cache (4-hour TTL); `startwatch check` forces live re-check.
+**Two-process design**: daemon spawns menu-agent via `open -na ~/Applications/StartWatchMenu.app --args menu-agent` (not direct `Process()`) — required to register as macOS UI agent with `NSStatusItem`.
+
+**IPC**: file-based polling `~/.startwatch/menu_command.json`, polled every 2 s. Commands: `trigger_check`, `start_service`, `stop_service`, `restart_service` (with `name` field). `IPCClient` / `IPCServer` in `IPC/`.
 
 **Config**: `~/.config/startwatch/config.json`. Watched by `FileWatcher` (FSEvents + 200 ms debounce); daemon reloads on change.
 
 **Check types** (`CheckResult`): `port` (TCP connect), `http` (GET → 2xx/3xx), `process` (`pgrep -f`), `command` (exit 0).
 
+**ProcessManager** (`Core/ProcessManager.swift`): start/stop/restart services without terminal. Daemon coordinates it via `DaemonCoordinator` (in `Daemon/AppDelegate.swift`).
+
 **Terminal launch** (`TerminalLauncher`): selects adapter via `TerminalProtocol` — one concrete type per terminal (Warp, iTerm, Apple Terminal, Alacritty, Kitty).
+
+**Launch log**: every binary invocation appends to `~/.startwatch/launch.log` (pid, argv, timestamp) — useful for debugging launchd issues.
 
 **Source layout:**
 ```
 Sources/StartWatch/
   CLI/Commands/       — one file per CLI command
   CLI/Formatting/     — ANSIColors, ReportBuilder, TableFormatter
-  Core/               — CheckResult, AsyncHelpers, …
+  Core/               — CheckResult, AsyncHelpers, ProcessManager, …
+  Daemon/             — AppDelegate (DaemonCoordinator), MenuBarController
   IPC/                — IPCServer, IPCClient, IPCMessage
-  MenuAgent/          — NSApp menu bar UI
+  MenuAgent/          — MenuAgentDelegate, ConfigEditorWindow (NSPanel JSON editor)
   Terminal/           — TerminalLauncher + per-terminal adapters
   Notifications/      — NotificationManager
 ```
 
+**CLI commands** (via `CLIRouter`): `status`/`s`, `check`/`c`, `start <name>`, `restart <name|all>`, `list`, `stop`, `install`, `uninstall`, `config`, `log`, `doctor`, `help`, `version`.
+
 `startwatch status` exit code = number of failed services (0 = all OK; scriptable in CI/shell prompts).
+
+**Known constraints:**
+- `UNUserNotificationCenter` requires `.app` bundle — guarded by `Bundle.main.bundleIdentifier != nil`
+- `NSStatusItem`/`NSMenu` must be on main thread
+- Swift tuple `(String, String)` doesn't safely bridge via ObjC `id` — `representedObject` in `MenuBarController` uses tuple at runtime (works but unsafe; TODO: replace with struct)
 
 ---
 
@@ -113,3 +128,51 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
+## Beads Issue Tracker
+
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+
+### Quick Reference
+
+```bash
+bd ready              # Find available work
+bd show <id>          # View issue details
+bd update <id> --claim  # Claim work
+bd close <id>         # Complete work
+```
+
+### Rules
+
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Run `bd prime` for detailed command reference and session close protocol
+- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+
+## Session Completion
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd dolt push
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
+<!-- END BEADS INTEGRATION -->

@@ -1,0 +1,108 @@
+{
+  "stack": {
+    "languages": [
+      {
+        "name": "Markdown",
+        "fileCount": 89,
+        "lineCount": 9672,
+        "percentage": 64
+      },
+      {
+        "name": "Swift",
+        "fileCount": 59,
+        "lineCount": 5460,
+        "percentage": 36
+      },
+      {
+        "name": "JSON",
+        "fileCount": 2,
+        "lineCount": 50,
+        "percentage": 0
+      },
+      {
+        "name": "YAML",
+        "fileCount": 21,
+        "lineCount": 34,
+        "percentage": 0
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "unknown",
+    "buildTools": []
+  },
+  "structure": {
+    "rootFiles": [
+      "AGENTS.md",
+      "AGENTS.original.md",
+      "CLAUDE.md",
+      "Package.swift",
+      "README.md",
+      "backlog.md",
+      "com.startwatch.daemon.plist",
+      "com.user.startwatch.plist",
+      "config.example.json",
+      "config.json",
+      "install.sh",
+      "ruvector.db"
+    ],
+    "mainDirectories": [
+      {
+        "name": "openspec",
+        "purpose": "项目目录",
+        "fileCount": 90,
+        "path": "openspec"
+      },
+      {
+        "name": "Sources",
+        "purpose": "项目目录",
+        "fileCount": 49,
+        "path": "Sources"
+      },
+      {
+        "name": "docs",
+        "purpose": "文档",
+        "fileCount": 21,
+        "path": "docs"
+      },
+      {
+        "name": "Tests",
+        "purpose": "测试文件",
+        "fileCount": 10,
+        "path": "Tests"
+      },
+      {
+        "name": "plans",
+        "purpose": "项目目录",
+        "fileCount": 2,
+        "path": "plans"
+      },
+      {
+        "name": "Resources",
+        "purpose": "项目目录",
+        "fileCount": 1,
+        "path": "Resources"
+      }
+    ],
+    "entryPoints": []
+  },
+  "patterns": {
+    "architecture": "unknown",
+    "codeStyle": [],
+    "conventions": [
+      "OpenSpec"
+    ]
+  },
+  "stats": {
+    "totalFiles": 182,
+    "totalLines": 15216,
+    "byLanguage": {
+      "Markdown": 9672,
+      "Swift": 5460,
+      "JSON": 50,
+      "YAML": 34
+    }
+  },
+  "analyzedAt": "2026-05-05T20:47:02.855Z",
+  "projectRoot": "/Users/agaibadulin/Desktop/projects/vibe/StartWatch",
+  "projectName": "StartWatch"
+}

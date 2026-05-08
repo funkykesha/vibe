@@ -20,6 +20,8 @@ final class LaunchRoutingTests: XCTestCase {
         XCTAssertEqual(resolveLaunchMode(arguments: ["start"], isAppBundle: true), .cli(["start"]))
         XCTAssertEqual(resolveLaunchMode(arguments: ["restart"], isAppBundle: true), .cli(["restart"]))
         XCTAssertEqual(resolveLaunchMode(arguments: ["doctor"], isAppBundle: true), .cli(["doctor"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["install"], isAppBundle: true), .cli(["install"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["uninstall"], isAppBundle: true), .cli(["uninstall"]))
         XCTAssertEqual(resolveLaunchMode(arguments: ["help"], isAppBundle: true), .cli(["help"]))
         XCTAssertEqual(resolveLaunchMode(arguments: ["version"], isAppBundle: true), .cli(["version"]))
     }
