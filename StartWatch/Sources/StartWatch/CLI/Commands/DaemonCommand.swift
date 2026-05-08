@@ -2,6 +2,8 @@
 import Foundation
 
 enum DaemonCommand {
+    static let launchAgentLabels = ["com.user.startwatch", "com.startwatch.daemon"]
+
     static func run(args: [String]) {
         let noMenu = args.contains("--no-menu")
         let coordinator = DaemonCoordinator()
@@ -10,7 +12,21 @@ enum DaemonCommand {
     }
 
     static func ensureDaemonRunning() {
-        let label = "com.user.startwatch"
+        for label in launchAgentLabels {
+            guard let output = launchAgentPrint(label: label) else { continue }
+            if launchAgentIsRunning(output) { return }
+            kickstart(label: label)
+            return
+        }
+    }
+
+    static func launchAgentIsRunning(_ output: String) -> Bool {
+        output
+            .split(separator: "\n")
+            .contains { $0.trimmingCharacters(in: .whitespacesAndNewlines) == "state = running" }
+    }
+
+    private static func launchAgentPrint(label: String) -> String? {
         let uid = String(getuid())
         let domain = "gui/\(uid)"
 
@@ -22,7 +38,15 @@ enum DaemonCommand {
         printTask.standardError = Pipe()
         try? printTask.run()
         printTask.waitUntilExit()
-        if printTask.terminationStatus == 0 { return }
+        guard printTask.terminationStatus == 0 else { return nil }
+
+        let data = printPipe.fileHandleForReading.readDataToEndOfFile()
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func kickstart(label: String) {
+        let uid = String(getuid())
+        let domain = "gui/\(uid)"
 
         let kickstart = Process()
         kickstart.executableURL = URL(fileURLWithPath: "/bin/launchctl")

@@ -9,6 +9,8 @@ STATE_DIR="$HOME/.local/state/startwatch"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
 PLIST_NAME="com.user.startwatch.plist"
 PLIST_LABEL="com.user.startwatch"
+LEGACY_PLIST_NAME="com.startwatch.daemon.plist"
+LEGACY_PLIST_LABEL="com.startwatch.daemon"
 SYSTEM_MENU_APP="/Applications/StartWatchMenu.app"
 USER_MENU_APP="$HOME/Applications/StartWatchMenu.app"
 MENU_APP=""
@@ -118,30 +120,40 @@ fi
 # 5. Install LaunchAgent
 mkdir -p "$LAUNCH_AGENTS_DIR"
 PLIST_DEST="$LAUNCH_AGENTS_DIR/$PLIST_NAME"
+LEGACY_PLIST_DEST="$LAUNCH_AGENTS_DIR/$LEGACY_PLIST_NAME"
+
+if launchctl print "gui/$(id -u)/$LEGACY_PLIST_LABEL" >/dev/null 2>&1; then
+    launchctl bootout "gui/$(id -u)/$LEGACY_PLIST_LABEL" 2>/dev/null || true
+    warn "Removed legacy LaunchAgent service $LEGACY_PLIST_LABEL"
+fi
+if [[ -f "$LEGACY_PLIST_DEST" ]]; then
+    rm -f "$LEGACY_PLIST_DEST"
+    warn "Removed legacy LaunchAgent plist $LEGACY_PLIST_DEST"
+fi
 
 # Install plist template as-is (already points to bundle daemon --no-menu)
 cp "$PLIST_NAME" "$PLIST_DEST"
 /usr/libexec/PlistBuddy -c "Set :ProgramArguments:0 $MENU_BIN" "$PLIST_DEST" >/dev/null 2>&1 || true
+/usr/libexec/PlistBuddy -c "Set :StandardOutPath $STATE_DIR/daemon.log" "$PLIST_DEST" >/dev/null 2>&1 || true
+/usr/libexec/PlistBuddy -c "Set :StandardErrorPath $STATE_DIR/daemon-error.log" "$PLIST_DEST" >/dev/null 2>&1 || true
 
 ok "LaunchAgent installed at $PLIST_DEST"
 
 # 6. Bootstrap LaunchAgent
-BOOT_STATUS=$(launchctl print "gui/$(id -u)/$PLIST_LABEL" 2>/dev/null; echo $?)
-if echo "$BOOT_STATUS" | grep -q "Could not find service"; then
-    launchctl bootstrap "gui/$(id -u)" "$PLIST_DEST" 2>/dev/null && \
-        ok "LaunchAgent bootstrapped" || warn "LaunchAgent bootstrap failed (may need logout/login)"
-else
+if launchctl print "gui/$(id -u)/$PLIST_LABEL" >/dev/null 2>&1; then
     launchctl bootout "gui/$(id -u)" "$PLIST_DEST" 2>/dev/null || true
-    launchctl bootstrap "gui/$(id -u)" "$PLIST_DEST" 2>/dev/null && \
-        ok "LaunchAgent reloaded" || warn "LaunchAgent reload failed"
 fi
+launchctl bootstrap "gui/$(id -u)" "$PLIST_DEST" 2>/dev/null && \
+    ok "LaunchAgent bootstrapped" || warn "LaunchAgent bootstrap failed (may need logout/login)"
+launchctl kickstart -k "gui/$(id -u)/$PLIST_LABEL" 2>/dev/null && \
+    ok "LaunchAgent kickstarted" || warn "LaunchAgent kickstart failed (may need logout/login)"
 
 echo ""
 echo "Installation complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Edit config:   startwatch config"
-echo "  2. Start daemon:  startwatch daemon &"
+echo "  2. Open app:      open -na $MENU_APP"
 echo "  3. Check status:  startwatch doctor"
 echo "  4. If menu icon is stale: startwatch doctor --repair-ui"
 echo ""

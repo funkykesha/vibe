@@ -9,6 +9,7 @@ enum StopCommand {
         // Fallback: stop launchd service if it exists.
         let uid = String(getuid())
         _ = runProcess("/bin/launchctl", ["bootout", "gui/\(uid)/com.user.startwatch"])
+        _ = runProcess("/bin/launchctl", ["bootout", "gui/\(uid)/com.startwatch.daemon"])
 
         // Fallback: kill remaining processes.
         _ = runProcess("/usr/bin/pkill", ["-f", "startwatch daemon"])

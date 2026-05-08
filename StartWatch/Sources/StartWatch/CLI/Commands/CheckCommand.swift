@@ -4,9 +4,8 @@ import Foundation
 enum CheckCommand {
     static func run(args: [String]) {
         if IPCClient.isConnected() {
-            IPCClient.send(.triggerCheck)
-            print("\(ANSIColors.green)✓\(ANSIColors.reset) Check triggered via daemon")
-            Thread.sleep(forTimeInterval: 3)
+            IPCClient.send(.triggerCheck, allowBootstrap: false)
+            print("\(ANSIColors.green)✓\(ANSIColors.reset) Daemon check requested")
         }
         // Всегда показываем live результат
         guard let config = ConfigManager.load() else {
