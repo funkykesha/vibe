@@ -86,38 +86,26 @@ final class MenuBarController {
 
     private func updateIcon(state: IconState) {
         guard let button = statusItem.button else { return }
-        let emoji: String
+        let title: String
         switch state {
         case .starting:
-            emoji = "⏳"
+            title = "SW..."
         case .mixed:
-            emoji = "⚠️"
+            title = "SW?"
         case .failed:
-            emoji = "❌"
+            title = "SW!"
         case .allOk:
-            emoji = "♻️"
+            title = "SW"
         }
-        button.image = makeStatusIcon(emoji: emoji)
-        button.title = ""
+        button.image = nil
+        button.attributedTitle = NSAttributedString(
+            string: title,
+            attributes: [
+                .font: NSFont.monospacedSystemFont(ofSize: 11, weight: .semibold),
+                .foregroundColor: NSColor.labelColor
+            ]
+        )
         button.toolTip = "StartWatch"
-    }
-
-    private func makeStatusIcon(emoji: String) -> NSImage {
-        let size = NSSize(width: 28, height: 20)
-        let image = NSImage(size: size)
-        image.lockFocus()
-
-        let bg = NSRect(x: 1, y: 1, width: size.width - 2, height: size.height - 2)
-        NSColor.windowBackgroundColor.setFill()
-        NSBezierPath(roundedRect: bg, xRadius: 5, yRadius: 5).fill()
-
-        let attrs: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 12)]
-        let str = NSAttributedString(string: emoji, attributes: attrs)
-        let sz = str.size()
-        str.draw(at: NSPoint(x: (size.width - sz.width) / 2, y: (size.height - sz.height) / 2))
-
-        image.unlockFocus()
-        return image
     }
 
     private func buildMenu() {

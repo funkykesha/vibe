@@ -43,6 +43,10 @@ echo ""
 choose_menu_app_path
 ok "App install target: $MENU_APP"
 
+# Stop stale menu UI before replacing the bundle binary. LaunchAgent daemon is
+# reloaded later; menu-agent is user-owned and otherwise keeps old UI code alive.
+/usr/bin/pkill -f "$MENU_BIN menu-agent" >/dev/null 2>&1 || true
+
 # 1. Build
 echo "Building release binary..."
 swift build -c release > /tmp/startwatch-build.log 2>&1 || { cat /tmp/startwatch-build.log; fail "Build failed"; }

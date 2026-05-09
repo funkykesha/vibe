@@ -15,19 +15,22 @@ bash install.sh              # builds, installs to /usr/local/bin, sets up Launc
 ## Binary Location
 - Dev: `.build/debug/StartWatch`
 - Release: `.build/release/StartWatch` (symlink to arch-specific)
-- Installed: `/usr/local/bin/startwatch`
+- Installed CLI: `/usr/local/bin/startwatch` wrapper
+- Installed app binary: `/Applications/StartWatchMenu.app/Contents/MacOS/startwatch` or `~/Applications/StartWatchMenu.app/Contents/MacOS/startwatch`
 
 ## Key Paths
 | Path | Purpose |
 |------|---------|
 | `~/.config/startwatch/config.json` | User config |
-| `~/.local/state/startwatch/last_check.json` | IPC cache |
+| `~/.local/state/startwatch/sock` | Unix socket IPC command/event stream |
+| `~/.local/state/startwatch/last_check.json` | State checkpoint/fallback cache |
 | `~/.local/state/startwatch/history.log` | Check history |
-| `~/.local/state/startwatch/trigger_check` | IPC flag file |
-| `~/.local/state/startwatch/menu_command.json` | IPC commands (start/stop/restart) |
+| `~/.config/startwatch/logs/events.json` | Structured runtime event log |
+| `~/.local/state/startwatch/daemon.log` | LaunchAgent stdout log after install |
+| `~/.local/state/startwatch/daemon-error.log` | LaunchAgent stderr log after install |
 | `~/Library/LaunchAgents/com.user.startwatch.plist` | Auto-start |
-| `~/Applications/StartWatchMenu.app/` | Menu bar .app bundle |
-| `~/Applications/StartWatchMenu.app/Contents/MacOS/startwatch` | Binary inside bundle (must be updated separately from /usr/local/bin!) |
+| `/Applications/StartWatchMenu.app/` or `~/Applications/StartWatchMenu.app/` | Menu bar .app bundle |
+| `StartWatchMenu.app/Contents/MacOS/startwatch` | Single source-of-truth binary used by wrapper and LaunchAgent |
 
 ## Requirements
 - macOS 13+

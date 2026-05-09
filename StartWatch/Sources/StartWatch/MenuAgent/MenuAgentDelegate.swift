@@ -228,7 +228,7 @@ final class MenuAgentDelegate: NSObject, NSApplicationDelegate {
     private func startDaemonViaLaunchctl() {
         let uid = String(getuid())
         let domain = "gui/\(uid)"
-        let label = "com.startwatch.daemon"
+        let label = "com.user.startwatch"
         let plistPath = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/LaunchAgents/\(label).plist").path
 
