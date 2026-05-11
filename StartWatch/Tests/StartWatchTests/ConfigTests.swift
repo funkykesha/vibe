@@ -81,6 +81,30 @@ final class ConfigTests: XCTestCase {
         XCTAssertNil(config.terminal)
         XCTAssertNil(config.checkIntervalMinutes)
         XCTAssertNil(config.services[0].start)
+        XCTAssertNil(config.services[0].stop)
         XCTAssertNil(config.services[0].tags)
+    }
+
+    func testServiceStopFieldRoundTrip() throws {
+        let json = """
+        {
+            "services": [
+                {
+                    "name": "API",
+                    "check": { "type": "process", "value": "node" },
+                    "start": "npm run dev",
+                    "stop": "pkill -f node",
+                    "restart": "npm run restart"
+                }
+            ]
+        }
+        """.data(using: .utf8)!
+
+        let config = try JSONDecoder().decode(AppConfig.self, from: json)
+        XCTAssertEqual(config.services[0].stop, "pkill -f node")
+
+        let encoded = try JSONEncoder().encode(config)
+        let decoded = try JSONDecoder().decode(AppConfig.self, from: encoded)
+        XCTAssertEqual(decoded.services[0].stop, "pkill -f node")
     }
 }

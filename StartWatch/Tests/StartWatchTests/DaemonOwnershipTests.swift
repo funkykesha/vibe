@@ -4,14 +4,14 @@ import XCTest
 final class DaemonOwnershipTests: XCTestCase {
     func testAddressInUseRetryOutcomeReturnsNonOwnerWhenReachable() {
         XCTAssertEqual(
-            DaemonCoordinator.resolveAddressInUseRetryOutcome(isReachableAfterRetry: true),
-            .nonOwner
+            DaemonRuntime.resolveAddressInUseRetryOutcome(isReachableAfterRetry: true),
+            .alreadyRunning
         )
     }
 
     func testAddressInUseRetryOutcomeReturnsFailedWhenStillUnreachable() {
         XCTAssertEqual(
-            DaemonCoordinator.resolveAddressInUseRetryOutcome(isReachableAfterRetry: false),
+            DaemonRuntime.resolveAddressInUseRetryOutcome(isReachableAfterRetry: false),
             .failed
         )
     }

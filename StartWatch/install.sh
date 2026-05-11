@@ -3,7 +3,7 @@ set -e
 
 BINARY_NAME="startwatch"
 INSTALL_DIR="/usr/local/bin"
-CLI_WRAPPER_PATH="$INSTALL_DIR/$BINARY_NAME"
+CLI_BIN_PATH="$INSTALL_DIR/$BINARY_NAME"
 CONFIG_DIR="$HOME/.config/startwatch"
 STATE_DIR="$HOME/.local/state/startwatch"
 LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
@@ -12,9 +12,8 @@ PLIST_LABEL="com.user.startwatch"
 LEGACY_PLIST_NAME="com.startwatch.daemon.plist"
 LEGACY_PLIST_LABEL="com.startwatch.daemon"
 SYSTEM_MENU_APP="/Applications/StartWatchMenu.app"
-USER_MENU_APP="$HOME/Applications/StartWatchMenu.app"
-MENU_APP=""
-MENU_BIN=""
+MENU_APP="$SYSTEM_MENU_APP"
+MENU_BIN="$MENU_APP/Contents/MacOS/startwatch"
 
 # Colors
 GREEN=$'\033[0;32m'
@@ -26,21 +25,11 @@ ok()   { echo "${GREEN}✓${RESET} $1"; }
 warn() { echo "${YELLOW}⚠${RESET} $1"; }
 fail() { echo "${RED}✗${RESET} $1"; exit 1; }
 
-choose_menu_app_path() {
-    if [[ -d "$SYSTEM_MENU_APP" || -w "/Applications" ]]; then
-        MENU_APP="$SYSTEM_MENU_APP"
-    else
-        MENU_APP="$USER_MENU_APP"
-    fi
-    MENU_BIN="$MENU_APP/Contents/MacOS/startwatch"
-}
-
 echo ""
 echo "StartWatch Installer"
 echo "════════════════════"
 echo ""
 
-choose_menu_app_path
 ok "App install target: $MENU_APP"
 
 # Stop stale menu UI before replacing the bundle binary. LaunchAgent daemon is
@@ -58,28 +47,41 @@ if [[ ! -f "$BINARY_PATH" ]]; then
     fail "Binary not found at $BINARY_PATH"
 fi
 
-if [[ "$MENU_APP" == "$SYSTEM_MENU_APP" ]]; then
-    if [[ -w "/Applications" || -d "$MENU_APP" ]]; then
-        mkdir -p "$MENU_APP/Contents/MacOS" 2>/dev/null || sudo mkdir -p "$MENU_APP/Contents/MacOS"
+if [[ -d "$MENU_APP" ]]; then
+    if [[ -w "/Applications" ]]; then
+        rm -rf "$MENU_APP"
     else
-        sudo mkdir -p "$MENU_APP/Contents/MacOS"
+        sudo rm -rf "$MENU_APP"
     fi
-else
+fi
+if [[ -w "/Applications" ]]; then
     mkdir -p "$MENU_APP/Contents/MacOS"
+else
+    sudo mkdir -p "$MENU_APP/Contents/MacOS"
 fi
 
 if [[ -w "$MENU_APP/Contents/MacOS" ]]; then
     cp "$BINARY_PATH" "$MENU_BIN"
-else
-    sudo cp "$BINARY_PATH" "$MENU_BIN"
-fi
-if [[ -w "$MENU_APP/Contents" || ! -e "$MENU_APP/Contents/Info.plist" ]]; then
     cp "Resources/StartWatchMenu-Info.plist" "$MENU_APP/Contents/Info.plist"
 else
+    sudo cp "$BINARY_PATH" "$MENU_BIN"
     sudo cp "Resources/StartWatchMenu-Info.plist" "$MENU_APP/Contents/Info.plist"
 fi
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.user.startwatch.menu" "$MENU_APP/Contents/Info.plist" >/dev/null 2>&1 || true
 
 ok "StartWatchMenu.app installed at $MENU_APP"
+
+# Refresh LaunchServices registration after bundle replacement.
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+if [[ -x "$LSREGISTER" ]]; then
+    if "$LSREGISTER" -f "$MENU_APP" >/dev/null 2>&1; then
+        ok "LaunchServices registration refreshed for $MENU_APP"
+    else
+        warn "lsregister -f failed for $MENU_APP (non-fatal)"
+    fi
+else
+    warn "lsregister not found at expected path (non-fatal)"
+fi
 
 # 2.1 Sign and verify menu app bundle (required for UI agent on newer macOS)
 if codesign --force --deep --sign - "$MENU_APP" >/dev/null 2>&1; then
@@ -94,22 +96,20 @@ else
     warn "StartWatchMenu.app signature verification failed"
 fi
 
-# 2.2 Install CLI wrapper (avoids direct execution policy blocks on /usr/local/bin Mach-O)
-WRAPPER_CONTENT="#!/bin/zsh
-exec \"$MENU_BIN\" \"\$@\"
-"
+# 2.2 Install CLI Mach-O directly to /usr/local/bin/startwatch
 if [[ -w "$INSTALL_DIR" ]]; then
-    printf "%s" "$WRAPPER_CONTENT" > "$CLI_WRAPPER_PATH"
-    chmod +x "$CLI_WRAPPER_PATH"
+    cp "$BINARY_PATH" "$CLI_BIN_PATH"
+    chmod +x "$CLI_BIN_PATH"
 else
-    printf "%s" "$WRAPPER_CONTENT" | sudo tee "$CLI_WRAPPER_PATH" >/dev/null
-    sudo chmod +x "$CLI_WRAPPER_PATH"
+    sudo cp "$BINARY_PATH" "$CLI_BIN_PATH"
+    sudo chmod +x "$CLI_BIN_PATH"
 fi
-ok "CLI wrapper installed to $CLI_WRAPPER_PATH"
+ok "CLI Mach-O installed to $CLI_BIN_PATH"
 
 # 3. Create directories
 mkdir -p "$CONFIG_DIR"
 mkdir -p "$STATE_DIR"
+chmod 700 "$STATE_DIR" 2>/dev/null || true
 ok "Directories created"
 
 # 4. Create example config if not exists
@@ -135,9 +135,10 @@ if [[ -f "$LEGACY_PLIST_DEST" ]]; then
     warn "Removed legacy LaunchAgent plist $LEGACY_PLIST_DEST"
 fi
 
-# Install plist template as-is (already points to bundle daemon --no-menu)
+# Install plist template and enforce daemon launch via CLI Mach-O path.
 cp "$PLIST_NAME" "$PLIST_DEST"
-/usr/libexec/PlistBuddy -c "Set :ProgramArguments:0 $MENU_BIN" "$PLIST_DEST" >/dev/null 2>&1 || true
+/usr/libexec/PlistBuddy -c "Set :ProgramArguments:0 /usr/local/bin/startwatch" "$PLIST_DEST" >/dev/null 2>&1 || true
+/usr/libexec/PlistBuddy -c "Set :ProgramArguments:1 daemon" "$PLIST_DEST" >/dev/null 2>&1 || true
 /usr/libexec/PlistBuddy -c "Set :StandardOutPath $STATE_DIR/daemon.log" "$PLIST_DEST" >/dev/null 2>&1 || true
 /usr/libexec/PlistBuddy -c "Set :StandardErrorPath $STATE_DIR/daemon-error.log" "$PLIST_DEST" >/dev/null 2>&1 || true
 

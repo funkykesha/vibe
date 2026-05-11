@@ -3,8 +3,11 @@ import XCTest
 
 final class LaunchRoutingTests: XCTestCase {
     func testDaemonCommandRoutesToDaemonMode() {
-        let mode = resolveLaunchMode(arguments: ["daemon", "--no-menu"], isAppBundle: true)
-        XCTAssertEqual(mode, .daemon(["--no-menu"]))
+        let mode = resolveLaunchMode(arguments: ["daemon"], isAppBundle: true)
+        XCTAssertEqual(mode, .menuAgent)
+
+        let nonBundleMode = resolveLaunchMode(arguments: ["daemon"], isAppBundle: false)
+        XCTAssertEqual(nonBundleMode, .daemon([]))
     }
 
     func testMenuAgentCommandRoutesToMenuMode() {
@@ -13,25 +16,25 @@ final class LaunchRoutingTests: XCTestCase {
     }
 
     func testCLICommandsAlwaysRouteToCLI() {
-        XCTAssertEqual(resolveLaunchMode(arguments: ["status"], isAppBundle: true), .cli(["status"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["check"], isAppBundle: true), .cli(["check"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["config"], isAppBundle: true), .cli(["config"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["log"], isAppBundle: true), .cli(["log"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["start"], isAppBundle: true), .cli(["start"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["restart"], isAppBundle: true), .cli(["restart"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["doctor"], isAppBundle: true), .cli(["doctor"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["install"], isAppBundle: true), .cli(["install"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["uninstall"], isAppBundle: true), .cli(["uninstall"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["help"], isAppBundle: true), .cli(["help"]))
-        XCTAssertEqual(resolveLaunchMode(arguments: ["version"], isAppBundle: true), .cli(["version"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["status"], isAppBundle: false), .cli(["status"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["check"], isAppBundle: false), .cli(["check"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["config"], isAppBundle: false), .cli(["config"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["log"], isAppBundle: false), .cli(["log"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["start"], isAppBundle: false), .cli(["start"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["restart"], isAppBundle: false), .cli(["restart"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["doctor"], isAppBundle: false), .cli(["doctor"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["install"], isAppBundle: false), .cli(["install"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["uninstall"], isAppBundle: false), .cli(["uninstall"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["help"], isAppBundle: false), .cli(["help"]))
+        XCTAssertEqual(resolveLaunchMode(arguments: ["version"], isAppBundle: false), .cli(["version"]))
     }
 
-    func testNoArgsFromAppBundleRoutesToAppBundleDefault() {
-        XCTAssertEqual(resolveLaunchMode(arguments: [], isAppBundle: true), .appBundleDefault)
+    func testNoArgsFromAppBundleRoutesToMenuAgent() {
+        XCTAssertEqual(resolveLaunchMode(arguments: [], isAppBundle: true), .menuAgent)
     }
 
-    func testNoArgsFromNonBundleRoutesToCLI() {
-        XCTAssertEqual(resolveLaunchMode(arguments: [], isAppBundle: false), .cli([]))
+    func testNoArgsFromNonBundleRoutesToStatusCommand() {
+        XCTAssertEqual(resolveLaunchMode(arguments: [], isAppBundle: false), .cli(["status"]))
     }
 
     func testLaunchAgentRunningParserRequiresRunningState() {

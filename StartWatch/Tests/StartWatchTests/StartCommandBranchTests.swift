@@ -19,7 +19,7 @@ final class StartCommandBranchTests: XCTestCase {
         XCTAssertEqual(StartCommand.executionPath(for: service), .daemonIPC)
     }
 
-    func testExecutionPathUsesInteractiveShellWhenBackgroundMissing() {
+    func testExecutionPathUsesDaemonIPCWhenBackgroundMissing() {
         let service = ServiceConfig(
             name: "API",
             check: CheckConfig(type: .process, value: "node", timeout: 5),
@@ -33,10 +33,10 @@ final class StartCommandBranchTests: XCTestCase {
             background: nil
         )
 
-        XCTAssertEqual(StartCommand.executionPath(for: service), .interactiveShell)
+        XCTAssertEqual(StartCommand.executionPath(for: service), .daemonIPC)
     }
 
-    func testExecutionPathUsesInteractiveShellWhenBackgroundFalse() {
+    func testExecutionPathUsesDaemonIPCWhenBackgroundFalse() {
         let service = ServiceConfig(
             name: "API",
             check: CheckConfig(type: .process, value: "node", timeout: 5),
@@ -50,6 +50,6 @@ final class StartCommandBranchTests: XCTestCase {
             background: false
         )
 
-        XCTAssertEqual(StartCommand.executionPath(for: service), .interactiveShell)
+        XCTAssertEqual(StartCommand.executionPath(for: service), .daemonIPC)
     }
 }

@@ -6,7 +6,6 @@ enum LaunchMode: Equatable {
     case daemon([String])
     case menuAgent
     case cli([String])
-    case appBundleDefault
 }
 
 // Логирование аргументов командной строки для отладки launchd
@@ -45,18 +44,19 @@ let mode = resolveLaunchMode(arguments: args, isAppBundle: isAppBundle)
 
 switch mode {
 case .daemon(let daemonArgs):
-    startApp(showMenu: !daemonArgs.contains("--no-menu"))
+    DaemonCommand.run(args: daemonArgs)
 case .menuAgent:
-    startApp(showMenu: true)
+    MenuAgentCommand.run(delegate: MenuAgentDelegate(controlPlane: RemoteMenuControlPlane()))
 case .cli(let cliArgs):
     CLIRouter.route(arguments: cliArgs)
     exit(0)
-case .appBundleDefault:
-    // App bundle launch without explicit CLI command => full mode
-    startApp(showMenu: true)
 }
 
 func resolveLaunchMode(arguments: [String], isAppBundle: Bool) -> LaunchMode {
+    if isAppBundle {
+        return .menuAgent
+    }
+
     let command = arguments.first
     let cliCommands: Set<String> = [
     "status", "s",
@@ -78,27 +78,9 @@ func resolveLaunchMode(arguments: [String], isAppBundle: Bool) -> LaunchMode {
         return .menuAgent
     } else if let command, cliCommands.contains(command) {
         return .cli(arguments)
-    } else if isAppBundle {
-        return .appBundleDefault
+    } else if arguments.isEmpty {
+        return .cli(["status"])
     } else {
         return .cli(arguments)
-    }
-}
-
-private func startApp(showMenu: Bool) {
-    let coordinator = DaemonCoordinator()
-    let outcome = coordinator.start(noMenu: !showMenu)
-    switch resolveStartupAction(showMenu: showMenu, outcome: outcome) {
-    case .ownerWithMenu:
-            let control = LocalMenuControlPlane(coordinator: coordinator)
-            MenuAgentCommand.run(delegate: MenuAgentDelegate(controlPlane: control))
-    case .ownerHeadless:
-        RunLoop.main.run()
-    case .clientWithMenu:
-        MenuAgentCommand.run(delegate: MenuAgentDelegate(controlPlane: RemoteMenuControlPlane()))
-    case .duplicateHeadlessExit:
-        exit(0)
-    case .fatalExit:
-        exit(1)
     }
 }

@@ -24,7 +24,7 @@ v2.0 menu bar app реализован, но installed runtime может быт
 - Проверено: `swift test` 69/69, `swift build -c release`, `openspec validate fix-app-launch-arch --strict`.
 - Реализованы все 10 шагов плана (menu bar app refactor)
 - Создан `Resources/StartWatchMenu-Info.plist` (LSUIElement=YES)
-- `install.sh` собирает `~/Applications/StartWatchMenu.app` bundle
+- `install.sh` собирает `/Applications/StartWatchMenu.app` bundle
 - Добавлен `ProcessManager` (старт/стоп/рестарт сервисов без терминала)
 - IPC расширен: `start_service`, `stop_service`, `restart_service`
 - `DaemonCoordinator` подключён к `ProcessManager` через IPC callbacks

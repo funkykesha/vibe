@@ -1,0 +1,14 @@
+◇ injected env (2) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+Groovy AI Agent запущен: http://localhost:3000
+
+  ✓ Режим прокси: http://localhost:3100
+  - Groovy (brew install groovy) — для выполнения скриптов
+
+◇ injected env (2) from .env // tip: ⌘ suppress logs { quiet: true }
+
+Groovy AI Agent запущен: http://localhost:3000
+
+  ✓ Режим прокси: http://localhost:3100
+  - Groovy (brew install groovy) — для выполнения скриптов
+

@@ -1,8 +1,14 @@
 // StartWatch — DoctorCommand: самодиагностика StartWatch
 import Foundation
 import UserNotifications
+import CoreServices
 
 enum DoctorCommand {
+    private static let launchAgentLabel = "com.user.startwatch"
+    private static let launchAgentPlistName = "com.user.startwatch.plist"
+    private static let expectedMenuAppPath = "/Applications/StartWatchMenu.app"
+    private static let expectedCLIBinaryPath = "/usr/local/bin/startwatch"
+
     static func run(args: [String]) {
         let shouldRepairSignature = args.contains("--repair-signature")
         let shouldRepairUI = args.contains("--repair-ui")
@@ -31,18 +37,34 @@ enum DoctorCommand {
                     print("     \(ANSIColors.dim)\(e)\(ANSIColors.reset)")
                 }
             }
+
+            let skippedAutostart = ConfigManager.skippedAutostartServices(config: cfg)
+            check("Autostart services require background=true", &allOk) { skippedAutostart.isEmpty }
+            if !skippedAutostart.isEmpty {
+                for service in skippedAutostart {
+                    print("     \(ANSIColors.dim)\(service.name): autostart skipped: requires background=true\(ANSIColors.reset)")
+                }
+            }
         }
 
         // 3. Daemon running
         check("Daemon is running", &allOk) {
-            isLaunchAgentRunning(label: "com.startwatch.daemon")
+            isLaunchAgentRunning(label: launchAgentLabel)
         }
 
         // 4. LaunchAgent installed
         let plistPath = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/LaunchAgents/com.startwatch.daemon.plist").path
+            .appendingPathComponent("Library/LaunchAgents/\(launchAgentPlistName)").path
         check("LaunchAgent installed", &allOk) {
             FileManager.default.fileExists(atPath: plistPath)
+        }
+
+        // 4.1 CLI binary installed and is Mach-O
+        check("CLI binary is installed at /usr/local/bin/startwatch", &allOk) {
+            FileManager.default.isExecutableFile(atPath: expectedCLIBinaryPath)
+        }
+        check("CLI binary is Mach-O", &allOk) {
+            isMachOBinary(atPath: expectedCLIBinaryPath)
         }
 
         // 5. Terminal available
@@ -54,7 +76,7 @@ enum DoctorCommand {
         }
 
         // 6. Menu app bundle installed
-        let menuAppPath = detectMenuAppPath()
+        let menuAppPath = expectedMenuAppPath
         check("Menu app installed", &allOk) {
             FileManager.default.fileExists(atPath: menuAppPath)
         }
@@ -66,11 +88,26 @@ enum DoctorCommand {
 
         // 8. LaunchAgent binary path consistency
         let launchAgentArgs = launchAgentProgramArguments(plistPath: plistPath)
-        check("LaunchAgent binary path matches installed app", &allOk) {
-            guard let launchAgentArgs, launchAgentArgs.count >= 2 else { return false }
-            return launchAgentArgs[0] == "\(menuAppPath)/Contents/MacOS/startwatch"
-                && launchAgentArgs[1] == "daemon"
-                && !launchAgentArgs.contains("--no-menu")
+        check("LaunchAgent ProgramArguments are '/usr/local/bin/startwatch daemon'", &allOk) {
+            launchAgentArgs == [expectedCLIBinaryPath, "daemon"]
+        }
+        check("LaunchAgent has no --no-menu argument", &allOk) {
+            !(launchAgentArgs?.contains("--no-menu") ?? false)
+        }
+        check("LaunchAgent RunAtLoad=true, KeepAlive.SuccessfulExit=false, ThrottleInterval=10", &allOk) {
+            validateLaunchAgentLifecycleKeys(plistPath: plistPath)
+        }
+
+        check("State directory permissions are 0700", &allOk) {
+            hasPOSIXMode(path: StateManager.stateDir.path, expected: 0o700)
+        }
+        check("Daemon socket permissions are 0600", &allOk) {
+            hasPOSIXMode(path: StateManager.socketURL.path, expected: 0o600)
+        }
+
+        // 8.1 LaunchServices bundle ID resolution
+        check("LaunchServices resolves com.user.startwatch.menu to /Applications/StartWatchMenu.app", &allOk) {
+            launchServicesResolvesMenuApp()
         }
 
         // 9. Notification permission (requires .app bundle — only meaningful in daemon mode)
@@ -123,15 +160,6 @@ enum DoctorCommand {
         print("  \(icon) \(name)")
     }
 
-    private static func detectMenuAppPath() -> String {
-        let userPath = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Applications/StartWatchMenu.app").path
-        if FileManager.default.fileExists(atPath: userPath) {
-            return userPath
-        }
-        return "/Applications/StartWatchMenu.app"
-    }
-
     private static func verifyCodeSignature(_ menuAppPath: String) -> Bool {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
@@ -148,13 +176,66 @@ enum DoctorCommand {
     }
 
     private static func launchAgentProgramArguments(plistPath: String) -> [String]? {
-        guard let data = try? Data(contentsOf: URL(fileURLWithPath: plistPath)),
-              let object = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
-              let dict = object as? [String: Any],
+        guard let dict = launchAgentPlistDictionary(plistPath: plistPath),
               let programArgs = dict["ProgramArguments"] as? [String] else {
             return nil
         }
         return programArgs
+    }
+
+    private static func launchAgentPlistDictionary(plistPath: String) -> [String: Any]? {
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: plistPath)),
+              let object = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil),
+              let dict = object as? [String: Any] else {
+            return nil
+        }
+        return dict
+    }
+
+    private static func validateLaunchAgentLifecycleKeys(plistPath: String) -> Bool {
+        guard let dict = launchAgentPlistDictionary(plistPath: plistPath),
+              let runAtLoad = dict["RunAtLoad"] as? Bool,
+              let keepAlive = dict["KeepAlive"] as? [String: Any],
+              let successfulExit = keepAlive["SuccessfulExit"] as? Bool,
+              let throttleInterval = dict["ThrottleInterval"] as? Int else {
+            return false
+        }
+        return runAtLoad == true && successfulExit == false && throttleInterval == 10
+    }
+
+    private static func launchServicesResolvesMenuApp() -> Bool {
+        guard let urls = LSCopyApplicationURLsForBundleIdentifier("com.user.startwatch.menu" as CFString, nil)?
+            .takeRetainedValue() as? [URL] else {
+            return false
+        }
+
+        return urls.contains { url in
+            url.standardizedFileURL.path == expectedMenuAppPath
+        }
+    }
+
+    private static func hasPOSIXMode(path: String, expected: Int16) -> Bool {
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
+              let modeValue = attrs[.posixPermissions] as? NSNumber else {
+            return false
+        }
+        return modeValue.int16Value == expected
+    }
+
+    private static func isMachOBinary(atPath path: String) -> Bool {
+        guard let handle = FileHandle(forReadingAtPath: path) else { return false }
+        defer { try? handle.close() }
+        guard let bytes = try? handle.read(upToCount: 4), bytes.count == 4 else {
+            return false
+        }
+
+        let magic = bytes.withUnsafeBytes { $0.load(as: UInt32.self) }
+        switch magic {
+        case 0xFEEDFACE, 0xFEEDFACF, 0xCEFAEDFE, 0xCFFAEDFE, 0xCAFEBABE, 0xBEBAFECA, 0xCAFED00D, 0x0DD0FECA:
+            return true
+        default:
+            return false
+        }
     }
 
     private static func isLaunchAgentRunning(label: String) -> Bool {

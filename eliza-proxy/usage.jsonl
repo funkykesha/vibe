@@ -16,3 +16,8 @@
 {"ts":"2026-05-07T12:24:05.007Z","model":"claude-haiku-4-5","input":5399,"output":487,"cost_usd":0.007834}
 {"ts":"2026-05-08T12:56:09.463Z","model":"o4-mini","input":0,"output":0,"cost_usd":0}
 {"ts":"2026-05-08T12:59:09.501Z","model":"o4-mini","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-11T07:18:46.821Z","model":"deepseek-v3-1-terminus","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-11T07:19:01.018Z","model":"gpt-4o","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-11T07:21:26.243Z","model":"gpt-4o-mini","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-11T07:26:19.683Z","model":"gpt-4o-mini","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-11T14:25:27.464Z","model":"gpt-4o-mini","input":0,"output":0,"cost_usd":0}

@@ -16,7 +16,7 @@ bash install.sh              # builds, installs to /usr/local/bin, sets up Launc
 - Dev: `.build/debug/StartWatch`
 - Release: `.build/release/StartWatch` (symlink to arch-specific)
 - Installed CLI: `/usr/local/bin/startwatch` wrapper
-- Installed app binary: `/Applications/StartWatchMenu.app/Contents/MacOS/startwatch` or `~/Applications/StartWatchMenu.app/Contents/MacOS/startwatch`
+- Installed app binary: `/Applications/StartWatchMenu.app/Contents/MacOS/startwatch` or `/Applications/StartWatchMenu.app/Contents/MacOS/startwatch`
 
 ## Key Paths
 | Path | Purpose |
@@ -29,7 +29,7 @@ bash install.sh              # builds, installs to /usr/local/bin, sets up Launc
 | `~/.local/state/startwatch/daemon.log` | LaunchAgent stdout log after install |
 | `~/.local/state/startwatch/daemon-error.log` | LaunchAgent stderr log after install |
 | `~/Library/LaunchAgents/com.user.startwatch.plist` | Auto-start |
-| `/Applications/StartWatchMenu.app/` or `~/Applications/StartWatchMenu.app/` | Menu bar .app bundle |
+| `/Applications/StartWatchMenu.app/` or `/Applications/StartWatchMenu.app/` | Menu bar .app bundle |
 | `StartWatchMenu.app/Contents/MacOS/startwatch` | Single source-of-truth binary used by wrapper and LaunchAgent |
 
 ## Requirements

@@ -110,7 +110,7 @@ func requestAuthorization() {
 cp .build/release/MyApp /usr/local/bin/myapp
 
 # .app bundle бинарник — отдельная копия!
-cp .build/release/MyApp ~/Applications/MyMenuApp.app/Contents/MacOS/myapp
+cp .build/release/MyApp /Applications/MyMenuApp.app/Contents/MacOS/myapp
 ```
 
 ---
@@ -124,9 +124,9 @@ LaunchAgent plist
     └── /usr/local/bin/myapp daemon        # headless, без UI
             ├── бизнес-логика
             ├── IPC server (файловый polling)
-            └── spawnMenuAgent() → open -na ~/Applications/MyMenuApp.app --args menu-agent
+            └── spawnMenuAgent() → open -na /Applications/MyMenuApp.app --args menu-agent
 
-~/Applications/MyMenuApp.app/Contents/MacOS/myapp menu-agent
+/Applications/MyMenuApp.app/Contents/MacOS/myapp menu-agent
     └── NSApplication (.accessory)
             └── AppDelegate → NSStatusItem + NSMenu
 ```

@@ -1,11 +1,17 @@
 // StartWatch — StateManager: персистенция состояния на диск
 import Foundation
+import Darwin
 
 enum StateManager {
     static let stateDir: URL = {
         let dir = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".local/state/startwatch")
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(
+            at: dir,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
+        _ = chmod(dir.path, 0o700)
         return dir
     }()
 

@@ -12,7 +12,7 @@
 
 - **Не запускай `install.sh` самостоятельно** — требует `sudo`, sandbox Claude блокирует. Пользователь запускает вручную через `! ./install.sh`
 - **`swift build` требует `dangerouslyDisableSandbox: true`** — иначе sandbox блокирует компилятор
-- Бинарник и `.app` живут в `/Applications/` (не `~/Applications/`) — исправлено в v1.1
+- Бинарник и `.app` живут в `/Applications/` (не `/Applications/`) — исправлено в v1.1
 - CLI wrapper в `/usr/local/bin/startwatch` должен использовать **двойные кавычки** при присваивании пути: `MENU_BIN="/path/..."` — одинарные не раскрывают переменные
 - LaunchAgent должен запускать bundle-бинарник (`.../StartWatchMenu.app/Contents/MacOS/startwatch daemon`), иначе на macOS 26 возможен `AppleSystemPolicy: load code signature error 2`
 - `install.sh` пишет build warnings в `/tmp/startwatch-build.log`

@@ -4,7 +4,6 @@ import Foundation
 enum StartCommand {
     enum ExecutionPath: Equatable {
         case daemonIPC
-        case interactiveShell
     }
 
     static func run(args: [String]) {
@@ -24,38 +23,32 @@ enum StartCommand {
             exit(1)
         }
 
-        guard let startCmd = service.start else {
-            fputs("\(ANSIColors.yellow)No start command for '\(service.name)'\(ANSIColors.reset)\n", stderr)
+        print("\(ANSIColors.cyan)Starting \(service.name)...\(ANSIColors.reset)")
+        guard let response = IPCClient.sendAndReceive(.startService(name: service.name), allowBootstrap: false) else {
+            let uid = String(getuid())
+            let reason = IPCClient.daemonFailureDescription()
+            fputs("\(ANSIColors.red)Failed to start \(service.name): \(reason). Run: startwatch install or launchctl kickstart -k gui/\(uid)/com.user.startwatch\(ANSIColors.reset)\n", stderr)
             exit(1)
         }
 
-        if executionPath(for: service) == .daemonIPC {
-            print("\(ANSIColors.cyan)Starting \(service.name) in background...\((ANSIColors.reset))")
-            guard let response = IPCClient.sendAndReceive(.startService(name: service.name)) else {
-                let uid = String(getuid())
-                fputs("\(ANSIColors.red)Daemon not running. Run: startwatch install or launchctl kickstart -k gui/\(uid)/com.startwatch.daemon\(ANSIColors.reset)\n", stderr)
-                exit(1)
-            }
-
-            switch response {
-            case .ok:
-                print("\(ANSIColors.green)\(service.name) started successfully\(ANSIColors.reset)")
-            case .executeInTerminal:
-                fputs("\(ANSIColors.red)Unexpected terminal execution request for background service\(ANSIColors.reset)\n", stderr)
-                exit(1)
-            case .error(let message):
-                fputs("\(ANSIColors.red)Failed to start \(service.name): \(message)\(ANSIColors.reset)\n", stderr)
-                exit(1)
-            }
-        } else {
-            print("\(ANSIColors.cyan)Starting \(service.name)...\(ANSIColors.reset)")
-            print("\(ANSIColors.dim)$ \(startCmd)\(ANSIColors.reset)\n")
-            ServiceRunner.exec(command: startCmd, cwd: service.cwd)
+        switch response {
+        case .ok:
+            print("\(ANSIColors.green)\(service.name) started successfully\(ANSIColors.reset)")
+        case .executeInTerminal(let cmd):
+            print("\(ANSIColors.yellow)\(service.name) requires terminal execution\(ANSIColors.reset)")
+            print("\(ANSIColors.dim)$ \(cmd.command)\(ANSIColors.reset)\n")
+            ServiceRunner.exec(command: cmd.command, cwd: nil)
+        case .error(let message):
+            fputs("\(ANSIColors.red)Failed to start \(service.name): \(message)\(ANSIColors.reset)\n", stderr)
+            exit(1)
+        case .statusSnapshot:
+            fputs("\(ANSIColors.red)Failed to start \(service.name): unexpected status response\(ANSIColors.reset)\n", stderr)
+            exit(1)
         }
     }
 
     static func executionPath(for service: ServiceConfig) -> ExecutionPath {
-        service.background == true ? .daemonIPC : .interactiveShell
+        .daemonIPC
     }
 
     static func fuzzyMatch(name: String, in services: [ServiceConfig]) -> ServiceConfig? {

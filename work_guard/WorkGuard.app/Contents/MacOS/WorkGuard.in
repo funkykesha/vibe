@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PYTHONUNBUFFERED=1
+cd "$(dirname "SCRIPT_PATH_PLACEHOLDER")"
+exec "PYTHON_PATH_PLACEHOLDER" "SCRIPT_PATH_PLACEHOLDER"

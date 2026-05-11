@@ -21,6 +21,7 @@ struct ServiceConfig: Codable {
     let name: String
     let check: CheckConfig
     let start: String?
+    let stop: String?
     let restart: String?
     let cwd: String?
     let tags: [String]?
@@ -33,6 +34,7 @@ struct ServiceConfig: Codable {
         name: String,
         check: CheckConfig,
         start: String?,
+        stop: String? = nil,
         restart: String?,
         cwd: String?,
         tags: [String]?,
@@ -44,6 +46,7 @@ struct ServiceConfig: Codable {
         self.name = name
         self.check = check
         self.start = start
+        self.stop = stop
         self.restart = restart
         self.cwd = cwd
         self.tags = tags
@@ -57,6 +60,7 @@ struct ServiceConfig: Codable {
         case name
         case check
         case start
+        case stop
         case restart
         case cwd
         case tags
@@ -72,6 +76,7 @@ struct ServiceConfig: Codable {
         name = try container.decode(String.self, forKey: .name)
         check = try container.decode(CheckConfig.self, forKey: .check)
         start = try container.decodeIfPresent(String.self, forKey: .start)
+        stop = try container.decodeIfPresent(String.self, forKey: .stop)
         restart = try container.decodeIfPresent(String.self, forKey: .restart)
         cwd = try container.decodeIfPresent(String.self, forKey: .cwd)
         tags = try container.decodeIfPresent([String].self, forKey: .tags)
@@ -87,6 +92,7 @@ struct ServiceConfig: Codable {
         try container.encode(name, forKey: .name)
         try container.encode(check, forKey: .check)
         try container.encodeIfPresent(start, forKey: .start)
+        try container.encodeIfPresent(stop, forKey: .stop)
         try container.encodeIfPresent(restart, forKey: .restart)
         try container.encodeIfPresent(cwd, forKey: .cwd)
         try container.encodeIfPresent(tags, forKey: .tags)
@@ -217,6 +223,19 @@ enum ConfigManager {
             }
         }
 
+        let skippedAutostart = skippedAutostartServices(config: config)
+        if !skippedAutostart.isEmpty {
+            Logger.log(
+                level: .info,
+                component: "ConfigManager",
+                event: "CONFIG_WARNING_AUTOSTART_REQUIRES_BACKGROUND",
+                details: [
+                    "serviceCount": .int(skippedAutostart.count),
+                    "services": .string(skippedAutostart.map(\.name).joined(separator: ","))
+                ]
+            )
+        }
+
         if errors.isEmpty {
             Logger.log(level: .info, component: "ConfigManager", event: "CONFIG_VALIDATE_SUCCESS", details: ["serviceCount": .int(config.services.count)])
         } else {
@@ -224,6 +243,10 @@ enum ConfigManager {
         }
 
         return errors
+    }
+
+    static func skippedAutostartServices(config: AppConfig) -> [ServiceConfig] {
+        config.services.filter { $0.autostart == true && $0.background != true }
     }
 
     static func createExample() {

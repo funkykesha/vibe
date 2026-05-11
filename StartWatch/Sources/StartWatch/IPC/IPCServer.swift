@@ -10,17 +10,14 @@ final class IPCServer {
     }
 
     private var serverFD: Int32 = -1
-    private let subscribersQueue = DispatchQueue(label: "com.startwatch.ipc.subscribers", attributes: .concurrent)
     private let connectionsQueue = DispatchQueue(label: "com.startwatch.ipc.connections", attributes: .concurrent)
-    private var subscribers: Set<Int32> = []
     private var connections: [Int32: ClientConnection] = [:]
 
     var onTriggerCheck: (() -> Void)?
-    var onStartService: ((String) -> IPCServiceResponse)?
-    var onStopService: ((String) -> Void)?
-    var onRestartService: ((String) -> IPCServiceResponse)?
+    var onStartService: ((String) -> IPCResponse)?
+    var onStopService: ((String) -> IPCResponse)?
+    var onRestartService: ((String) -> IPCResponse)?
     var onQuit: (() -> Void)?
-    var onSubscribeSnapshot: (() -> [CodableCheckResult])?
     var onGetStatusSnapshot: (() -> [CodableCheckResult])?
 
     func start() -> StartResult {
@@ -58,6 +55,9 @@ final class IPCServer {
             Darwin.close(serverFD)
             serverFD = -1
             return .failed(bindErrno)
+        }
+        if chmod(path, 0o600) != 0 {
+            Logger.log(level: .error, component: "IPCServer", event: "SOCKET_CHMOD_FAILED", details: ["errno": .int(Int(errno)), "socketPath": .string(path)])
         }
         guard Darwin.listen(serverFD, 5) == 0 else {
             let listenErrno = errno
@@ -103,11 +103,10 @@ final class IPCServer {
         let connection = ClientConnection(
             fd: fd,
             onPayload: { [weak self] payload, framed in
-                self?.process(payload: payload, fd: fd, framed: framed)
+                self?.process(payload: payload, fd: fd)
             },
             onDisconnect: { [weak self] in
                 self?.removeConnection(fd)
-                self?.removeSubscriber(fd)
                 Logger.log(level: .info, component: "IPCServer", event: "SOCKET_CLOSED", details: ["fd": .int(Int(fd))])
             }
         )
@@ -125,98 +124,21 @@ final class IPCServer {
         }
     }
 
-    private func process(payload: Data, fd: Int32, framed: Bool) {
-        guard let cmd = try? JSONDecoder().decode(IPCCommand.self, from: payload) else {
-            Logger.log(level: .error, component: "IPCServer", event: "COMMAND_DECODE_FAILED", details: ["framed": .bool(framed)])
-            return
-        }
-
-        Logger.log(level: .info, component: "IPCServer", event: "COMMAND_RECEIVED", details: ["action": .string(cmd.action), "name": cmd.name.map { AnyCodable.string($0) } ?? .null])
-
-        if cmd.action == "subscribe" {
-            addSubscriber(fd)
-            let snapshot = IPCStatusSnapshot(services: onSubscribeSnapshot?() ?? [])
-            send(message: .statusSnapshot(snapshot), fd: fd, framed: framed)
-            return
-        }
-
-        if cmd.action == "get_status" {
-            let snapshot = IPCStatusSnapshot(services: onGetStatusSnapshot?() ?? [])
-            send(message: .statusSnapshot(snapshot), fd: fd, framed: framed)
+    private func process(payload: Data, fd: Int32) {
+        guard let cmd = try? JSONDecoder().decode(IPCRequest.self, from: payload) else {
+            Logger.log(level: .error, component: "IPCServer", event: "COMMAND_DECODE_FAILED", details: [:])
             return
         }
 
         let response = DispatchQueue.main.sync { self.dispatch(cmd) } ?? .ok
-        send(response: response, fd: fd, framed: framed)
+        send(response: response, fd: fd)
     }
 
-    private func send(response: IPCServiceResponse, fd: Int32, framed: Bool) {
+    private func send(response: IPCResponse, fd: Int32) {
         guard let payload = try? JSONEncoder().encode(response) else {
             return
         }
-
-        let data: Data
-        if framed, let framedPayload = try? IPCFrameCodec.encode(payload) {
-            data = framedPayload
-        } else {
-            data = payload
-        }
-
-        send(data: data, fd: fd)
-    }
-
-    private func send(message: IPCMessage, fd: Int32, framed: Bool) {
-        guard let payload = try? JSONEncoder().encode(message) else {
-            return
-        }
-
-        let data: Data
-        if framed, let framedPayload = try? IPCFrameCodec.encode(payload) {
-            data = framedPayload
-        } else {
-            data = payload
-        }
-
-        send(data: data, fd: fd)
-    }
-
-    private func addSubscriber(_ fd: Int32) {
-        _ = subscribersQueue.sync(flags: .barrier) {
-            subscribers.insert(fd)
-        }
-    }
-
-    private func removeSubscriber(_ fd: Int32) {
-        _ = subscribersQueue.sync(flags: .barrier) {
-            subscribers.remove(fd)
-        }
-    }
-
-    func broadcastServiceChanged(_ service: CodableCheckResult) {
-        let snapshot = subscribersQueue.sync { Array(subscribers) }
-        guard !snapshot.isEmpty else { return }
-
-        let message = IPCMessage.serviceChanged(IPCServiceChange(service: service))
-        guard let payload = try? JSONEncoder().encode(message),
-              let framed = try? IPCFrameCodec.encode(payload) else {
-            return
-        }
-
-        var failed: [Int32] = []
-        for fd in snapshot {
-            let wrote = framed.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
-            if wrote < 0 {
-                failed.append(fd)
-            }
-        }
-
-        if !failed.isEmpty {
-            subscribersQueue.sync(flags: .barrier) {
-                for fd in failed {
-                    subscribers.remove(fd)
-                }
-            }
-        }
+        send(data: payload, fd: fd)
     }
 
     private func send(data: Data, fd: Int32) {
@@ -224,31 +146,24 @@ final class IPCServer {
         connection?.send(data)
     }
 
-    private func dispatch(_ cmd: IPCCommand) -> IPCServiceResponse? {
-        switch cmd.action {
-        case "trigger_check", "check_now":
+    private func dispatch(_ cmd: IPCRequest) -> IPCResponse? {
+        switch cmd {
+        case .triggerCheck:
             onTriggerCheck?()
-        case "start_service":
-            if let n = cmd.name { return onStartService?(n) }
-            return .ok
-        case "stop_service":
-            if let n = cmd.name { onStopService?(n) }
-        case "restart_service":
-            if let n = cmd.name { return onRestartService?(n) }
-            return .ok
-        case "quit":
+        case .getStatus:
+            return .statusSnapshot(onGetStatusSnapshot?() ?? [])
+        case .startService(let name):
+            return onStartService?(name) ?? .error("service handler unavailable")
+        case .stopService(let name):
+            return onStopService?(name) ?? .error("service handler unavailable")
+        case .restartService(let name):
+            return onRestartService?(name) ?? .error("service handler unavailable")
+        case .quit:
             Logger.log(level: .info, component: "IPCServer", event: "QUIT_RECEIVED", details: ["action": .string("Received quit command, calling onQuit callback")])
             onQuit?()
-        default:
-            break
         }
         return nil
     }
 
     deinit { stop() }
-}
-
-private struct IPCCommand: Codable {
-    let action: String
-    let name: String?
 }

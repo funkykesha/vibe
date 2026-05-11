@@ -1,0 +1,6 @@
+# Memory Bank .gitignore
+# By default, Memory Bank files ARE tracked in git.
+# Uncomment lines below to exclude them from version control.
+#
+# *
+# !.gitignore

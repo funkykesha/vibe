@@ -9,7 +9,8 @@ final class MenuBarController {
     var onCheckNow: (() -> Void)?
     var onOpenCLI: (() -> Void)?
     var onOpenConfig: (() -> Void)?
-    var onQuit: (() -> Void)?
+    var onQuitMenu: (() -> Void)?
+    var onStopDaemon: (() -> Void)?
     var onStartService: ((String) -> Void)?
     var onStopService: ((String) -> Void)?
     var onRestartService: ((String) -> Void)?
@@ -20,6 +21,7 @@ final class MenuBarController {
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem?.autosaveName = "com.user.startwatch.menu.statusItem"
         updateIcon(state: .allOk)
         buildMenu()
     }
@@ -130,7 +132,7 @@ final class MenuBarController {
         menu.addItem(NSMenuItem.separator())
 
         if lastResults.isEmpty {
-            let text = isDaemonOffline ? "  Daemon not running" : "  No checks yet"
+            let text = isDaemonOffline ? "  Daemon offline" : "  No checks yet"
             let item = NSMenuItem(title: text, action: nil, keyEquivalent: "")
             item.isEnabled = false
             menu.addItem(item)
@@ -138,7 +140,7 @@ final class MenuBarController {
             if isDaemonOffline {
                 let staleText: String
                 if let seconds = staleSeconds, seconds >= 30 {
-                    staleText = "  ⚠️ Daemon offline. Last state from \(seconds)s ago"
+                    staleText = "  Daemon offline. Last state from \(seconds)s ago"
                 } else {
                     staleText = "  Daemon offline. Showing last known state"
                 }
@@ -150,7 +152,7 @@ final class MenuBarController {
             for result in lastResults {
                 let menuItem = NSMenuItem()
                 menuItem.isEnabled = true
-                let rowView = ServiceMenuItemView(result: result)
+                let rowView = ServiceMenuItemView(result: result, lifecycleEnabled: !isDaemonOffline)
 
                 rowView.onOpen = { [weak self] in
                     self?.openService(result.service)
@@ -214,13 +216,22 @@ final class MenuBarController {
 
         menu.addItem(NSMenuItem.separator())
 
-        let quit = NSMenuItem(
-            title: "Quit StartWatch",
-            action: #selector(quitClicked),
+        let stopDaemon = NSMenuItem(
+            title: "Stop Daemon",
+            action: #selector(stopDaemonClicked),
+            keyEquivalent: ""
+        )
+        stopDaemon.target = self
+        stopDaemon.isEnabled = !isDaemonOffline
+        menu.addItem(stopDaemon)
+
+        let quitMenu = NSMenuItem(
+            title: "Quit Menu",
+            action: #selector(quitMenuClicked),
             keyEquivalent: "q"
         )
-        quit.target = self
-        menu.addItem(quit)
+        quitMenu.target = self
+        menu.addItem(quitMenu)
 
         statusItem.menu = menu
     }
@@ -229,7 +240,8 @@ final class MenuBarController {
     @objc private func checkNowClicked() { onCheckNow?() }
     @objc private func startDaemonClicked() { onStartDaemon?() }
     @objc private func openConfigClicked() { onOpenConfig?() }
-    @objc private func quitClicked() { onQuit?() }
+    @objc private func stopDaemonClicked() { onStopDaemon?() }
+    @objc private func quitMenuClicked() { onQuitMenu?() }
 
     @objc private func terminalSelected(_ sender: NSMenuItem) {
         guard let id = sender.representedObject as? String else { return }

@@ -5,10 +5,16 @@ enum DaemonCommand {
     static let launchAgentLabels = ["com.user.startwatch", "com.startwatch.daemon"]
 
     static func run(args: [String]) {
-        let noMenu = args.contains("--no-menu")
-        let coordinator = DaemonCoordinator()
-        coordinator.start(noMenu: noMenu)
-        RunLoop.main.run()
+        _ = args
+        let runtime = DaemonRuntime()
+        switch runtime.start() {
+        case .started:
+            RunLoop.main.run()
+        case .alreadyRunning:
+            exit(0)
+        case .failed:
+            exit(1)
+        }
     }
 
     static func ensureDaemonRunning() {

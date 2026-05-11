@@ -33,7 +33,7 @@ final class IPCServiceResponseTests: XCTestCase {
             background: false
         )
 
-        let response = DaemonCoordinator.interactiveResponse(
+        let response = DaemonRuntime.interactiveResponse(
             for: service,
             command: service.start,
             missingCommandError: "No start command"
@@ -62,7 +62,7 @@ final class IPCServiceResponseTests: XCTestCase {
             background: false
         )
 
-        let response = DaemonCoordinator.interactiveResponse(
+        let response = DaemonRuntime.interactiveResponse(
             for: service,
             command: service.start,
             missingCommandError: "No start command"

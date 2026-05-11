@@ -19,6 +19,8 @@ enum CLIRouter {
             ListCommand.run(args: rest)
         case "stop":
             StopCommand.run(args: rest)
+        case "quit":
+            QuitCommand.run(args: rest)
         case "config":
             ConfigCommand.run(args: rest)
         case "log":
@@ -53,7 +55,8 @@ enum CLIRouter {
             start <name>       Start a specific service
             restart <name|all> Restart a service or all failed
             list               List all configured services
-            stop               Stop daemon and menu agent
+            stop <name>        Stop a specific service
+            quit               Stop daemon only (menu stays running)
             install            Install + bootstrap LaunchAgent daemon autostart
             uninstall          Uninstall LaunchAgent daemon autostart
             config             Open config in $EDITOR
@@ -66,9 +69,9 @@ enum CLIRouter {
             startwatch restart all         Restart all failed (live table)
             startwatch restart Redis       Restart specific service
             startwatch list                List configured services
-            startwatch stop                Stop StartWatch
+            startwatch stop Redis          Stop specific service
+            startwatch quit                Stop daemon only
             startwatch doctor --repair-ui  Repair signature + menubar cache
-            startwatch daemon --no-menu    Run daemon without menu bar
 
         \(ANSIColors.bold)OPTIONS:\(ANSIColors.reset)
             --json             Output as JSON

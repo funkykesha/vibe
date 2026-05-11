@@ -13,13 +13,17 @@ final class ServiceMenuItemView: NSView {
     private let restartButton: NSButton
     private let isRunning: Bool
     private let hasOpenAction: Bool
+    private let lifecycleEnabled: Bool
+    private let detailText: String
 
     static let rowHeight: CGFloat = 28
     static let rowWidth: CGFloat = 280
 
-    init(result: CheckResult) {
+    init(result: CheckResult, lifecycleEnabled: Bool = true) {
         self.isRunning = result.isRunning
         self.hasOpenAction = result.service.open != nil
+        self.lifecycleEnabled = lifecycleEnabled
+        self.detailText = result.detail
         self.nameLabel = NSTextField(labelWithString: result.service.name)
 
         let playStopImage = NSImage(
@@ -55,6 +59,8 @@ final class ServiceMenuItemView: NSView {
         if hasOpenAction {
             nameLabel.addGestureRecognizer(NSClickGestureRecognizer(target: self, action: #selector(nameTapped)))
             nameLabel.toolTip = result.service.open
+        } else if !detailText.isEmpty {
+            nameLabel.toolTip = detailText
         }
         addSubview(nameLabel)
 
@@ -67,6 +73,7 @@ final class ServiceMenuItemView: NSView {
         restartButton.target = self
         restartButton.action = #selector(restartTapped)
         restartButton.toolTip = "Перезапустить"
+        restartButton.isEnabled = lifecycleEnabled
         addSubview(restartButton)
 
         playStopButton.frame = NSRect(x: Self.rowWidth - 52, y: btnY, width: btnSize, height: btnSize)
@@ -75,6 +82,7 @@ final class ServiceMenuItemView: NSView {
         playStopButton.target = self
         playStopButton.action = #selector(playStopTapped)
         playStopButton.toolTip = result.isRunning ? "Остановить" : "Запустить"
+        playStopButton.isEnabled = lifecycleEnabled
         addSubview(playStopButton)
 
         let area = NSTrackingArea(
@@ -122,6 +130,7 @@ final class ServiceMenuItemView: NSView {
     }
 
     @objc private func playStopTapped() {
+        guard lifecycleEnabled else { return }
         if isRunning {
             onStop?()
         } else {
@@ -131,6 +140,7 @@ final class ServiceMenuItemView: NSView {
     }
 
     @objc private func restartTapped() {
+        guard lifecycleEnabled else { return }
         onRestart?()
         enclosingMenuItem?.menu?.cancelTracking()
     }

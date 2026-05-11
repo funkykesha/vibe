@@ -8,8 +8,6 @@ final class ClientConnection {
     private let fd: Int32
     private let onPayload: PayloadHandler
     private let onDisconnect: DisconnectHandler
-    private var decoder = IPCFrameDecoder()
-    private var didProcessFramedMessage = false
     private var isClosed = false
 
     init(fd: Int32, onPayload: @escaping PayloadHandler, onDisconnect: @escaping DisconnectHandler) {
@@ -31,6 +29,7 @@ final class ClientConnection {
 
     private func readLoop() {
         defer { close() }
+        var buffer = Data()
 
         while true {
             var buf = [UInt8](repeating: 0, count: 4096)
@@ -38,28 +37,13 @@ final class ClientConnection {
             Logger.log(level: .info, component: "ClientConnection", event: "SOCKET_READ", details: ["bytesRead": .int(n), "fd": .int(Int(fd))])
 
             guard n > 0 else {
-                return
-            }
-
-            let chunk = Data(buf[..<n])
-            do {
-                let payloads = try decoder.append(chunk)
-                if !payloads.isEmpty {
-                    didProcessFramedMessage = true
+                if !buffer.isEmpty {
+                    onPayload(buffer, false)
                 }
-
-                for payload in payloads {
-                    onPayload(payload, true)
-                }
-            } catch {
-                Logger.log(level: .error, component: "ClientConnection", event: "FRAME_DECODE_FAILED", details: ["fd": .int(Int(fd))])
                 return
             }
 
-            if !didProcessFramedMessage {
-                onPayload(chunk, false)
-                return
-            }
+            buffer.append(contentsOf: buf[..<n])
         }
     }
 

@@ -1,8 +1,8 @@
 import Foundation
 
 enum InstallCommand {
-    private static let label = "com.startwatch.daemon"
-    private static let legacyLabel = "com.user.startwatch"
+    private static let label = "com.user.startwatch"
+    private static let legacyLabel = "com.startwatch.daemon"
 
     static func run(args: [String]) {
         let uid = String(getuid())
@@ -90,7 +90,6 @@ enum InstallCommand {
             <array>
                 <string>\(binaryPath)</string>
                 <string>daemon</string>
-                <string>--no-menu</string>
             </array>
             <key>RunAtLoad</key>
             <true/>
@@ -99,7 +98,7 @@ enum InstallCommand {
                 <key>SuccessfulExit</key>
                 <false/>
             </dict>
-            <key>ExitTimeOut</key>
+            <key>ThrottleInterval</key>
             <integer>10</integer>
             <key>StandardOutPath</key>
             <string>\(home)/.local/state/startwatch/daemon.log</string>
