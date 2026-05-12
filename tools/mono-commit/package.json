@@ -1,0 +1,11 @@
+{
+  "name": "mono-commit",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "mono-commit": "./bin/mono-commit.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
