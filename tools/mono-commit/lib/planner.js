@@ -3,6 +3,21 @@ const path = require("path");
 const { execFileSync } = require("child_process");
 const { loadConfig } = require("./config");
 
+const TOP_LEVEL_IGNORE = new Set([
+  ".git",
+  ".beads",
+  ".claude",
+  ".cursor",
+  ".memory-bank",
+  ".vscode",
+  "node_modules",
+  "dist",
+  "build",
+  "coverage",
+  "tmp",
+  "temp",
+]);
+
 function planChanges(options = {}) {
   const repoRoot = resolveRepoRoot(options.cwd || process.cwd());
   const { config } = loadConfig(repoRoot);
@@ -247,6 +262,17 @@ function classifyPath(filePath, config, repoRoot) {
     }
   }
 
+  if (segments.length > 1 && shouldAutoDiscoverProject(first)) {
+    return {
+      id: sanitizeForId(first),
+      groupType: "project",
+      scope: resolveScope(first, first, config, repoRoot),
+      path: first,
+      candidateType: "unknown",
+      pathsForCommands: [first],
+    };
+  }
+
   return {
     id: "root",
     groupType: "root",
@@ -255,6 +281,10 @@ function classifyPath(filePath, config, repoRoot) {
     candidateType: "unknown",
     pathsForCommands: [segments[0] ? filePath.split("/")[0] === filePath ? filePath : filePath : "."],
   };
+}
+
+function shouldAutoDiscoverProject(topLevelDir) {
+  return Boolean(topLevelDir) && !topLevelDir.startsWith(".") && !TOP_LEVEL_IGNORE.has(topLevelDir);
 }
 
 function resolveScope(groupPath, fallbackScope, config, repoRoot) {

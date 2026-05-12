@@ -122,3 +122,45 @@ test("plan creates one cross_project_move group for partial rename", () => {
   assert.equal(move.files[0].old_path, "packages/ui/Button.tsx");
   assert.equal(move.files[0].new_path, "packages/shared/Button.tsx");
 });
+
+test("plan auto-discovers unknown top-level projects and keeps service dirs in root", () => {
+  const repoDir = initRepo();
+  fs.mkdirSync(path.join(repoDir, "work_guard/src"), { recursive: true });
+  fs.mkdirSync(path.join(repoDir, "tmp-build/cache"), { recursive: true });
+  fs.mkdirSync(path.join(repoDir, ".claude/hooks"), { recursive: true });
+  fs.mkdirSync(path.join(repoDir, "node_modules/pkg"), { recursive: true });
+  fs.writeFileSync(path.join(repoDir, "work_guard/src/main.swift"), "print(\"hello\")\n");
+  fs.writeFileSync(path.join(repoDir, "tmp-build/cache/output.txt"), "ignore bucket\n");
+  fs.writeFileSync(path.join(repoDir, ".claude/hooks/rule.txt"), "meta\n");
+  fs.writeFileSync(path.join(repoDir, "node_modules/pkg/index.js"), "pkg\n");
+  fs.writeFileSync(path.join(repoDir, "README.md"), "root\n");
+  run("git", ["add", "."], repoDir);
+  run("git", ["commit", "-m", "init"], repoDir);
+
+  fs.writeFileSync(path.join(repoDir, "work_guard/src/main.swift"), "print(\"changed\")\n");
+  fs.writeFileSync(path.join(repoDir, "tmp-build/cache/output.txt"), "changed\n");
+  fs.writeFileSync(path.join(repoDir, ".claude/hooks/rule.txt"), "meta2\n");
+  fs.writeFileSync(path.join(repoDir, "node_modules/pkg/index.js"), "pkg2\n");
+  fs.writeFileSync(path.join(repoDir, "README.md"), "changed\n");
+
+  const plan = planChanges({ cwd: repoDir, staged: false });
+  const workGuard = plan.groups.find((group) => group.id === "work-guard");
+  const tmpBuild = plan.groups.find((group) => group.id === "tmp-build");
+  const root = plan.groups.find((group) => group.id === "root");
+
+  assert.ok(workGuard);
+  assert.equal(workGuard.group_type, "project");
+  assert.equal(workGuard.scope, "work_guard");
+  assert.equal(workGuard.path, "work_guard");
+  assert.equal(workGuard.diff_command, "git diff HEAD -- work_guard");
+
+  assert.ok(tmpBuild);
+  assert.equal(tmpBuild.group_type, "project");
+  assert.equal(tmpBuild.path, "tmp-build");
+
+  assert.ok(root);
+  assert.equal(root.scope, "repo");
+  assert.ok(root.files.some((file) => file.path === "README.md"));
+  assert.ok(root.files.some((file) => file.path === ".claude/hooks/rule.txt"));
+  assert.ok(root.files.some((file) => file.path === "node_modules/pkg/index.js"));
+});
