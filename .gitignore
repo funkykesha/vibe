@@ -3,3 +3,4 @@
 .sisyphus/
 .build/
 !.git/
+.DS_Store

@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-05-12
+
+- Hardened `install-workguard-applications-launchagent` intent before implementation: LaunchAgent `ProgramArguments` now use absolute `/usr/bin/open` plus `/Applications/WorkGuard.app`; packaging directory ambiguity is closed as `packaging/`.
+- Implemented, verified, synced, and archived OpenSpec change `install-workguard-applications-launchagent`.
+- Added main specs for `workguard-applications-rebuild`, `workguard-login-autostart`, `workguard-local-debug-launch`, `workguard-privacy-boundary`, and `workguard-activity-boundary`.
+- Live `bash rebuild.sh` verification passed; post-rebuild manual checks passed for disk state, LaunchAgent state, runtime startup, single-instance app/debug launches, obsolete `setup.sh`, and no outbound telemetry patterns.
+
 ## 2026-05-11
 
 - Clarified documentation roles: `AGENTS.md` is agent entrypoint, `CLAUDE.md` is redirect-only, `README.md` is the human-facing current workflow, `CONTEXT.md` is glossary/domain context, `.memory-bank/` is operational agent memory, and `docs/architecture/README.md` is the C4 status index.

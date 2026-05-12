@@ -1,3 +1,4 @@
+
 # WorkGuard — deployment view (C4 Level 4, Current)
 
 WorkGuard is desktop-only: one user session, one machine, no server tier.
@@ -12,7 +13,7 @@ C4Deployment
   Deployment_Node(mac, "User Mac", "macOS (Apple Silicon or Intel)") {
     Deployment_Node(user_session, "User session", "GUI login") {
       Container(app_bundle, "/Applications/WorkGuard.app", "macOS bundle", "Installed GUI launcher; MacOS/WorkGuard → exec python")
-      Container(launch_agent, "Planned user LaunchAgent", "launchd plist", "Login startup; opens /Applications/WorkGuard.app")
+      Container(launch_agent, "Planned user LaunchAgent", "launchd plist", "Login startup; runs /usr/bin/open /Applications/WorkGuard.app")
     }
     Deployment_Node(conda, "Conda base", "miniforge / miniconda") {
       Container(py_rt, "workguard env", "Python 3.11", "rumps, PyObjC, pynput, tkinter")
@@ -23,15 +24,18 @@ C4Deployment
   }
 
   Rel(app_bundle, py_rt, "exec", "Absolute path in generated launcher")
-  Rel(launch_agent, app_bundle, "opens at login", "ProgramArguments open app")
+  Rel(launch_agent, app_bundle, "opens at login", "ProgramArguments /usr/bin/open app")
   Rel(py_rt, cfg, "File I/O", "read/write on same volume")
+
 ```
 
 ## Build and run paths
 
 - **Public entrypoint:** `bash rebuild.sh`.
 - **Run:** user opens `/Applications/WorkGuard.app`.
-- **Login startup:** `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` opens `/Applications/WorkGuard.app` with `RunAtLoad=true` and `KeepAlive=false`.
+- **Login startup:** `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` runs `/usr/bin/open /Applications/WorkGuard.app` with `RunAtLoad=true` and `KeepAlive=false`.
+- **Packaging assets:** bundle templates live under `packaging/` and are not runnable targets.
+- **Bundle identity:** `CFBundleIdentifier=com.agaibadulin.workguard` for the installed app.
 - **Debug only:** `conda run -n workguard python3 work_guard.py`.
 - **Single instance:** `~/.config/work_guard/work_guard.lock` (fcntl) prevents duplicate Python cores.
 

@@ -25,7 +25,7 @@ C4Container
 
   Rel(user, py_core, "Starts/uses", "/Applications/WorkGuard.app")
   Rel(user, swift_agent, "Uses", "Menu clicks when Swift path enabled")
-  Rel(launchd, py_core, "Starts at login", "LaunchAgent opens /Applications/WorkGuard.app")
+  Rel(launchd, py_core, "Starts at login", "LaunchAgent runs /usr/bin/open /Applications/WorkGuard.app")
   Rel(py_core, local_store, "Reads/writes")
   Rel(swift_agent, local_store, "Reads status, writes commands")
   Rel(py_core, overlay_child, "Spawns", "stdin JSON payload")
@@ -49,6 +49,6 @@ C4Container
 
 - **Supported launch target:** `/Applications/WorkGuard.app`.
 - **Public entrypoint:** `bash rebuild.sh`.
-- **Login startup contract:** `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` opens `/Applications/WorkGuard.app` with `RunAtLoad=true` and `KeepAlive=false`.
+- **Login startup contract:** `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` runs `/usr/bin/open /Applications/WorkGuard.app` with `RunAtLoad=true` and `KeepAlive=false`.
 - **Optional Swift agent:** `WorkGuardMenu/workguard-menu`; toggled with `WORKGUARD_SWIFT_MENU` and presence of the binary.
 - **Not a supported target:** project-local `.app`.

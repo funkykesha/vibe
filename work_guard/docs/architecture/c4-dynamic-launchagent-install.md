@@ -22,7 +22,7 @@ C4Dynamic
   Rel(user, setup, "1. Runs rebuild/install")
   Rel(setup, app, "2. Replaces, signs, relaunches", "cp / codesign / open")
   Rel(setup, ls, "3. Refreshes registration", "lsregister")
-  Rel(setup, plist, "4. Writes ProgramArguments", "open /Applications/WorkGuard.app")
+  Rel(setup, plist, "4. Writes ProgramArguments", "/usr/bin/open /Applications/WorkGuard.app")
   Rel(setup, launchd, "5. Reloads agent", "launchctl bootout/bootstrap")
   Rel(launchd, app, "6. Opens at login")
   Rel(app, py, "7. Execs configured python and script")
@@ -36,7 +36,7 @@ C4Dynamic
 
 | Concern | Direction |
 |---------|-----------|
-| Launch target | LaunchAgent opens `/Applications/WorkGuard.app`; the app launcher then execs Conda `python3 work_guard.py`. |
+| Launch target | LaunchAgent runs `/usr/bin/open /Applications/WorkGuard.app`; the app launcher then execs Conda `python3 work_guard.py`. |
 | Manual launch | `/Applications/WorkGuard.app` becomes the supported GUI target; direct terminal launch remains for debugging. |
 | Bundle freshness | Reinstall stops WorkGuard, replaces `/Applications/WorkGuard.app`, refreshes LaunchServices, signs/registers, and relaunches. |
 | Duplicate protection | Existing `fcntl` lock remains authoritative across installed app launches and direct debug launches. Project-local `.app` is not a supported launch target. |
@@ -46,4 +46,4 @@ C4Dynamic
 ## Open questions before implementation
 
 - Exact LaunchServices refresh command sequence and failure handling.
-- Exact packaging-directory layout for bundle templates and install-time assets.
+- Resolved: bundle templates and install-time assets live under `packaging/`.

@@ -1,3 +1,4 @@
+
 # WorkGuard
 
 WorkGuard — локальное macOS menu bar приложение, которое следит за переработкой, показывает уведомления и при необходимости поднимает полноэкранный overlay.
@@ -8,17 +9,19 @@ WorkGuard — локальное macOS menu bar приложение, котор
 
 ```bash
 bash rebuild.sh
+
 ```
 
 Ожидаемый результат:
 
 - обновлённый runnable app живёт только в `/Applications/WorkGuard.app`
 - login startup управляется через `~/Library/LaunchAgents/com.agaibadulin.workguard.plist`
-- LaunchAgent использует `open /Applications/WorkGuard.app`
+- LaunchAgent использует `/usr/bin/open /Applications/WorkGuard.app`
 - `RunAtLoad=true`
 - `KeepAlive=false`
 
 Legacy setup script path не является текущим путём. Это obsolete path: не wrapper и не fallback.
+`bash setup.sh` завершится с ошибкой и укажет на `bash rebuild.sh`.
 
 ## Запуск, остановка, debug
 
@@ -27,7 +30,7 @@ Legacy setup script path не является текущим путём. Это
 | Пересобрать и переустановить | `bash rebuild.sh` |
 | Запустить GUI | `open /Applications/WorkGuard.app` |
 | Остановить приложение | Пункт меню **«Выйти»** или `bash scripts/stop_workguard.sh` |
-| Debug / diagnostics | direct Python launch из терминала только для отладки |
+| Debug / diagnostics | `conda run -n workguard python3 work_guard.py` (только для отладки) |
 
 Project-local `.app` не считается supported launch target.
 
@@ -42,6 +45,7 @@ Project-local `.app` не считается supported launch target.
 
 ```bash
 bash scripts/stop_workguard.sh
+
 ```
 
 ## Разрешения macOS
@@ -76,7 +80,7 @@ bash scripts/stop_workguard.sh
 ## Planned vs current
 
 - **Current:** `bash rebuild.sh` -> `/Applications/WorkGuard.app` -> optional login startup via user LaunchAgent.
-- **Planned/documented boundary:** ActivitySignals как future local/coarse-only boundary без collectors в текущей реализации.
+- **Planned/documented boundary:** ActivitySignals как future local/coarse-only boundary без collectors/ingestion/export в текущей реализации.
 - **Debug only:** direct Python launch.
 
 ## Для разработчика

@@ -1,6 +1,9 @@
 # Генерируется setup.sh из WorkGuard.in (содержит абсолютные пути)
 WorkGuard.app/Contents/MacOS/WorkGuard
 
+# Генерируется rebuild.sh из packaging/WorkGuard.in (абсолютные пути)
+packaging/WorkGuard.app/Contents/MacOS/WorkGuard
+
 # Собирается swiftc из WorkGuardMenu/main.swift
 WorkGuardMenu/workguard-menu
 

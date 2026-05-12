@@ -11,7 +11,7 @@
 
 - Public entrypoint is `bash rebuild.sh`.
 - Supported GUI target is `/Applications/WorkGuard.app`.
-- LaunchAgent contract is `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` with `open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`.
+- LaunchAgent contract is `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` with `/usr/bin/open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`.
 - Direct Python launch is debug/diagnostics only.
 - Legacy setup flow is obsolete; not a wrapper and not a fallback.
 - Installed app remains a launcher to the configured Conda Python and project `work_guard.py`; it is not a standalone bundled Python application.

@@ -30,7 +30,7 @@
 - Project-local `.app` не является supported launch target.
 - Legacy setup script path obsolete. Не wrapper. Не fallback.
 - LaunchAgent path: `~/Library/LaunchAgents/com.agaibadulin.workguard.plist`.
-- LaunchAgent contract: `open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`.
+- LaunchAgent contract: `/usr/bin/open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`.
 - Stable bundle id: `com.agaibadulin.workguard`.
 - Direct Python launch — только debug/diagnostics.
 - ActivitySignals — future boundary only; local/coarse-only; collectors сейчас отсутствуют.

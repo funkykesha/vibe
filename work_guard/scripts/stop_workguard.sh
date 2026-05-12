@@ -25,7 +25,8 @@ if [[ -d "$LAUNCH_AGENTS_DIR" ]]; then
     launchctl bootout "gui/${UID_NUM}" "$plist" 2>/dev/null || true
 
     label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "$plist" 2>/dev/null || true)"
-    if [[ -n "$label" ]]; then
+    # Do not disable the canonical WorkGuard agent: bootstrap alone does not re-enable a disabled label.
+    if [[ -n "$label" && "$label" != "com.agaibadulin.workguard" ]]; then
       launchctl disable "gui/${UID_NUM}/${label}" 2>/dev/null || true
     fi
   done < <(find "$LAUNCH_AGENTS_DIR" -maxdepth 1 -type f -name '*.plist' | sort)

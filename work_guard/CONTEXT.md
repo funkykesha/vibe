@@ -57,7 +57,8 @@ _Avoid_: setup wrapper, secondary install command
 
 **Login Startup Policy**:
 LaunchAgent behavior that starts WorkGuard at load/login without forcing
-restarts after the user quits.
+restarts after the user quits. The LaunchAgent runs
+`/usr/bin/open /Applications/WorkGuard.app`.
 _Avoid_: daemon-style keepalive, recursive autostart
 
 **Stable App Identity**:
@@ -84,7 +85,8 @@ _Avoid_: timestamp Bundle ID churn, permission-reset identity changes
 - A **Rebuild Install Flow** produces and installs the **Supported GUI target**.
 - An **Obsolete Setup Path** should be removed from user-facing docs and future
   implementation rather than preserved as a second command.
-- **Login Startup Policy** uses `RunAtLoad=true` and `KeepAlive=false`.
+- **Login Startup Policy** uses `/usr/bin/open /Applications/WorkGuard.app`,
+  `RunAtLoad=true`, and `KeepAlive=false`.
 - **Stable App Identity** is preserved by reinstalling and re-registering the app,
   not by changing Bundle ID on every rebuild.
 

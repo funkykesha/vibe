@@ -1,6 +1,7 @@
 # Current Status
 
 ## Latest Completed Work
+- 2026-05-12: **закрыт и архивирован change `install-workguard-applications-launchagent`** — реализованы: `bash rebuild.sh` как единственный public install/rebuild entrypoint; packaging-only app templates under `packaging/`; `/Applications/WorkGuard.app` как единственный supported GUI target; stable bundle id `com.agaibadulin.workguard`; user LaunchAgent `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` with `/usr/bin/open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`; `setup.sh` теперь hard error; добавлены manual verification scripts. Live rebuild and verification прошли; synced main specs в `openspec/specs/workguard-*`; archived в `openspec/changes/archive/2026-05-12-install-workguard-applications-launchagent/`.
 - 2026-05-11: **закрыт и архивирован change `improve-status-calendar-overlay`** — реализованы: быстрый tick статуса (~5s), overtime по elapsed time, `xmlcalendar.ru` + кэш `calendar_ru_<year>.json`, поддержка `+/*` маркеров и сокращённого дня (`work_end - 1h`), эскалация `overlay_lock_initial_sec -> ... -> overlay_lock_max_sec`, адаптивный `settings_dialog`, обновлены README/C4, создан verification script `tests/manual/verify_production_calendar.py`, synced main specs в `openspec/specs/*`, archived в `openspec/changes/archive/2026-05-11-improve-status-calendar-overlay/`.
 - 2026-05-11: **устранён рекурсивный автозапуск WorkGuard** — найден launchd источник `com.agaibadulin.WorkGuard` (open `/Applications/WorkGuard.app`) и старый `com.workguard`; оба отключены/выгружены, соответствующие plist удалены из `~/Library/LaunchAgents`; `scripts/stop_workguard.sh` усилен: scan+bootout+disable всех WorkGuard-like LaunchAgents.
 - 2026-05-11: **architecture refresh** — обновлены C4-документы в `docs/architecture/`: контекст теперь явно показывает `xmlcalendar.ru` как сетевую зависимость, container view отделяет runtime-процессы от install/deployment artifacts, deployment view и новый dynamic view фиксируют proposal `install-workguard-applications-launchagent`: reinstall заменяет `/Applications/WorkGuard.app`, обновляет LaunchServices, пишет/reloads LaunchAgent, а LaunchAgent открывает установленный app bundle; сам bundle остаётся launcher к conda Python и project `work_guard.py`.
@@ -15,7 +16,7 @@
 ## Current Understanding
 - Публичный install/run contract: `bash rebuild.sh` -> `/Applications/WorkGuard.app`.
 - Единственный supported GUI target: `/Applications/WorkGuard.app`.
-- LaunchAgent contract: `~/Library/LaunchAgents/com.agaibadulin.workguard.plist`, `open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`.
+- LaunchAgent contract: `~/Library/LaunchAgents/com.agaibadulin.workguard.plist`, `/usr/bin/open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`.
 - Legacy setup script path obsolete. Не current workflow. Не wrapper. Не fallback.
 - После cleanup launchd старые агенты `com.agaibadulin.WorkGuard` и `com.workguard` отключены; рекурсивный автоподъём приложения через LaunchAgents остановлен.
 - Direct Python launch остаётся только для debug/diagnostics. Старый memory-набросок про direct Python из LaunchAgent устарел.
@@ -31,6 +32,6 @@
 - Актуальный путь проекта: `/Users/agaibadulin/Desktop/projects/vibe/work_guard`; пользовательские данные приложения остаются в `~/.config/work_guard/`.
 
 ## Next Recommended Action
-Продолжить `install-workguard-applications-launchagent`: реализовать rebuild/install flow для `/Applications/WorkGuard.app`, LaunchServices refresh, signing/registration, controlled LaunchAgent `com.agaibadulin.workguard.plist`, packaging directory для bundle templates/assets и manual verification for Accessibility/Notifications target.
+No active OpenSpec implementation change is pending. Next useful hardening can be chosen from Beads/OpenSpec backlog after checking `bd ready`.
 
 По желанию: валидация полей в `config.py`, hot-reload при сохранении настроек в отдельном процессе без ожидания тика, унификация дублирующего UI настроек (встроенный `_show_settings_dialog` удалён из раннего кода при рефакторинге).
