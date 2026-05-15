@@ -1,0 +1,1 @@
+{"id":"int-6c194ece","kind":"field_change","created_at":"2026-05-15T15:25:20.520869Z","actor":"Arseniy Gaybadulin","issue_id":"summarize-dgz","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Implemented Russian-facing enrichment prompt and Russian note/digest labels"}}

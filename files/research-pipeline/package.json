@@ -1,0 +1,17 @@
+{
+  "name": "research-pipeline",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "run": "node index.js run",
+    "digest": "node index.js digest",
+    "collect": "node index.js collect"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
