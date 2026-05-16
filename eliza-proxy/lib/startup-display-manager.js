@@ -1,60 +1,154 @@
-const { formatProgressBar, formatModelList, renderProviderGroup } = require('./formatting/model-status-formatter');
+'use strict';
+
+const {
+  renderProviderGroup,
+  formatSummaryLine,
+  stripAnsi,
+  visibleLength,
+} = require('./formatting/model-status-formatter');
 
 class StartupDisplayManager {
-  constructor() {
+  constructor(options = {}) {
     this.providerData = new Map();
+    this.providerOrder = [];
+    this.pendingEvents = [];
+    this.seeded = false;
     this.renderedLines = 0;
+
+    this.stream = options.stream || process.stdout;
+    this.isTTY = options.isTTY ?? Boolean(this.stream && this.stream.isTTY);
+    this.width = options.width || this.stream.columns || 120;
   }
-  
-  updateModelStatus(provider, modelId, status) {
-    // Initialize provider data if needed
-    if (!this.providerData.has(provider)) {
-      this.providerData.set(provider, new Map());
+
+  seedCatalog(groups) {
+    this.providerData.clear();
+    this.providerOrder = [];
+
+    for (const group of groups || []) {
+      const provider = group.provider;
+      const map = new Map();
+      for (const model of group.models || []) {
+        map.set(model.id, {
+          id: model.id,
+          status: model.status || 'pending',
+        });
+      }
+      this.providerOrder.push(provider);
+      this.providerData.set(provider, map);
     }
-    
-    // Update model status
-    this.providerData.get(provider).set(modelId, { id: modelId, status });
-    
-    // Re-render display
+
+    this.seeded = true;
+
+    for (const event of this.pendingEvents.splice(0)) {
+      this.applyUpdate(event.provider, event.modelId, event.status);
+    }
+
     this.render();
   }
-  
-  render() {
-    // Clear previous output
-    this.clear();
-    
-    // Get providers with at least one model
-    const activeProviders = Array.from(this.providerData.entries())
-      .filter(([_, models]) => models.size > 0)
-      .map(([provider, models]) => ({
-        name: provider,
-        models: Array.from(models.values())
-      }));
-    
-    // Render each provider group
-    const lines = [];
-    for (const provider of activeProviders) {
-      const groupLines = renderProviderGroup(provider.name, provider.models);
-      lines.push(...groupLines);
+
+  updateModelStatus(provider, modelId, status) {
+    if (!this.seeded) {
+      this.pendingEvents.push({ provider, modelId, status });
+      return;
     }
-    
-    // Output to console
-    console.log(lines.join('\n'));
-    this.renderedLines = lines.length;
+
+    this.applyUpdate(provider, modelId, status);
+    this.render();
   }
-  
-  clear() {
-    // Move cursor up and clear lines
-    if (this.renderedLines > 0) {
-      process.stdout.write(`\x1b[${this.renderedLines}A`); // Move up
-      for (let i = 0; i < this.renderedLines; i++) {
-        process.stdout.write('\x1b[K'); // Clear line
-        if (i < this.renderedLines - 1) {
-          process.stdout.write('\n');
-        }
-      }
-      process.stdout.write(`\x1b[${this.renderedLines}A`); // Move back up
+
+  applyUpdate(provider, modelId, status) {
+    if (!this.providerData.has(provider)) {
+      this.providerData.set(provider, new Map());
+      this.providerOrder.push(provider);
     }
+
+    const providerModels = this.providerData.get(provider);
+    const current = providerModels.get(modelId) || { id: modelId, status: 'pending' };
+    providerModels.set(modelId, { ...current, status: status || current.status || 'pending' });
+  }
+
+  getSnapshot() {
+    const providers = this.providerOrder.map((provider) => ({
+      name: provider,
+      models: Array.from(this.providerData.get(provider).values()),
+    }));
+
+    let total = 0;
+    let final = 0;
+    let success = 0;
+    let warning = 0;
+    let error = 0;
+
+    for (const provider of providers) {
+      for (const model of provider.models) {
+        total += 1;
+        if (model.status !== 'pending') final += 1;
+        if (model.status === 'success') success += 1;
+        if (model.status === 'warning') warning += 1;
+        if (model.status === 'error') error += 1;
+      }
+    }
+
+    return {
+      summary: {
+        total,
+        final,
+        pending: total - final,
+        success,
+        warning,
+        error,
+      },
+      providers,
+    };
+  }
+
+  render() {
+    if (!this.seeded) return;
+
+    const snapshot = this.getSnapshot();
+    const lines = [formatSummaryLine(snapshot.summary)];
+
+    for (const provider of snapshot.providers) {
+      lines.push(...renderProviderGroup(provider.name, provider.models, {
+        width: this.width,
+        useAnsi: this.isTTY,
+        indent: '  ',
+      }));
+    }
+
+    this.writeLines(lines);
+  }
+
+  countWrappedLines(lines) {
+    const width = Math.max(20, this.width || 120);
+    return lines.reduce((sum, line) => {
+      const length = Math.max(1, visibleLength(line));
+      return sum + Math.max(1, Math.ceil(length / width));
+    }, 0);
+  }
+
+  writeLines(lines) {
+    const output = lines.join('\n');
+
+    if (!this.isTTY) {
+      this.stream.write(`${stripAnsi(output)}\n`);
+      return;
+    }
+
+    this.clearTTY();
+    this.stream.write(`${output}\n`);
+    this.renderedLines = this.countWrappedLines(lines);
+  }
+
+  clearTTY() {
+    if (!this.renderedLines || !this.isTTY) return;
+
+    this.stream.write(`\x1b[${this.renderedLines}A`);
+    for (let i = 0; i < this.renderedLines; i += 1) {
+      this.stream.write('\x1b[2K\r');
+      if (i < this.renderedLines - 1) this.stream.write('\x1b[1B');
+    }
+    this.stream.write(`\x1b[${this.renderedLines - 1}A`);
   }
 }
 

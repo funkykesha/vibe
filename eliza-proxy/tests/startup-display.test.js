@@ -1,99 +1,113 @@
+'use strict';
+
 const test = require('node:test');
-const assert = require('node:assert');
-const { formatProgressBar, formatModelList, renderProviderGroup } = require('../lib/formatting/model-status-formatter');
+const assert = require('node:assert/strict');
+
+const {
+  formatProgressBar,
+  formatModelListLines,
+  renderProviderGroup,
+} = require('../lib/formatting/model-status-formatter');
 const StartupDisplayManager = require('../lib/startup-display-manager');
 
-// Mock console.log to capture output
-const originalConsoleLog = console.log;
-let consoleOutput = [];
-
-test.beforeEach(() => {
-  consoleOutput = [];
-  console.log = (...args) => {
-    consoleOutput.push(args.join(' '));
+function makeStream() {
+  return {
+    isTTY: true,
+    columns: 40,
+    writes: [],
+    write(chunk) {
+      this.writes.push(chunk);
+      return true;
+    },
   };
+}
+
+test('formatProgressBar uses 8-slot display', () => {
+  assert.equal(formatProgressBar(3, 6), '[████░░░░] 3/6');
 });
 
-test.afterEach(() => {
-  console.log = originalConsoleLog;
+test('formatModelListLines wraps long lists with stable indentation', () => {
+  const lines = formatModelListLines([
+    { id: 'a-model', status: 'pending' },
+    { id: 'b-model', status: 'success' },
+    { id: 'c-model', status: 'warning' },
+  ], {
+    width: 28,
+    useAnsi: false,
+    indent: '  ',
+  });
+
+  assert.ok(lines.length >= 2);
+  assert.ok(lines.every((line) => line.startsWith('  ')));
 });
 
-test('formatProgressBar shows correct progress', async (t) => {
-  const result = formatProgressBar(3, 5);
-  assert.strictEqual(result, '[████████████░░░░░░░░] 3/5');
+test('renderProviderGroup counts warning/error as completed', () => {
+  const lines = renderProviderGroup('OpenAI', [
+    { id: 'm1', status: 'success' },
+    { id: 'm2', status: 'warning' },
+    { id: 'm3', status: 'error' },
+    { id: 'm4', status: 'pending' },
+  ], { width: 90, useAnsi: false });
+
+  assert.equal(lines[0], 'OpenAI [██████░░] 3/4');
 });
 
-test('formatProgressBar handles edge cases', async (t) => {
-  assert.strictEqual(formatProgressBar(0, 0), '[░░░░░░░░░░░░░░░░░░░░] 0/0');
-  assert.strictEqual(formatProgressBar(5, 5), '[████████████████████] 5/5');
+test('display manager seeds full pending state before updates', () => {
+  const stream = makeStream();
+  const manager = new StartupDisplayManager({ stream, isTTY: false, width: 80 });
+
+  manager.seedCatalog([
+    { provider: 'openai', models: [{ id: 'gpt-4.1', status: 'pending' }, { id: 'gpt-4o', status: 'pending' }] },
+  ]);
+
+  const snapshot = manager.getSnapshot();
+  assert.equal(snapshot.summary.total, 2);
+  assert.equal(snapshot.summary.pending, 2);
 });
 
-test('formatModelList sorts models alphabetically', async (t) => {
-  const models = [
-    { id: 'z-model', status: 'success' },
-    { id: 'a-model', status: 'error' },
-    { id: 'm-model', status: 'pending' }
-  ];
-  
-  const result = formatModelList(models);
-  // Check that a-model comes first, then m-model, then z-model
-  const modelOrder = result.replace(/\x1b\[[0-9;]*m/g, ''); // Remove color codes
-  assert.match(modelOrder, /a-model.*m-model.*z-model/);
+test('display manager buffers updates before seed and applies after init', () => {
+  const stream = makeStream();
+  const manager = new StartupDisplayManager({ stream, isTTY: false, width: 80 });
+
+  manager.updateModelStatus('openai', 'gpt-4.1', 'warning');
+  manager.seedCatalog([
+    { provider: 'openai', models: [{ id: 'gpt-4.1', status: 'pending' }] },
+  ]);
+
+  const snapshot = manager.getSnapshot();
+  assert.equal(snapshot.providers[0].models[0].status, 'warning');
 });
 
-test('formatModelList applies correct color codes', async (t) => {
-  const models = [
-    { id: 'success-model', status: 'success' },
-    { id: 'error-model', status: 'error' },
-    { id: 'pending-model', status: 'pending' }
-  ];
-  
-  const result = formatModelList(models);
-  
-  // Check for green color code for success
-  assert.ok(result.includes('\x1b[32m✅ success-model\x1b[0m'));
-  // Check for red color code for error
-  assert.ok(result.includes('\x1b[31m❌ error-model\x1b[0m'));
-  // Check for yellow color code for pending
-  assert.ok(result.includes('\x1b[33m⏳ pending-model\x1b[0m'));
+test('display manager keeps provider order stable on later updates', () => {
+  const stream = makeStream();
+  const manager = new StartupDisplayManager({ stream, isTTY: false, width: 80 });
+
+  manager.seedCatalog([
+    { provider: 'anthropic', models: [{ id: 'claude-sonnet', status: 'pending' }] },
+    { provider: 'openai', models: [{ id: 'gpt-4.1', status: 'pending' }] },
+  ]);
+
+  manager.updateModelStatus('openai', 'gpt-4.1', 'success');
+
+  const snapshot = manager.getSnapshot();
+  assert.deepEqual(snapshot.providers.map((p) => p.name), ['anthropic', 'openai']);
 });
 
-test('renderProviderGroup combines components correctly', async (t) => {
-  const models = [
-    { id: 'model1', status: 'success' },
-    { id: 'model2', status: 'error' }
-  ];
-  
-  const result = renderProviderGroup('OpenAI', models);
-  assert.strictEqual(result.length, 2);
-  assert.strictEqual(result[0], 'OpenAI [████████████████████] 2/2');
-  assert.ok(result[1].includes('model1'));
-  assert.ok(result[1].includes('model2'));
-});
+test('non-TTY mode avoids cursor movement control codes', () => {
+  const stream = {
+    isTTY: false,
+    columns: 40,
+    writes: [],
+    write(chunk) {
+      this.writes.push(chunk);
+      return true;
+    },
+  };
 
-test('display manager tracks model statuses', async (t) => {
-  const manager = new StartupDisplayManager();
-  manager.updateModelStatus('OpenAI', 'gpt-4o', 'success');
-  
-  // Check that the status was recorded
-  assert.strictEqual(manager.providerData.get('OpenAI').get('gpt-4o').status, 'success');
-});
+  const manager = new StartupDisplayManager({ stream, isTTY: false, width: 40 });
+  manager.seedCatalog([{ provider: 'openai', models: [{ id: 'gpt-4.1', status: 'pending' }] }]);
+  manager.updateModelStatus('openai', 'gpt-4.1', 'success');
 
-test('display manager renders output', async (t) => {
-  const manager = new StartupDisplayManager();
-  manager.updateModelStatus('OpenAI', 'gpt-4o', 'success');
-  manager.updateModelStatus('OpenAI', 'gpt-4o-mini', 'pending');
-  
-  // Check that console.log was called
-  assert.ok(consoleOutput.length > 0);
-});
-
-test('display manager handles multiple providers', async (t) => {
-  const manager = new StartupDisplayManager();
-  manager.updateModelStatus('OpenAI', 'gpt-4o', 'success');
-  manager.updateModelStatus('Anthropic', 'claude-sonnet', 'error');
-  
-  // Both providers should be tracked
-  assert.ok(manager.providerData.has('OpenAI'));
-  assert.ok(manager.providerData.has('Anthropic'));
+  const output = stream.writes.join('');
+  assert.equal(/\x1b\[[0-9;]*[ABCDJK]/.test(output), false);
 });

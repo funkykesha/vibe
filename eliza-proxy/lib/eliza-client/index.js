@@ -40,7 +40,7 @@ function createElizaClient({
   let fetchPromise = null;
   let probePromise = null;
   const callbacks = [];
-  const modelStatuses = new Map(); // provider -> Map<modelId, status>
+  const modelStatuses = new Map(); // provider -> Map<modelId, status+meta>
   const statusListeners = [];
 
   async function fetchAndParse() {
@@ -192,15 +192,15 @@ function createElizaClient({
   }
 
   // Add method to update model status
-  function updateModelStatus(provider, modelId, status) {
+  function updateModelStatus(provider, modelId, status, meta = {}) {
     if (!modelStatuses.has(provider)) {
       modelStatuses.set(provider, new Map());
     }
-    modelStatuses.get(provider).set(modelId, status);
+    modelStatuses.get(provider).set(modelId, { status, ...meta });
     
     // Notify listeners
     statusListeners.forEach(listener => {
-      listener(provider, modelId, status);
+      listener(provider, modelId, status, meta);
     });
   }
 

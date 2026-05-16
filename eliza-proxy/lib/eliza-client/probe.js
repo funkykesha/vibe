@@ -1,12 +1,40 @@
 'use strict';
 
-const { elizaConfig, supportsThinking, usesReasoningTokens, supportsReasoningEffort } = require('./routing.js');
+const { elizaConfig, supportsReasoningEffort, usesReasoningTokens } = require('./routing.js');
 
-const CONCURRENCY = 15;
-const REQUEST_TIMEOUT_MS = 200;
+const DEFAULT_CONCURRENCY = Number.parseInt(process.env.PROBE_CONCURRENCY || '4', 10);
+const REQUEST_TIMEOUT_MS = Number.parseInt(process.env.PROBE_TIMEOUT_MS || '800', 10);
 const MAX_TOKENS = 16;
 const REASONING_MAX_TOKENS = 32;
 const TEST_PROMPT = 'Reply with exactly OK.';
+
+const PROVIDER_TIMEOUT_OVERRIDES_MS = {
+  openai: 1200,
+  google: 1400,
+  anthropic: 1900,
+  xai: 1800,
+  moonshotai: 1600,
+  mistral: 1400,
+  deepseek: 1300,
+};
+
+const MODEL_TIMEOUT_OVERRIDES_MS = [
+  { pattern: /claude-opus/i, timeoutMs: 2200 },
+  { pattern: /grok-4/i, timeoutMs: 2200 },
+  { pattern: /kimi-k2/i, timeoutMs: 1800 },
+];
+
+const WARNING_KINDS = new Set([
+  'quota_exceeded',
+  'invalid_request_shape',
+  'invalid_request',
+  'provider_error',
+  'timeout_or_abort',
+  'network_error',
+  'empty_response',
+  'unknown_error',
+  'probe_failed',
+]);
 
 function safeJsonParse(text) {
   try { return JSON.parse(text); } catch { return null; }
@@ -24,7 +52,6 @@ function extractErrorMessage(payload, fallbackText = '') {
 function classifyError(status, message) {
   const text = (message || '').toLowerCase();
   if (status === 429) return { kind: 'quota_exceeded', retryable: true };
-  // 401/412: auth/precondition failures — non-retryable (Rev 2)
   if (status === 401 || status === 412) return { kind: 'auth_error', retryable: false };
   if (status === 404) {
     if (text.includes('internal')) return { kind: 'internal_model_not_found', retryable: false };
@@ -58,24 +85,41 @@ function extractResponseText(data) {
   }
   if (Array.isArray(data.choices)) {
     return data.choices.map((choice) => {
-      const c = choice?.message?.content ?? choice?.delta?.content ?? '';
-      if (typeof c === 'string') return c;
-      if (Array.isArray(c)) return c.map((i) => (typeof i?.text === 'string' ? i.text : '')).join('');
+      const content = choice?.message?.content ?? choice?.delta?.content ?? '';
+      if (typeof content === 'string') return content;
+      if (Array.isArray(content)) return content.map((item) => (typeof item?.text === 'string' ? item.text : '')).join('');
       return '';
     }).join('').trim();
   }
   if (Array.isArray(data.output)) {
     return data.output.map((item) => {
       if (typeof item?.content === 'string') return item.content;
-      if (Array.isArray(item?.content)) return item.content.map((p) => (typeof p?.text === 'string' ? p.text : '')).join('');
+      if (Array.isArray(item?.content)) return item.content.map((part) => (typeof part?.text === 'string' ? part.text : '')).join('');
       if (typeof item?.text === 'string') return item.text;
       return '';
     }).join('').trim();
   }
   if (Array.isArray(data.candidates)) {
-    return data.candidates.map((c) => c?.content?.parts || []).flat().map((p) => p?.text || '').join('').trim();
+    return data.candidates.map((candidate) => candidate?.content?.parts || []).flat().map((part) => part?.text || '').join('').trim();
   }
   return '';
+}
+
+function resolveProbeTimeoutMs(model) {
+  const byModel = MODEL_TIMEOUT_OVERRIDES_MS.find(({ pattern }) => pattern.test(model.id || ''));
+  if (byModel) return byModel.timeoutMs;
+
+  const provider = (model.provider || '').toLowerCase();
+  if (PROVIDER_TIMEOUT_OVERRIDES_MS[provider]) {
+    return PROVIDER_TIMEOUT_OVERRIDES_MS[provider];
+  }
+
+  return REQUEST_TIMEOUT_MS;
+}
+
+function classifyProbeResult(result) {
+  if (result.ok) return 'success';
+  return WARNING_KINDS.has(result.kind) ? 'warning' : 'error';
 }
 
 function buildProbeVariants(model, baseUrl) {
@@ -96,7 +140,6 @@ function buildProbeVariants(model, baseUrl) {
     return variants;
   }
 
-  // Rev 2: reasoning models must NOT receive temperature (causes 400 errors)
   const variants = isReasoning
     ? [
         { name: 'openai-string-max_tokens', body: { model: config.model || model.id, messages: textMsg, max_tokens: tokenLimit, stream: false } },
@@ -111,7 +154,6 @@ function buildProbeVariants(model, baseUrl) {
     variants.push({ name: 'openai-blocks-max_tokens', body: { model: config.model || model.id, messages: blockMsg, max_tokens: tokenLimit, stream: false } });
   }
 
-  // zhipu (GLM) uses an internal endpoint — prompt-style and max_completion_tokens variants don't apply
   if (/^(google|alibaba|moonshotai|mistral|deepseek|xai|meta|sber)$/.test(model.provider || '')) {
     variants.push({ name: 'openai-prompt-max_tokens', body: { model: config.model || model.id, prompt: TEST_PROMPT, max_tokens: tokenLimit, stream: false } });
   }
@@ -132,48 +174,85 @@ function buildProbeVariants(model, baseUrl) {
 async function probeModel(model, token, baseUrl, updateModelStatus = null) {
   const config = elizaConfig(model.id, baseUrl);
   let lastFailure = null;
-  
-  // Set status to pending if updateModelStatus function is provided
+
   if (updateModelStatus) {
-    updateModelStatus(model.provider, model.id, 'pending');
+    updateModelStatus(model.provider, model.id, 'pending', { status: 'pending' });
   }
+
+  const timeoutMs = resolveProbeTimeoutMs(model);
 
   const doFetch = (body) => fetch(config.url, {
     method: 'POST',
     headers: { Authorization: `OAuth ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 
   for (const variant of buildProbeVariants(model, baseUrl)) {
     let response;
+    const startedAt = Date.now();
+
     try {
       response = await doFetch(variant.body);
     } catch (err) {
-      // Rev 2: one retry on TypeError (network error — DNS failure, ECONNREFUSED, etc.)
+      const latencyMs = Date.now() - startedAt;
       if (err instanceof TypeError) {
         try {
           response = await doFetch(variant.body);
-        } catch {
-          lastFailure = { ok: false, status: 0, error: err.message, kind: 'network_error', variant: variant.name };
+        } catch (retryErr) {
+          lastFailure = {
+            ok: false,
+            status: 0,
+            kind: 'network_error',
+            error: retryErr?.message || err.message,
+            variant: variant.name,
+            latencyMs,
+            checkedAt: new Date().toISOString(),
+          };
           continue;
         }
       } else {
-        lastFailure = { ok: false, status: 0, error: String(err), kind: 'timeout_or_abort', variant: variant.name };
+        lastFailure = {
+          ok: false,
+          status: 0,
+          kind: 'timeout_or_abort',
+          error: String(err),
+          variant: variant.name,
+          latencyMs,
+          checkedAt: new Date().toISOString(),
+        };
         continue;
       }
     }
+
+    const latencyMs = Date.now() - startedAt;
 
     if (!response.ok) {
       const rawText = await response.text().catch(() => '');
       const parsed = safeJsonParse(rawText || 'null');
       const error = extractErrorMessage(parsed, rawText).slice(0, 300);
       const classification = classifyError(response.status, error);
-      lastFailure = { ok: false, status: response.status, error, kind: classification.kind, variant: variant.name };
+      lastFailure = {
+        ok: false,
+        status: response.status,
+        kind: classification.kind,
+        error,
+        variant: variant.name,
+        latencyMs,
+        checkedAt: new Date().toISOString(),
+      };
       if (!classification.retryable) {
-        // Set status to error if updateModelStatus function is provided
+        const finalStatus = classifyProbeResult(lastFailure);
         if (updateModelStatus) {
-          updateModelStatus(model.provider, model.id, 'error');
+          updateModelStatus(model.provider, model.id, finalStatus, {
+            status: finalStatus,
+            kind: lastFailure.kind,
+            variant: lastFailure.variant,
+            latencyMs: lastFailure.latencyMs,
+            checkedAt: lastFailure.checkedAt,
+            httpStatus: lastFailure.status,
+            error: lastFailure.error,
+          });
         }
         return lastFailure;
       }
@@ -183,48 +262,146 @@ async function probeModel(model, token, baseUrl, updateModelStatus = null) {
     const data = await response.json().catch(() => null);
     const text = extractResponseText(data);
     if (!text) {
-      lastFailure = { ok: false, status: response.status, error: 'empty response', kind: 'empty_response', variant: variant.name };
+      lastFailure = {
+        ok: false,
+        status: response.status,
+        kind: 'empty_response',
+        error: 'empty response',
+        variant: variant.name,
+        latencyMs,
+        checkedAt: new Date().toISOString(),
+      };
       continue;
     }
-    
-    // Set status to success if updateModelStatus function is provided
+
+    const success = {
+      ok: true,
+      status: response.status,
+      kind: 'ok',
+      sample: text.slice(0, 80),
+      variant: variant.name,
+      latencyMs,
+      checkedAt: new Date().toISOString(),
+    };
+
     if (updateModelStatus) {
-      updateModelStatus(model.provider, model.id, 'success');
+      updateModelStatus(model.provider, model.id, 'success', {
+        status: 'success',
+        kind: 'ok',
+        variant: success.variant,
+        latencyMs: success.latencyMs,
+        checkedAt: success.checkedAt,
+        httpStatus: success.status,
+      });
     }
 
-    return { ok: true, status: response.status, sample: text.slice(0, 80), variant: variant.name };
-  }
-  
-  // Set status to error if updateModelStatus function is provided
-  if (updateModelStatus) {
-    updateModelStatus(model.provider, model.id, 'error');
+    return success;
   }
 
-  return lastFailure || { ok: false, status: 0, error: 'probe failed without response', kind: 'probe_failed', variant: 'none' };
+  const failed = lastFailure || {
+    ok: false,
+    status: 0,
+    kind: 'probe_failed',
+    error: 'probe failed without response',
+    variant: 'none',
+    latencyMs: null,
+    checkedAt: new Date().toISOString(),
+  };
+
+  const finalStatus = classifyProbeResult(failed);
+  if (updateModelStatus) {
+    updateModelStatus(model.provider, model.id, finalStatus, {
+      status: finalStatus,
+      kind: failed.kind,
+      variant: failed.variant,
+      latencyMs: failed.latencyMs,
+      checkedAt: failed.checkedAt,
+      httpStatus: failed.status,
+      error: failed.error,
+    });
+  }
+
+  return failed;
 }
 
-async function runProbe(models, token, baseUrl, onModelProbed, updateModelStatus = null) {
-  const results = [];
-  for (const model of models) {
-    try {
-      const result = await probeModel(model, token, baseUrl, updateModelStatus);
-      if (result.ok) {
-        const withProbe = { ...model, probe: { checkedAt: new Date().toISOString(), status: result.status, sample: result.sample, variant: result.variant } };
+function toProbeMetadata(result) {
+  const finalStatus = classifyProbeResult(result);
+  return {
+    status: finalStatus,
+    kind: result.kind,
+    variant: result.variant,
+    latencyMs: Number.isFinite(result.latencyMs) ? result.latencyMs : null,
+    checkedAt: result.checkedAt || new Date().toISOString(),
+    httpStatus: Number.isFinite(result.status) ? result.status : 0,
+    ...(result.error ? { error: result.error } : {}),
+    ...(result.sample ? { sample: result.sample } : {}),
+  };
+}
+
+function resolveConcurrency(override) {
+  const candidate = Number.parseInt(String(override ?? DEFAULT_CONCURRENCY), 10);
+  if (!Number.isFinite(candidate) || candidate < 1) return 1;
+  return Math.min(candidate, 8);
+}
+
+async function runProbe(models, token, baseUrl, onModelProbed, updateModelStatus = null, options = {}) {
+  const probeModelFn = options.probeModelFn || probeModel;
+  const concurrency = resolveConcurrency(options.concurrency);
+  const list = Array.isArray(models) ? models : [];
+  const results = new Array(list.length);
+  let cursor = 0;
+
+  async function worker() {
+    while (true) {
+      const index = cursor;
+      cursor += 1;
+      if (index >= list.length) return;
+
+      const model = list[index];
+      try {
+        const result = await probeModelFn(model, token, baseUrl, updateModelStatus);
+        const withProbe = { ...model, probe: toProbeMetadata(result) };
         if (onModelProbed) onModelProbed(withProbe.provider, withProbe);
-        results.push(withProbe);
-      } else {
-        const failed = { ...model, probe: { status: 0 } };
+        results[index] = withProbe;
+      } catch (err) {
+        console.error(`[eliza-client] probe error for ${model.id}:`, err.message);
+        const failedProbe = {
+          status: 'error',
+          kind: 'probe_failed',
+          variant: 'none',
+          latencyMs: null,
+          checkedAt: new Date().toISOString(),
+          httpStatus: 0,
+          error: err.message,
+        };
+        if (updateModelStatus) {
+          updateModelStatus(model.provider, model.id, 'error', failedProbe);
+        }
+        const failed = { ...model, probe: failedProbe };
         if (onModelProbed) onModelProbed(failed.provider, failed);
-        results.push(failed);
+        results[index] = failed;
       }
-    } catch (err) {
-      console.error(`[eliza-client] probe error for ${model.id}:`, err.message);
-      const failed = { ...model, probe: { status: 0 } };
-      if (onModelProbed) onModelProbed(failed.provider, failed);
-      results.push(failed);
     }
   }
+
+  const workers = [];
+  const workerCount = Math.min(concurrency, Math.max(list.length, 1));
+  for (let i = 0; i < workerCount; i += 1) {
+    workers.push(worker());
+  }
+
+  await Promise.all(workers);
   return results.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-module.exports = { runProbe, probeModel, buildProbeVariants, classifyError, extractResponseText, extractErrorMessage };
+module.exports = {
+  runProbe,
+  probeModel,
+  buildProbeVariants,
+  classifyError,
+  extractResponseText,
+  extractErrorMessage,
+  classifyProbeResult,
+  resolveProbeTimeoutMs,
+  resolveConcurrency,
+};

@@ -1,8 +1,5 @@
-## Purpose
+## MODIFIED Requirements
 
-Display real-time model probe health during server startup without treating probe warnings as catalog unavailability.
-
-## Requirements
 ### Requirement: Display model availability status during server startup
 The system SHALL display real-time probe health of all catalog Eliza models during server startup without treating probe warnings as catalog unavailability.
 

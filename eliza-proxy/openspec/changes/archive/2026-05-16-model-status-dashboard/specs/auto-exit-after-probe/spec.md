@@ -1,9 +1,5 @@
-# auto-exit-after-probe Specification
+## MODIFIED Requirements
 
-## Purpose
-Provides CLI flag `--exit-after-probe` for automatic server shutdown after all model probes complete. Used for CI/CD, validation scripts, and quick health checks.
-
-## Requirements
 ### Requirement: Server supports auto-exit after model probe completion via command-line flag
 The system SHALL provide a `--exit-after-probe` command-line flag that causes the server to automatically shut down after all background model probes complete.
 
@@ -60,24 +56,3 @@ The system SHALL ensure the exit condition correctly handles probes completing a
 - **WHEN** probe state is not complete
 - **THEN** exit condition does NOT trigger
 - **THEN** server continues running until every model has final probe state
-
-### Requirement: Server performs graceful shutdown before exiting
-The system SHALL close active HTTP connections gracefully before terminating the process when using `--exit-after-probe` flag.
-
-#### Scenario: Graceful shutdown when server is listening
-- **WHEN** server exits after probes complete and server is listening for HTTP connections
-- **THEN** the server stops accepting new HTTP connections
-- **THEN** existing in-flight requests complete before server closes
-- **THEN** the server calls `server.close()` to close HTTP server
-- **THEN** process exits with code 0 after server is closed
-
-#### Scenario: Exit without graceful shutdown if server never started
-- **WHEN** server exits after probes complete but server never started listening (e.g., startup error)
-- **THEN** the system skips `server.close()` call
-- **THEN** the system exits directly with code 0
-- **THEN** no attempts are made to close a non-listening server
-
-#### Scenario: Exit with graceful shutdown for zero models
-- **WHEN** API returns zero models and server is listening
-- **THEN** the server closes gracefully via `server.close()`
-- **THEN** process exits with code 0
