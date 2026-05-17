@@ -15,6 +15,11 @@ const LOG_USAGE = process.env.LOG_USAGE !== 'false';
 const TOKEN_FILE = '/Users/agaibadulin/.eliza/token';
 const FINAL_DISPLAY_DELAY_MS = 100;
 
+async function closeServerIfListening(serverRef) {
+  if (!serverRef || !serverRef.listening) return;
+  await new Promise((resolve) => serverRef.close(resolve));
+}
+
 function parseProbeMode(args = process.argv.slice(2), env = process.env) {
   return args.includes('--probe')
     || args.includes('--startup-probe')
@@ -402,9 +407,7 @@ async function startServer(options = {}) {
     exitScheduled = true;
     setTimeout(async () => {
       console.log('\nProbe complete. Exiting due to --exit-after-probe flag.');
-      if (serverRef && serverRef.listening) {
-        await new Promise((resolve) => serverRef.close(resolve));
-      }
+      await closeServerIfListening(serverRef);
       process.exit(0);
     }, FINAL_DISPLAY_DELAY_MS);
   }
@@ -473,5 +476,6 @@ module.exports = {
   recordUsage,
   renderDashboardHtml,
   startServer,
+  closeServerIfListening,
   parseProbeMode,
 };

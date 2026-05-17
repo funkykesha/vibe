@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 
-const { createApp, createUsageStats, renderDashboardHtml, parseProbeMode } = require('../server');
+const { createApp, createUsageStats, renderDashboardHtml, parseProbeMode, closeServerIfListening } = require('../server');
 const { createProbeState } = require('../lib/probe-state');
 
 function makeEliza(models) {
@@ -224,4 +224,43 @@ test('POST /v1/probe remains explicit manual diagnostic operation', async () => 
   assert.equal(res.body.available, true);
   assert.equal(res.body.realProviderCalls, true);
   assert.equal(typeof res.body.latency, 'number');
+});
+
+test('closeServerIfListening waits for server close before continuing', async () => {
+  let closeStarted = false;
+  let closeFinished = false;
+  const server = {
+    listening: true,
+    close(callback) {
+      closeStarted = true;
+      setTimeout(() => {
+        closeFinished = true;
+        this.listening = false;
+        callback();
+      }, 5);
+    },
+  };
+
+  const closePromise = closeServerIfListening(server);
+  assert.equal(closeStarted, true);
+  assert.equal(closeFinished, false);
+
+  await closePromise;
+
+  assert.equal(closeFinished, true);
+  assert.equal(server.listening, false);
+});
+
+test('closeServerIfListening skips non-listening server', async () => {
+  let closeCalled = false;
+  const server = {
+    listening: false,
+    close() {
+      closeCalled = true;
+    },
+  };
+
+  await closeServerIfListening(server);
+
+  assert.equal(closeCalled, false);
 });

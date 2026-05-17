@@ -1,7 +1,7 @@
 # model-status-dashboard Specification
 
 ## Purpose
-Provides a read-only browser dashboard and HTTP status API for model probe lifecycle, summary counts, and provider-grouped model health.
+Provides a read-only browser dashboard and HTTP status API for catalog readiness, optional probe lifecycle, summary counts, and provider-grouped model health.
 
 ## Requirements
 ### Requirement: Root page displays model probe dashboard
@@ -10,7 +10,7 @@ The system SHALL serve a read-only model status dashboard from the root HTTP pat
 #### Scenario: Open root dashboard
 - **WHEN** a user opens `GET /`
 - **THEN** the system returns an HTML page
-- **AND** the page displays overall probe state
+- **AND** the page displays overall catalog and probe state
 - **AND** the page displays provider groups and model health statuses
 
 #### Scenario: Dashboard updates while probes run
@@ -18,51 +18,84 @@ The system SHALL serve a read-only model status dashboard from the root HTTP pat
 - **THEN** the dashboard periodically fetches current probe status
 - **AND** updates summary counts and model rows without a full page reload
 
+#### Scenario: Dashboard remains useful without active probe
+- **WHEN** probe status is `idle`
+- **THEN** the dashboard displays catalog readiness information
+- **AND** the dashboard displays provider-grouped catalog statuses
+
 #### Scenario: Dashboard remains useful after probes complete
 - **WHEN** probe status is `complete`
-- **THEN** the dashboard displays final summary counts
+- **THEN** the dashboard displays final diagnostic summary counts
 - **AND** the dashboard displays each model's final probe status, kind, latency, and check timestamp when available
 
 ### Requirement: HTTP API exposes probe status summary
-The system SHALL expose a JSON endpoint that reports current probe state and model health summary.
+The system SHALL expose a JSON endpoint that reports current catalog readiness, optional probe state, and model health summary.
 
-#### Scenario: Fetch probe status
-- **WHEN** a client requests `GET /v1/probe-status`
-- **THEN** the response includes `probeStatus` as `idle`, `running`, or `complete`
-- **AND** the response includes total counts for `pending`, `success`, `warning`, and `error`
-- **AND** the response includes provider-grouped model statuses
+#### Scenario: Fetch status without active probe
+- **WHEN** a client requests `GET /v1/probe-status` and no explicit probe is running
+- **THEN** the response includes `probeStatus` as `idle`
+- **AND** the response includes catalog readiness information
+- **AND** the response includes provider-grouped model catalog statuses
 
-#### Scenario: Probe status before model catalog loads
+#### Scenario: Fetch status during explicit probe
+- **WHEN** a client requests `GET /v1/probe-status` while explicit probes are running
+- **THEN** the response includes `probeStatus` as `running`
+- **AND** the response includes total diagnostic counts for `pending`, `success`, `warning`, and `error`
+- **AND** the response includes provider-grouped diagnostic model statuses
+
+#### Scenario: Fetch status after explicit probe
+- **WHEN** a client requests `GET /v1/probe-status` after explicit probes have completed
+- **THEN** the response includes `probeStatus` as `complete`
+- **AND** the response includes final diagnostic counts
+- **AND** the response keeps catalog availability separate from diagnostic probe outcome
+
+#### Scenario: Status before model catalog loads
 - **WHEN** `GET /v1/probe-status` is requested before models are loaded
 - **THEN** the response reports `probeStatus` as `idle`
 - **AND** the response includes zero counts
 - **AND** the response does not fail
 
 ### Requirement: Model catalog includes non-blocking probe metadata
-The system SHALL keep catalog models visible while attaching probe metadata when available.
+The system SHALL keep compatible catalog models visible while attaching observed-health and optional probe metadata when available.
 
-#### Scenario: Fetch models during probe
-- **WHEN** a client requests `GET /v1/models` while probes are pending
-- **THEN** all catalog models remain present in the response
-- **AND** models with known probe state include `probe.status`
-- **AND** models without final probe state are treated as selectable pending models
+#### Scenario: Fetch models after catalog readiness
+- **WHEN** a client requests `GET /v1/models` after the catalog is loaded
+- **THEN** compatible catalog models are present in the response
+- **AND** unsupported streaming or non-chat models are absent from the selectable model list
+- **AND** included models expose compatibility metadata
 
-#### Scenario: Fetch models after probe warning
-- **WHEN** a model has probe status `warning`
+#### Scenario: Fetch models with observed Monium health
+- **WHEN** a model has Monium observed-health facts
+- **THEN** `/v1/models` includes observed metadata such as successful status evidence, stream evidence, and observation window
+- **AND** model selection does not require a fresh real provider probe
+
+#### Scenario: Fetch models after diagnostic probe warning
+- **WHEN** a compatible model has explicit diagnostic probe status `warning`
 - **THEN** the model remains present in `/v1/models`
 - **AND** the model metadata includes probe details such as `kind`, `latencyMs`, and `checkedAt` when available
 - **AND** the model is not presented as inactive solely because of the warning
 
-### Requirement: Health endpoint reports probe lifecycle
-The system SHALL include probe lifecycle information in the health response.
+#### Scenario: Fetch models containing preview variants
+- **WHEN** a preview model is included by observed catalog policy
+- **THEN** `/v1/models` includes `stability: preview`
+- **AND** clients can distinguish it from stable models
 
-#### Scenario: Health during background probe
-- **WHEN** a client requests `GET /v1/health` while probes are running
+### Requirement: Health endpoint reports probe lifecycle
+The system SHALL include catalog readiness and optional probe lifecycle information in the health response.
+
+#### Scenario: Health after catalog readiness without probe
+- **WHEN** a client requests `GET /v1/health` after catalog readiness and no explicit probe is running
+- **THEN** the response status remains `ok` if the server is otherwise healthy
+- **AND** the response includes `probeStatus: "idle"`
+- **AND** the response includes catalog readiness metadata
+
+#### Scenario: Health during explicit background probe
+- **WHEN** a client requests `GET /v1/health` while explicit probes are running
 - **THEN** the response status remains `ok` if the server is otherwise healthy
 - **AND** the response includes `probeStatus: "running"`
-- **AND** the response includes probe summary counts
+- **AND** the response includes diagnostic probe summary counts
 
-#### Scenario: Health after probe completion
-- **WHEN** all model probes have completed
+#### Scenario: Health after explicit probe completion
+- **WHEN** all explicit model probes have completed
 - **THEN** `GET /v1/health` includes `probeStatus: "complete"`
-- **AND** the response includes final probe summary counts
+- **AND** the response includes final diagnostic probe summary counts
