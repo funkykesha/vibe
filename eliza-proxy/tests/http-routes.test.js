@@ -4,16 +4,17 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 
-const { createApp, createUsageStats, renderDashboardHtml } = require('../server');
+const { createApp, createUsageStats, renderDashboardHtml, parseProbeMode } = require('../server');
 const { createProbeState } = require('../lib/probe-state');
 
 function makeEliza(models) {
   return {
+    probeMode: false,
     async getModels() {
       return { models, validated: false, onValidated: () => {} };
     },
     async probe() {
-      return true;
+      return { available: true, probe: { ok: true, kind: 'ok' }, realProviderCalls: true };
     },
     onModelUpdate() {},
     async *chat() {
@@ -94,7 +95,7 @@ test('GET / serves read-only dashboard html', async () => {
 
   const res = await callRoute(app, 'GET', '/');
   assert.equal(res.statusCode, 200);
-  assert.match(String(res.body), /Read-only status view/);
+  assert.match(String(res.body), /Read-only catalog view/);
   assert.match(String(res.body), /\/v1\/probe-status/);
 });
 
@@ -103,6 +104,13 @@ test('dashboard inline script is valid JavaScript', () => {
   const match = html.match(/<script>([\s\S]*?)<\/script>/);
   assert.ok(match, 'missing inline script');
   assert.doesNotThrow(() => new vm.Script(match[1]));
+});
+
+test('startup probe mode is opt-in by CLI or environment', () => {
+  assert.equal(parseProbeMode([], {}), false);
+  assert.equal(parseProbeMode(['--probe'], {}), true);
+  assert.equal(parseProbeMode([], { ELIZA_STARTUP_PROBE: 'true' }), true);
+  assert.equal(parseProbeMode(['--exit-after-probe'], {}), true);
 });
 
 test('GET /v1/probe-status returns lifecycle and grouped models', async () => {
@@ -127,7 +135,8 @@ test('GET /v1/probe-status returns lifecycle and grouped models', async () => {
 
   const res = await callRoute(app, 'GET', '/v1/probe-status');
   assert.equal(res.statusCode, 200);
-  assert.equal(res.body.probeStatus, 'running');
+  assert.equal(res.body.probeStatus, 'complete');
+  assert.equal(res.body.catalogReady, true);
   assert.equal(res.body.summary.warning, 1);
   assert.equal(res.body.startupError, null);
   assert.equal(Array.isArray(res.body.providers), true);
@@ -148,9 +157,9 @@ test('GET /v1/probe-status lazily seeds catalog when startup state is empty', as
 
   const res = await callRoute(app, 'GET', '/v1/probe-status');
   assert.equal(res.statusCode, 200);
-  assert.equal(res.body.probeStatus, 'running');
+  assert.equal(res.body.probeStatus, 'idle');
   assert.equal(res.body.summary.total, 1);
-  assert.equal(res.body.summary.pending, 1);
+  assert.equal(res.body.summary.available, 1);
   assert.equal(res.body.providers[0].provider, 'openai');
 });
 
@@ -192,6 +201,7 @@ test('GET /v1/health and /v1/models include probe metadata', async () => {
   const healthRes = await callRoute(app, 'GET', '/v1/health');
   assert.equal(healthRes.statusCode, 200);
   assert.equal(healthRes.body.probeStatus, 'complete');
+  assert.equal(healthRes.body.catalogReady, true);
   assert.equal(healthRes.body.probeSummary.error, 1);
 
   const modelsRes = await callRoute(app, 'GET', '/v1/models');
@@ -199,4 +209,19 @@ test('GET /v1/health and /v1/models include probe metadata', async () => {
   assert.equal(modelsRes.body.models.length, 1);
   assert.equal(modelsRes.body.models[0].probe.status, 'error');
   assert.equal(modelsRes.body.models[0].probe.kind, 'auth_error');
+});
+
+test('POST /v1/probe remains explicit manual diagnostic operation', async () => {
+  const app = createApp({
+    eliza: makeEliza([]),
+    probeState: createProbeState(),
+    usageStats: createUsageStats(),
+    logUsage: false,
+  });
+
+  const res = await callRoute(app, 'POST', '/v1/probe', { body: { model: 'gpt-4.1' } });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.available, true);
+  assert.equal(res.body.realProviderCalls, true);
+  assert.equal(typeof res.body.latency, 'number');
 });

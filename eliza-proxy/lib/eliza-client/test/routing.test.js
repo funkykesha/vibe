@@ -64,6 +64,14 @@ describe('elizaConfig', () => {
     const cfg = elizaConfig('minimax');
     assert.match(cfg.url, /\/raw\/internal\/minimax-latest\//);
   });
+
+  it('routes current catalog examples for GPT, Gemini, Claude, and internal models', () => {
+    assert.match(elizaConfig('gpt-4.1').url, /\/raw\/openai\//);
+    assert.equal(elizaConfig('gpt-5.4-pro').supportsStreaming, false);
+    assert.match(elizaConfig('gemini-3-pro-preview').url, /\/raw\/openrouter\//);
+    assert.match(elizaConfig('claude-sonnet-4-6').url, /\/raw\/anthropic\//);
+    assert.match(elizaConfig('alice-ai-llm-235b').url, /\/raw\/internal\/alice-ai-llm-235b-latest\//);
+  });
 });
 
 describe('supportsThinking', () => {

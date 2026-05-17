@@ -1,5 +1,7 @@
 'use strict';
 
+const { elizaConfig } = require('./routing.js');
+
 const EXCLUDED_NAMESPACES = new Set(['eliza_test', 'alice', 'gena_offline_batch_inference', 'internal']);
 
 const NON_CHAT_PATTERNS = [
@@ -97,12 +99,57 @@ function inferFamily(model, provider) {
   return '';
 }
 
+function inferStability(model) {
+  const id = (model.id || '').toLowerCase();
+  const text = normalizeModelText(id, model.title);
+  if (TRANSIENT_MODEL_PATTERNS.some((p) => p.test(id) || p.test(text))) return 'preview';
+  return 'stable';
+}
+
+function hasDateVersion(model) {
+  return /\d{4}-\d{2}-\d{2}/.test(model.id || '');
+}
+
 function isCurrentModel(model, provider, family) {
   const id = (model.id || '').toLowerCase();
   const text = normalizeModelText(id, model.title);
   if (!provider || !family) return false;
   if (TRANSIENT_MODEL_PATTERNS.some((p) => p.test(id) || p.test(text))) return false;
-  if (/\d{4}-\d{2}-\d{2}/.test(id)) return false;
+  if (hasDateVersion(model)) return false;
+  return true;
+}
+
+function isNonChatModel(model) {
+  const id = (model.id || '').toLowerCase();
+  return NON_CHAT_PATTERNS.some((p) => p.test(id));
+}
+
+function getObservedFact(observedFacts, id) {
+  if (!observedFacts) return null;
+  if (observedFacts instanceof Map) return observedFacts.get(id) || null;
+  return observedFacts[id] || null;
+}
+
+function inferCapabilities(model) {
+  const chat = !isNonChatModel(model);
+  const config = elizaConfig(model.id);
+  const streaming = chat && config.supportsStreaming !== false;
+  return {
+    chat,
+    streaming,
+    selectable: chat && streaming,
+  };
+}
+
+function shouldIncludeModel(model, observedFact, options = {}) {
+  const capabilities = model.capabilities || inferCapabilities(model);
+  if (!capabilities.chat || !capabilities.streaming) return false;
+  if (!model.provider || !model.family) return false;
+  if (OLD_MODEL_PATTERNS.some((p) => p.test(model.id))) return false;
+  if (hasDateVersion(model)) return false;
+  if (model.stability === 'preview') {
+    return Boolean(options.includePreviewModels || (observedFact?.observedStatus200 && observedFact?.observedStreamTrue));
+  }
   return true;
 }
 
@@ -126,17 +173,15 @@ function preferredModel(a, b) {
   return score(a) >= score(b) ? a : b;
 }
 
-function parseModels(raw) {
+function parseModels(raw, options = {}) {
   const list = Array.isArray(raw) ? raw : (raw.data || []);
+  const observedFacts = options.observedFacts || null;
   const parsed = list
     .filter((m) => m && m.id)
     .filter((m) => {
       const ns = m.namespace || '';
       if (EXCLUDED_NAMESPACES.has(ns)) return false;
       if (!ns && m.vendor === 'internal') return false;
-      if (NON_CHAT_PATTERNS.some((p) => p.test(m.id))) return false;
-      if (/\d{4}-\d{2}-\d{2}/.test(m.id)) return false;
-      if (OLD_MODEL_PATTERNS.some((p) => p.test(m.id))) return false;
       return true;
     })
     .map((m) => {
@@ -149,9 +194,19 @@ function parseModels(raw) {
       };
       const provider = inferProvider(normalized);
       const family = inferFamily(normalized, provider);
-      return { ...normalized, provider, family };
+      const stability = inferStability(normalized);
+      const capabilities = inferCapabilities(normalized);
+      const observed = getObservedFact(observedFacts, normalized.id);
+      return {
+        ...normalized,
+        provider,
+        family,
+        stability,
+        capabilities,
+        ...(observed ? { observed } : {}),
+      };
     })
-    .filter((m) => isCurrentModel(m, m.provider, m.family));
+    .filter((m) => shouldIncludeModel(m, m.observed, options));
 
   const deduped = new Map();
   for (const model of parsed) {
@@ -167,6 +222,11 @@ module.exports = {
   parseModels,
   inferProvider,
   inferFamily,
+  inferStability,
+  inferCapabilities,
+  isNonChatModel,
+  shouldIncludeModel,
+  isCurrentModel,
   normalizeModelText,
   stripProviderPrefix,
 };

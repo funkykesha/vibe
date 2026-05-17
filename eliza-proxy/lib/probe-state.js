@@ -7,7 +7,7 @@ function normalizeProvider(provider) {
 }
 
 function createEmptySummary() {
-  return { pending: 0, success: 0, warning: 0, error: 0, total: 0, final: 0 };
+  return { pending: 0, success: 0, warning: 0, error: 0, available: 0, preview: 0, total: 0, final: 0 };
 }
 
 function createProbeState() {
@@ -18,6 +18,8 @@ function createProbeState() {
 
   let seeded = false;
   let probeStatus = 'idle';
+  let catalogReady = false;
+  let explicitProbeMode = false;
   let startupError = null;
 
   function ensureProvider(provider) {
@@ -41,7 +43,11 @@ function createProbeState() {
         id: model.id,
         title: model.title || '',
         provider: normalizedProvider,
-        status: 'pending',
+        status: model.status || 'available',
+        catalogStatus: model.stability === 'preview' ? 'preview' : 'available',
+        stability: model.stability || 'stable',
+        capabilities: model.capabilities || null,
+        observed: model.observed || null,
         kind: null,
         variant: null,
         latencyMs: null,
@@ -81,7 +87,9 @@ function createProbeState() {
       const models = providers.get(provider) || [];
       for (const model of models) {
         summary.total += 1;
-        if (FINAL_STATES.has(model.status)) {
+        if (model.status === 'available' || model.status === 'preview') {
+          summary[model.status] += 1;
+        } else if (FINAL_STATES.has(model.status)) {
           summary.final += 1;
           summary[model.status] += 1;
         } else {
@@ -96,6 +104,11 @@ function createProbeState() {
     const summary = summarize();
 
     if (!seeded) {
+      probeStatus = 'idle';
+      return;
+    }
+
+    if (!explicitProbeMode) {
       probeStatus = 'idle';
       return;
     }
@@ -115,17 +128,27 @@ function createProbeState() {
     }
   }
 
-  function seedCatalog(models) {
+  function seedCatalog(models, options = {}) {
     providerOrder.length = 0;
     providers.clear();
     indexByProvider.clear();
 
+    explicitProbeMode = Boolean(options.probeMode);
+
     for (const model of models || []) {
-      const entry = ensureModel(model.provider, model);
+      const entry = ensureModel(model.provider, {
+        ...model,
+        status: explicitProbeMode ? 'pending' : (model.stability === 'preview' ? 'preview' : 'available'),
+      });
+      entry.catalogStatus = model.stability === 'preview' ? 'preview' : 'available';
+      entry.stability = model.stability || 'stable';
+      entry.capabilities = model.capabilities || null;
+      entry.observed = model.observed || null;
       if (model.probe) setFromProbe(entry, model.probe);
     }
 
     seeded = true;
+    catalogReady = true;
     startupError = null;
     refreshLifecycle();
     flushBufferedEvents();
@@ -137,6 +160,7 @@ function createProbeState() {
   }
 
   function applyProbeEvent(provider, model) {
+    explicitProbeMode = true;
     if (!seeded) {
       bufferedProbeEvents.push({ provider, model });
       return;
@@ -154,6 +178,7 @@ function createProbeState() {
 
   function toProbeMetadata(entry) {
     if (!entry) return null;
+    if (entry.status === 'available' || entry.status === 'preview') return null;
     const probe = {
       status: entry.status,
     };
@@ -170,9 +195,11 @@ function createProbeState() {
     return (models || []).map((model) => {
       const entry = getModel(model.provider, model.id);
       if (!entry) return model;
+      const probe = toProbeMetadata(entry);
+      if (!probe) return model;
       return {
         ...model,
-        probe: toProbeMetadata(entry),
+        probe,
       };
     });
   }
@@ -190,6 +217,7 @@ function createProbeState() {
       summary: summarize(),
       providers: getProviderGroups(),
       seeded,
+      catalogReady,
       startupError,
     };
   }

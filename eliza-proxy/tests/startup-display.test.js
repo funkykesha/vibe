@@ -65,6 +65,21 @@ test('display manager seeds full pending state before updates', () => {
   assert.equal(snapshot.summary.pending, 2);
 });
 
+test('display manager renders default catalog readiness as available', () => {
+  const stream = makeStream();
+  const manager = new StartupDisplayManager({ stream, isTTY: false, width: 80 });
+
+  manager.seedCatalog([
+    { provider: 'openai', models: [{ id: 'gpt-4.1', status: 'available' }] },
+    { provider: 'google', models: [{ id: 'gemini-3-pro-preview', status: 'preview' }] },
+  ]);
+
+  const snapshot = manager.getSnapshot();
+  assert.equal(snapshot.summary.available, 1);
+  assert.equal(snapshot.summary.preview, 1);
+  assert.match(stream.writes.join(''), /available=1 preview=1/);
+});
+
 test('display manager buffers updates before seed and applies after init', () => {
   const stream = makeStream();
   const manager = new StartupDisplayManager({ stream, isTTY: false, width: 80 });

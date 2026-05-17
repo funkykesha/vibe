@@ -78,6 +78,8 @@ class StartupDisplayManager {
     let success = 0;
     let warning = 0;
     let error = 0;
+    let available = 0;
+    let preview = 0;
 
     for (const provider of providers) {
       for (const model of provider.models) {
@@ -86,6 +88,8 @@ class StartupDisplayManager {
         if (model.status === 'success') success += 1;
         if (model.status === 'warning') warning += 1;
         if (model.status === 'error') error += 1;
+        if (model.status === 'available') available += 1;
+        if (model.status === 'preview') preview += 1;
       }
     }
 
@@ -97,6 +101,8 @@ class StartupDisplayManager {
         success,
         warning,
         error,
+        available,
+        preview,
       },
       providers,
     };

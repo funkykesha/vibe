@@ -9,6 +9,8 @@ const ANSI = {
 };
 
 const STATUS_STYLE = {
+  available: { symbol: 'OK', color: ANSI.GREEN },
+  preview: { symbol: 'PREV', color: ANSI.YELLOW },
   success: { symbol: 'OK', color: ANSI.GREEN },
   warning: { symbol: 'WARN', color: ANSI.YELLOW },
   error: { symbol: 'ERR', color: ANSI.RED },
@@ -87,7 +89,7 @@ function renderProviderGroup(providerName, models, options = {}) {
 function formatSummaryLine(summary) {
   const s = summary || { pending: 0, success: 0, warning: 0, error: 0, final: 0, total: 0 };
   const bar = formatProgressBar(s.final, s.total);
-  return `overall ${bar} success=${s.success} warning=${s.warning} error=${s.error} pending=${s.pending}`;
+  return `overall ${bar} available=${s.available || 0} preview=${s.preview || 0} success=${s.success} warning=${s.warning} error=${s.error} pending=${s.pending}`;
 }
 
 module.exports = {

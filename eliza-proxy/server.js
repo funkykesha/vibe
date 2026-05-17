@@ -15,6 +15,14 @@ const LOG_USAGE = process.env.LOG_USAGE !== 'false';
 const TOKEN_FILE = '/Users/agaibadulin/.eliza/token';
 const FINAL_DISPLAY_DELAY_MS = 100;
 
+function parseProbeMode(args = process.argv.slice(2), env = process.env) {
+  return args.includes('--probe')
+    || args.includes('--startup-probe')
+    || args.includes('--exit-after-probe')
+    || env.ELIZA_STARTUP_PROBE === 'true'
+    || env.ELIZA_PROBE_MODE === 'startup';
+}
+
 function loadToken() {
   let token = process.env.ELIZA_TOKEN;
   if (!token && fs.existsSync(TOKEN_FILE)) {
@@ -76,7 +84,7 @@ function renderDashboardHtml() {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Model Probe Dashboard</title>
+<title>Model Catalog Dashboard</title>
 <style>
   :root {
     --bg: #f4f6f8;
@@ -114,12 +122,12 @@ function renderDashboardHtml() {
 </head>
 <body>
 <main>
-  <h1>Model Probe Dashboard</h1>
-  <div class="meta">Read-only status view. No chat controls, no probe controls.</div>
+  <h1>Model Catalog Dashboard</h1>
+  <div class="meta">Read-only catalog view. Diagnostic probes appear only when explicitly enabled.</div>
   <div id="startup-error" class="error-box"></div>
   <section class="summary">
     <div class="card"><div class="label">Probe</div><div id="probe" class="value">idle</div></div>
-    <div class="card"><div class="label">Success</div><div id="success" class="value ok">0</div></div>
+    <div class="card"><div class="label">Available</div><div id="available" class="value ok">0</div></div>
     <div class="card"><div class="label">Warning</div><div id="warning" class="value warn">0</div></div>
     <div class="card"><div class="label">Error</div><div id="error" class="value err">0</div></div>
     <div class="card"><div class="label">Pending</div><div id="pending" class="value pending">0</div></div>
@@ -151,7 +159,7 @@ function render(data) {
   }
 
   document.getElementById('probe').textContent = data.probeStatus;
-  document.getElementById('success').textContent = data.summary.success;
+  document.getElementById('available').textContent = data.summary.available || data.summary.success || 0;
   document.getElementById('warning').textContent = data.summary.warning;
   document.getElementById('error').textContent = data.summary.error;
   document.getElementById('pending').textContent = data.summary.pending;
@@ -221,7 +229,7 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
       seedPromise = eliza.getModels()
         .then(({ models }) => {
           if (!probeState.getSnapshot().seeded) {
-            probeState.seedCatalog(models);
+            probeState.seedCatalog(models, { probeMode: Boolean(eliza.probeMode) });
           }
         })
         .catch((err) => {
@@ -244,6 +252,7 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
     const snapshot = probeState.getSnapshot();
     res.json({
       probeStatus: snapshot.probeStatus,
+      catalogReady: snapshot.catalogReady,
       summary: snapshot.summary,
       providers: snapshot.providers,
       startupError: snapshot.startupError,
@@ -260,6 +269,7 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
         status: 'ok',
         version: '1.0.0',
         modelsValidated: validated,
+        catalogReady: snapshot.catalogReady,
         probeStatus: snapshot.probeStatus,
         probeSummary: snapshot.summary,
       });
@@ -357,8 +367,8 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
       return;
     }
     const t0 = Date.now();
-    const available = await eliza.probe(model);
-    res.json({ available, latency: Date.now() - t0 });
+    const result = await eliza.probe(model);
+    res.json({ ...result, latency: Date.now() - t0 });
   });
 
   app.get('/v1/usage', (req, res) => {
@@ -376,6 +386,7 @@ async function startServer(options = {}) {
 
   const port = options.port || PORT;
   const shouldExitAfterProbe = Boolean(options.shouldExitAfterProbe);
+  const probeMode = options.probeMode ?? parseProbeMode(options.args || process.argv.slice(2), process.env);
   const probeState = options.probeState || createProbeState();
   const displayManager = options.displayManager || new StartupDisplayManager();
   const usageStats = options.usageStats || createUsageStats();
@@ -400,6 +411,7 @@ async function startServer(options = {}) {
 
   const eliza = createElizaClient({
     token,
+    probeMode,
     onModelProbed: (provider, model) => {
       probeState.applyProbeEvent(provider, model);
       void maybeExit();
@@ -427,7 +439,7 @@ async function startServer(options = {}) {
 
   try {
     const { models } = await eliza.getModels();
-    probeState.seedCatalog(models);
+    probeState.seedCatalog(models, { probeMode });
     displayManager.seedCatalog(probeState.getProviderGroups());
     await maybeExit();
   } catch (err) {
@@ -449,7 +461,7 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   const shouldExitAfterProbe = args.includes('--exit-after-probe');
 
-  startServer({ shouldExitAfterProbe }).catch((err) => {
+  startServer({ shouldExitAfterProbe, probeMode: parseProbeMode(args), args }).catch((err) => {
     console.error(err.message);
     process.exit(1);
   });
@@ -461,4 +473,5 @@ module.exports = {
   recordUsage,
   renderDashboardHtml,
   startServer,
+  parseProbeMode,
 };

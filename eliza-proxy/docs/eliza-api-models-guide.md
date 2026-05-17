@@ -7,6 +7,10 @@
 
 ## Доступность моделей с текущим токеном
 
+`eliza-proxy` больше не запускает model probe при обычном старте. `/v1/models` строится из каталога Eliza и локальных capability-правил: модель должна быть chat-моделью и поддерживать streaming route прокси. Например, GPT-5/GPT-5.4 модели, которым нужен неподдержанный non-streaming/responses path, скрываются из selectable catalog до `/v1/chat`.
+
+Diagnostic probe остается ручной операцией: `POST /v1/probe`, `npm start -- --probe`, `npm start -- --startup-probe`, `npm start -- --exit-after-probe`, `ELIZA_STARTUP_PROBE=true` или `ELIZA_PROBE_MODE=startup`. Эти режимы делают реальные model completion requests и могут тратить provider quota/tokens.
+
 **Работающие модели (internal/communal):**
 - `deepseek-v3-1-terminus` ✅
 - `deepseek-v3-2` ✅
@@ -23,6 +27,21 @@
 1. Имеет ли ваш токен доступ к внешним моделям
 2. Пройден ли sec-review для желаемого провайдера
 3. Является ли модель внутренней (communal) или внешней
+
+Probe warning/error теперь является diagnostic metadata. Совместимая streaming chat модель не удаляется из `/v1/models` только из-за timeout, quota или warning probe результата.
+
+## Observed Monium facts
+
+Observed-health можно добавлять как deterministic input к каталогу. Для этого запросы к Monium `chat.status` должны использовать:
+
+- абсолютные UTC `from`/`to`, а не implicit `now-1d`;
+- фиксированные selectors по `vendor`, `status` и `stream`;
+- chunking по bounded наборам vendor/status/stream, чтобы не превышать лимит транспорта;
+- игнорирование строк с aggregate value `0`, потому что это не доказательство свежего успешного трафика.
+
+Из ответов читаются labels `model`, `vendor`, `provider`, `stream` и aggregate value. В `/v1/models` такие факты попадают как `observedStatus200`, `observedStreamTrue`, `requestScore` и `window`. Observed model, которого нет в текущем Eliza catalog, остается diagnostic mismatch и не становится selectable автоматически.
+
+Preview/experimental модели включаются только по policy: например, если модель совместима со streaming route и есть successful observed traffic со `stream=true`. В ответе она помечается `stability: "preview"`.
 
 ---
 

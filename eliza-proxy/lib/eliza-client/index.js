@@ -31,6 +31,8 @@ function createElizaClient({
   token,
   baseUrl = 'https://api.eliza.yandex.net',
   _skipProbe = false,
+  probeMode = process.env.ELIZA_STARTUP_PROBE === 'true' || process.env.ELIZA_PROBE_MODE === 'startup',
+  observedFacts = null,
   _runProbe = (models, token, baseUrl, onModelProbed, updateModelStatus) => runProbe(models, token, baseUrl, onModelProbed, updateModelStatus),
   _sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
   onModelProbed = null,
@@ -56,7 +58,7 @@ function createElizaClient({
           throw new ElizaError(res.status, await res.text().catch(() => ''));
         }
         const rawJson = await res.json();
-        return parseModels(rawJson);
+        return parseModels(rawJson, { observedFacts });
       } catch (err) {
         if (err instanceof ElizaError) throw err;
         if (!isRetriableNetworkError(err) || attempt >= 2) throw err;
@@ -67,7 +69,7 @@ function createElizaClient({
   }
 
   function startProbeIfNeeded() {
-    if (_skipProbe || probePromise) return;
+    if (_skipProbe || !probeMode || probePromise) return;
 
     probePromise = _runProbe(rawCache.models, token, baseUrl, onModelProbed, updateModelStatus)
       .then((validated) => {
@@ -180,9 +182,9 @@ function createElizaClient({
     const modelObj = { id: model, provider: null, family: null };
     try {
       const result = await probeModel(modelObj, token, baseUrl);
-      return result.ok;
+      return { available: result.ok, probe: result, realProviderCalls: true };
     } catch {
-      return false;
+      return { available: false, probe: null, realProviderCalls: true };
     }
   }
 
@@ -204,7 +206,7 @@ function createElizaClient({
     });
   }
 
-  return { chat, chatOnce, probe, getModels, _forceValidated, onModelUpdate, updateModelStatus };
+  return { chat, chatOnce, probe, getModels, _forceValidated, onModelUpdate, updateModelStatus, probeMode };
 }
 
 module.exports = { createElizaClient, ElizaError };

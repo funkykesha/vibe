@@ -178,6 +178,32 @@ describe('chat()', () => {
 });
 
 describe('getModels — probe failure notifies onValidated with raw', () => {
+  it('does not call runProbe by default', async () => {
+    const rawModels = [
+      { id: 'gpt-4.1', title: 'GPT 4.1', developer: 'OpenAI', namespace: '', prices: {} },
+    ];
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => makeModelResponse(rawModels),
+    });
+
+    let called = false;
+    const eliza = createElizaClient({
+      token: 'test',
+      _sleep: async () => {},
+      _runProbe: async () => {
+        called = true;
+        return [];
+      },
+    });
+
+    const { models, validated } = await eliza.getModels();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(validated, false);
+    assert.equal(models.length, 1);
+    assert.equal(called, false);
+  });
+
   it('calls onValidated with raw models when _runProbe rejects', async () => {
     const rawModels = [
       { id: 'claude-sonnet-4-6', title: 'Claude Sonnet', developer: 'Anthropic', namespace: '', prices: { input: 1 } },
@@ -189,7 +215,7 @@ describe('getModels — probe failure notifies onValidated with raw', () => {
 
     const eliza = createElizaClient({
       token: 'test',
-      _skipProbe: false,
+      probeMode: true,
       _sleep: async () => {},
       _runProbe: async () => {
         throw new Error('probe boom');
