@@ -13,7 +13,7 @@ C4Deployment
   Deployment_Node(mac, "User Mac", "macOS (Apple Silicon or Intel)") {
     Deployment_Node(user_session, "User session", "GUI login") {
       Container(app_bundle, "/Applications/WorkGuard.app", "macOS bundle", "Installed GUI launcher; MacOS/WorkGuard → exec python")
-      Container(launch_agent, "Planned user LaunchAgent", "launchd plist", "Login startup; runs /usr/bin/open /Applications/WorkGuard.app")
+      Container(launch_agent, "User LaunchAgent", "launchd plist", "Login startup; runs /usr/bin/open /Applications/WorkGuard.app")
     }
     Deployment_Node(conda, "Conda base", "miniforge / miniconda") {
       Container(py_rt, "workguard env", "Python 3.11", "rumps, PyObjC, pynput, tkinter")

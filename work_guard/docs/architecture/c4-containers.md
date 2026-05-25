@@ -21,7 +21,7 @@ C4Container
   }
 
   System_Ext(macos, "macOS", "System APIs and notifications")
-  System_Ext(launchd, "launchd", "Planned login startup via user LaunchAgent")
+  System_Ext(launchd, "launchd", "Login startup via user LaunchAgent")
 
   Rel(user, py_core, "Starts/uses", "/Applications/WorkGuard.app")
   Rel(user, swift_agent, "Uses", "Menu clicks when Swift path enabled")

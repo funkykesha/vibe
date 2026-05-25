@@ -1,6 +1,7 @@
 # Current Status
 
 ## Latest Completed Work
+- 2026-05-25: **актуализированы backlog/architecture docs после закрытых changes** — `docs/architecture/c4-dynamic-launchagent-install.md` и индекс архитектуры теперь помечают LaunchAgent install flow как `Current`; `docs/backlog.md` очищен от уже реализованной overlay lock escalation и явно помечен как idea inbox, не canonical task tracker.
 - 2026-05-12: **закрыт и архивирован change `install-workguard-applications-launchagent`** — реализованы: `bash rebuild.sh` как единственный public install/rebuild entrypoint; packaging-only app templates under `packaging/`; `/Applications/WorkGuard.app` как единственный supported GUI target; stable bundle id `com.agaibadulin.workguard`; user LaunchAgent `~/Library/LaunchAgents/com.agaibadulin.workguard.plist` with `/usr/bin/open /Applications/WorkGuard.app`, `RunAtLoad=true`, `KeepAlive=false`; `setup.sh` теперь hard error; добавлены manual verification scripts. Live rebuild and verification прошли; synced main specs в `openspec/specs/workguard-*`; archived в `openspec/changes/archive/2026-05-12-install-workguard-applications-launchagent/`.
 - 2026-05-11: **закрыт и архивирован change `improve-status-calendar-overlay`** — реализованы: быстрый tick статуса (~5s), overtime по elapsed time, `xmlcalendar.ru` + кэш `calendar_ru_<year>.json`, поддержка `+/*` маркеров и сокращённого дня (`work_end - 1h`), эскалация `overlay_lock_initial_sec -> ... -> overlay_lock_max_sec`, адаптивный `settings_dialog`, обновлены README/C4, создан verification script `tests/manual/verify_production_calendar.py`, synced main specs в `openspec/specs/*`, archived в `openspec/changes/archive/2026-05-11-improve-status-calendar-overlay/`.
 - 2026-05-11: **устранён рекурсивный автозапуск WorkGuard** — найден launchd источник `com.agaibadulin.WorkGuard` (open `/Applications/WorkGuard.app`) и старый `com.workguard`; оба отключены/выгружены, соответствующие plist удалены из `~/Library/LaunchAgents`; `scripts/stop_workguard.sh` усилен: scan+bootout+disable всех WorkGuard-like LaunchAgents.
@@ -32,6 +33,10 @@
 - Актуальный путь проекта: `/Users/agaibadulin/Desktop/projects/vibe/work_guard`; пользовательские данные приложения остаются в `~/.config/work_guard/`.
 
 ## Next Recommended Action
-No active OpenSpec implementation change is pending. Next useful hardening can be chosen from Beads/OpenSpec backlog after checking `bd ready`.
+No active OpenSpec implementation change is pending. `bd` was empty before the
+2026-05-25 documentation cleanup task.
 
-По желанию: валидация полей в `config.py`, hot-reload при сохранении настроек в отдельном процессе без ожидания тика, унификация дублирующего UI настроек (встроенный `_show_settings_dialog` удалён из раннего кода при рефакторинге).
+Likely next candidates from `docs/backlog.md`: overlay recovery after laptop lid
+close/open, interactive work-time selection, periodic rest-text generation, and
+Pomodoro-style analysis. Convert the chosen idea into Beads/OpenSpec before
+implementation.

@@ -1,14 +1,19 @@
-# WorkGuard — dynamic view: planned LaunchAgent install
+# WorkGuard — dynamic view: LaunchAgent install
 
-Status: Planned.
+Status: Current.
 
-This view captures the contract for `install-workguard-applications-launchagent`. The intended rebuild/install flow should behave like the other desktop service installers: replace the installed app bundle, refresh macOS launch metadata, update login startup, and relaunch the app. The installed `.app` remains a launcher to the configured Conda Python and project `work_guard.py`; it is not a standalone bundled Python app.
+This view captures the current contract implemented by the archived
+`install-workguard-applications-launchagent` change. The rebuild/install flow
+replaces the installed app bundle, refreshes macOS launch metadata, updates login
+startup, and relaunches the app. The installed `.app` remains a launcher to the
+configured Conda Python and project `work_guard.py`; it is not a standalone
+bundled Python app.
 
 ## Diagram
 
 ```mermaid
 C4Dynamic
-  title Dynamic Diagram — Planned LaunchAgent install path
+  title Dynamic Diagram — LaunchAgent install path
 
   Person(user, "User", "Installs WorkGuard for login startup")
   Container(setup, "rebuild.sh / reinstall step", "bash", "Stops app, replaces bundle, refreshes macOS metadata")
@@ -32,18 +37,21 @@ C4Dynamic
   UpdateRelStyle(launchd, app, $textColor="#1565c0", $offsetY="-12")
 ```
 
-## Planned contract
+## Current contract
 
 | Concern | Direction |
 |---------|-----------|
 | Launch target | LaunchAgent runs `/usr/bin/open /Applications/WorkGuard.app`; the app launcher then execs Conda `python3 work_guard.py`. |
-| Manual launch | `/Applications/WorkGuard.app` becomes the supported GUI target; direct terminal launch remains for debugging. |
+| Manual launch | `/Applications/WorkGuard.app` is the supported GUI target; direct terminal launch remains for debugging. |
 | Bundle freshness | Reinstall stops WorkGuard, replaces `/Applications/WorkGuard.app`, refreshes LaunchServices, signs/registers, and relaunches. |
 | Duplicate protection | Existing `fcntl` lock remains authoritative across installed app launches and direct debug launches. Project-local `.app` is not a supported launch target. |
 | Stop/uninstall | `scripts/stop_workguard.sh` must remain compatible with `com.agaibadulin.workguard.plist` and the installed app path. |
 | Ownership | Per-user only: `~/Library/LaunchAgents` and `gui/<uid>`, no system daemon. |
 
-## Open questions before implementation
+## Resolved implementation details
 
-- Exact LaunchServices refresh command sequence and failure handling.
-- Resolved: bundle templates and install-time assets live under `packaging/`.
+- LaunchServices refresh uses app unregister/register rather than a global
+  database kill.
+- Bundle templates and install-time assets live under `packaging/`.
+- `setup.sh` is obsolete and exits with a hard error pointing to `bash
+  rebuild.sh`.

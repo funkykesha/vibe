@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-05-25
+
+- Actualized backlog and architecture docs after completed OpenSpec changes.
+- Marked `docs/architecture/c4-dynamic-launchagent-install.md` and the C4 index
+  as current instead of planned.
+- Cleaned `docs/backlog.md`: it is now an idea inbox, not canonical task state;
+  removed overlay lock escalation from live candidates because it is already
+  implemented and specified.
+
 ## 2026-05-12
 
 - Hardened `install-workguard-applications-launchagent` intent before implementation: LaunchAgent `ProgramArguments` now use absolute `/usr/bin/open` plus `/Applications/WorkGuard.app`; packaging directory ambiguity is closed as `packaging/`.
