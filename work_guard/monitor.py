@@ -1,8 +1,8 @@
 """
 Activity monitoring:
+- Input activity via pynput (keyboard + mouse)
 - Active application via NSWorkspace (PyObjC)
-- Keyboard activity via pynput
-- Lid open/close via IOKit PowerManagement (PyObjC)
+- Lid open/close via IOKit (ioreg polling)
 """
 
 import logging
@@ -15,7 +15,6 @@ from production_calendar import ProductionCalendar
 
 logger = logging.getLogger(__name__)
 
-# Try to import PyObjC — required for NSWorkspace and IOKit
 try:
     from AppKit import NSWorkspace
     HAS_APPKIT = True
@@ -24,11 +23,11 @@ except ImportError:
     logger.warning("AppKit not available — falling back to osascript for active app")
 
 try:
-    from pynput import keyboard as pynput_keyboard
+    from pynput import keyboard as pynput_keyboard, mouse as pynput_mouse
     HAS_PYNPUT = True
 except ImportError:
     HAS_PYNPUT = False
-    logger.warning("pynput not available — keyboard monitoring disabled")
+    logger.warning("pynput not available — input monitoring disabled")
 
 
 def _get_active_app_osascript() -> Optional[str]:
@@ -45,7 +44,6 @@ def _get_active_app_osascript() -> Optional[str]:
 
 
 def get_active_app() -> Optional[str]:
-    """Return the name of the currently active (frontmost) application."""
     if HAS_APPKIT:
         try:
             info = NSWorkspace.sharedWorkspace().activeApplication()
@@ -56,52 +54,57 @@ def get_active_app() -> Optional[str]:
     return _get_active_app_osascript()
 
 
-class KeyboardWatcher:
-    """Tracks last keyboard activity time using pynput."""
+class InputWatcher:
+    """Tracks last keyboard or mouse activity time using pynput."""
 
     def __init__(self):
-        self._last_keypress: Optional[datetime.datetime] = None
+        self._last_input: Optional[datetime.datetime] = None
         self._lock = threading.Lock()
-        self._listener: Optional[object] = None
+        self._kb_listener: Optional[object] = None
+        self._mouse_listener: Optional[object] = None
 
     def start(self):
         if not HAS_PYNPUT:
             return
-        self._listener = pynput_keyboard.Listener(on_press=self._on_press)
-        self._listener.daemon = True
-        self._listener.start()
-        logger.info("Keyboard watcher started")
+        self._kb_listener = pynput_keyboard.Listener(on_press=self._on_input)
+        self._kb_listener.daemon = True
+        self._kb_listener.start()
+        self._mouse_listener = pynput_mouse.Listener(
+            on_move=self._on_input,
+            on_click=self._on_input,
+            on_scroll=self._on_input,
+        )
+        self._mouse_listener.daemon = True
+        self._mouse_listener.start()
+        logger.info("InputWatcher started (keyboard + mouse)")
 
     def stop(self):
-        if self._listener:
-            try:
-                self._listener.stop()
-            except Exception:
-                pass
+        for listener in (self._kb_listener, self._mouse_listener):
+            if listener:
+                try:
+                    listener.stop()
+                except Exception:
+                    pass
 
-    def _on_press(self, key):
+    def _on_input(self, *_args):
         with self._lock:
-            self._last_keypress = datetime.datetime.now()
+            self._last_input = datetime.datetime.now()
 
     def is_active(self, idle_threshold_sec: int = 300) -> bool:
-        """True if keyboard was used within the last idle_threshold_sec seconds."""
         with self._lock:
-            if self._last_keypress is None:
+            if self._last_input is None:
                 return False
-            elapsed = (datetime.datetime.now() - self._last_keypress).total_seconds()
-            return elapsed < idle_threshold_sec
+            return (datetime.datetime.now() - self._last_input).total_seconds() < idle_threshold_sec
 
 
 class LidWatcher:
     """
     Monitors laptop lid state by polling 'ioreg' for display sleep.
-    When lid closes → display sleeps → we record it.
-    When lid opens → display wakes → we record the break.
+    When lid closes → display sleeps. When lid opens → display wakes.
     """
 
     def __init__(self):
         self._lid_closed = False
-        self._last_open: Optional[datetime.datetime] = None
         self._lock = threading.Lock()
         self._thread: Optional[threading.Thread] = None
         self._running = False
@@ -121,18 +124,11 @@ class LidWatcher:
             return self._lid_closed
 
     def _check_display_asleep(self) -> bool:
-        """Check if internal display is asleep via ioreg."""
         try:
-            result = subprocess.run(
-                ["ioreg", "-rn", "AppleSmartBatteryManager", "-k", "ExternalConnected"],
-                capture_output=True, text=True, timeout=3,
-            )
-            # Better: check IODisplayWrangler CurrentPowerState
             result2 = subprocess.run(
                 ["ioreg", "-n", "IODisplayWrangler"],
                 capture_output=True, text=True, timeout=3,
             )
-            # CurrentPowerState = 0 means display off (lid closed)
             for line in result2.stdout.splitlines():
                 if "CurrentPowerState" in line:
                     val = line.split("=")[-1].strip()
@@ -151,66 +147,58 @@ class LidWatcher:
                         logger.info("Lid closed — display sleeping")
                     elif not asleep and self._lid_closed:
                         self._lid_closed = False
-                        self._last_open = datetime.datetime.now()
                         logger.info("Lid opened — monitoring continues")
             except Exception as e:
-                logger.debug(f"LidWatcher poll error: {e}")
+                logger.debug("LidWatcher poll error: %s", e)
             time.sleep(10)
 
 
+def _has_focused_user_app() -> bool:
+    app = get_active_app()
+    return bool(app)
+
+
 class ActivityMonitor:
-    """
-    Main activity monitor. Tracks:
-    - which application is active
-    - keyboard activity
-    - lid state
-    """
+    """Tracks input activity, lid state, and work schedule."""
 
     def __init__(self, config: dict):
         self._config = config
-        self._keyboard = KeyboardWatcher()
+        self._input = InputWatcher()
         self._lid = LidWatcher()
         self._calendar = ProductionCalendar(config)
 
     def start(self):
-        self._keyboard.start()
+        self._input.start()
         self._lid.start()
 
     def stop(self):
-        self._keyboard.stop()
+        self._input.stop()
         self._lid.stop()
 
     def update_config(self, config: dict):
         self._config = config
         self._calendar.update_config(config)
 
-    # ------------------------------------------------------------------
-    # Public queries
-    # ------------------------------------------------------------------
+    def _schedule(self) -> dict:
+        return self._config.get("current_period_settings", {})
 
     def get_active_app(self) -> Optional[str]:
         return get_active_app()
 
-    def is_keyboard_active(self) -> bool:
-        return self._keyboard.is_active(idle_threshold_sec=300)
+    def is_input_active(self) -> bool:
+        return self._input.is_active(idle_threshold_sec=300)
 
     def is_lid_closed(self) -> bool:
         return self._lid.is_closed
 
-    def is_work_app_active(self) -> bool:
-        app = self.get_active_app()
-        if not app:
-            return False
-        work_apps = self._config.get("work_apps", [])
-        return any(w.lower() in app.lower() or app.lower() in w.lower()
-                   for w in work_apps)
-
     def is_work_happening(self) -> bool:
-        """True if the user appears to be working right now."""
-        # Lid closed = definitely not working at the laptop
+        """True if user appears to be working right now."""
         if self.is_lid_closed():
             return False
-        return self.is_work_app_active() or self.is_keyboard_active()
+        if self.is_input_active():
+            return True
+        # Lid open + focused app = working
+        return _has_focused_user_app()
 
     def is_work_time(self) -> bool:
         """True if current time falls within configured work schedule."""
@@ -219,12 +207,13 @@ class ActivityMonitor:
         if not day_info.is_workday:
             return False
 
+        sched = self._schedule()
         try:
             start = datetime.datetime.strptime(
-                self._config.get("work_start", "09:00"), "%H:%M"
+                sched.get("work_start", "09:00"), "%H:%M"
             ).replace(year=now.year, month=now.month, day=now.day)
             end = datetime.datetime.strptime(
-                self._config.get("work_end", "19:00"), "%H:%M"
+                sched.get("work_end", "19:00"), "%H:%M"
             ).replace(year=now.year, month=now.month, day=now.day)
             if day_info.is_short_day:
                 end = end - datetime.timedelta(hours=1)
@@ -234,20 +223,3 @@ class ActivityMonitor:
         if end <= start:
             return False
         return start <= now <= end
-
-    def is_paused(self) -> bool:
-        """True if monitoring is manually paused until a certain time."""
-        pause_until = self._config.get("pause_until")
-        if not pause_until:
-            return False
-        try:
-            until = datetime.datetime.fromisoformat(pause_until)
-            if datetime.datetime.now() < until:
-                return True
-            # Pause expired — clear it
-            self._config["pause_until"] = None
-            from config import save_config
-            save_config(self._config)
-        except (ValueError, TypeError):
-            pass
-        return False

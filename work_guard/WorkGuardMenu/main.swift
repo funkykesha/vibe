@@ -15,10 +15,15 @@ struct MenuItemModel {
     let enabled: Bool
 }
 
+struct DeferButtonModel {
+    let title: String
+    let enabled: Bool
+}
+
 struct StatusModel {
     var title: String = "WG"
     var tooltip: String = ""
-    var paused: Bool = false
+    var deferButton: DeferButtonModel? = nil
     var items: [MenuItemModel] = []
 }
 
@@ -64,7 +69,6 @@ final class StatusBarController: NSObject {
 
         let title = json["title"] as? String ?? "WG"
         let tooltip = json["tooltip"] as? String ?? ""
-        let paused = json["paused"] as? Bool ?? false
         var items: [MenuItemModel] = []
 
         if let rawItems = json["items"] as? [[String: Any]] {
@@ -76,10 +80,17 @@ final class StatusBarController: NSObject {
             }
         }
 
+        var deferButton: DeferButtonModel? = nil
+        if let raw = json["defer_button"] as? [String: Any] {
+            let dbTitle = raw["title"] as? String ?? "Работаем!"
+            let dbEnabled = raw["enabled"] as? Bool ?? false
+            deferButton = DeferButtonModel(title: dbTitle, enabled: dbEnabled)
+        }
+
         let newStatus = StatusModel(
             title: title,
             tooltip: tooltip,
-            paused: paused,
+            deferButton: deferButton,
             items: items
         )
 

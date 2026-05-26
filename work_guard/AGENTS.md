@@ -88,7 +88,7 @@ WorkGuard is a macOS menu bar app: Python core + optional Swift menu agent.
 
 ### Data Files (`~/.config/work_guard/`)
 
-- `config.json` — schedule, work_apps list, pause_until, overlay locks
+- `config.json` — `current_period_settings` (schedule), `pending_period_settings`, `deferral`, `calendar_source`, `calendar_cache_days`; overlay/lock/notification constants live in `work_guard.py`, not config
 - `status.json` / `command.json` — Python ↔ Swift IPC
 - `work_guard.lock` — single-instance PID lock
 - `work_guard.log` — runtime log

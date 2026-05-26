@@ -100,10 +100,12 @@ The settings snapshot that governs the active deferral period until the next wor
 period begins.
 _Avoid_: latest config, process-local settings
 
-**Contextual Pause Control**:
-The menu control that acts as pause outside overtime and as overlay deferral
-during overtime.
-_Avoid_: treating deferral as monitoring pause
+**Contextual Deferral Control**:
+The single menu item whose label and enabled state reflect the current deferral
+ladder position. Outside overtime it shows "Работаем!" (disabled). During
+overtime it shows the next available deferral step or "пора отдыхать" when the
+ladder is exhausted or the cutoff window is active.
+_Avoid_: pause, monitoring pause, treating deferral as schedule change
 
 ## Relationships
 
@@ -153,14 +155,13 @@ _Avoid_: treating deferral as monitoring pause
   WorkGuard cannot apply **Pending Period Settings** to the current period early.
 - When settings are saved as **Pending Period Settings**, the settings dialog
   tells the user they will apply in the next work period.
-- **Overlay Deferral** is controlled from the same menu area as pause controls,
-  not from the overlay itself.
-- A **Contextual Pause Control** may change meaning during overtime: it defers
-  the next overlay while monitoring and overtime accounting continue.
-- During overtime, the **Contextual Pause Control** label uses the current
-  deferral step, such as "Отложить на 30 минут".
-- When no overtime deferral is available, the **Contextual Pause Control**
-  remains visible but disabled with a clear unavailable label.
+- **Overlay Deferral** is controlled from the menu via the **Contextual Deferral
+  Control**, not from the overlay itself.
+- The **Overlay Deferral Ladder** has three forced-order steps: 20 → 10 → 5 minutes.
+- The **Contextual Deferral Control** label during overtime uses the next available
+  step, e.g. "Отложить на 20 мин", "Отложить на 10 мин", "Отложить на 5 мин".
+- When no overtime deferral is available, the **Contextual Deferral Control**
+  remains visible but disabled with label "пора отдыхать".
 
 ## Example Dialogue
 
@@ -250,21 +251,20 @@ _Avoid_: treating deferral as monitoring pause
 > **Domain expert:** "No. A settings-dialog confirmation is enough; the menu
 > should stay focused on current overtime and deferral state."
 
-> **Dev:** "Should the overlay itself offer '+30 minutes'?"
-> **Domain expert:** "No. **Overlay Deferral** belongs in the menu near pause
-> controls; the overlay is already enforcement."
+> **Dev:** "Should the overlay itself offer '+20 minutes'?"
+> **Domain expert:** "No. **Overlay Deferral** belongs in the menu via the
+> **Contextual Deferral Control**; the overlay is already enforcement."
 
-> **Dev:** "When overtime is active, does the Pause menu item still pause
-> monitoring?"
-> **Domain expert:** "No. The **Contextual Pause Control** becomes an **Overlay
-> Deferral** action; monitoring stays active."
+> **Dev:** "Is there still a pause feature?"
+> **Domain expert:** "No. Pause is removed. The **Contextual Deferral Control**
+> replaces it; monitoring always stays active."
 
 > **Dev:** "Should the menu item say 'pause overlay'?"
-> **Domain expert:** "No. During overtime it should simply say 'Отложить на N
-> минут'."
+> **Domain expert:** "No. During overtime it should say 'Отложить на N мин'
+> (20, 10, or 5); when unavailable, 'пора отдыхать'."
 
 > **Dev:** "Should the deferral menu item disappear when it cannot be used?"
-> **Domain expert:** "No. Keep the **Contextual Pause Control** visible but
+> **Domain expert:** "No. Keep the **Contextual Deferral Control** visible but
 > disabled so the unavailable state is explicit."
 
 > **Dev:** "Is the cutoff measured from the original overlay time or the
@@ -294,6 +294,7 @@ _Avoid_: treating deferral as monitoring pause
   that current enforcement is protected. Resolved: settings edits may be saved as
   **Pending Period Settings**, but must not affect the current **Deferral
   Period**.
-- "Pause" in the menu can mean either monitoring pause or overtime deferral
-  depending on state. Resolved: this is a **Contextual Pause Control**; during
-  overtime it performs **Overlay Deferral**, not monitoring pause.
+- "Pause" in the menu previously meant either monitoring pause or overtime deferral.
+  Resolved: monitoring pause is removed; the **Contextual Deferral Control** is the
+  only menu control in that region and always performs **Overlay Deferral** or shows
+  an unavailable state.
