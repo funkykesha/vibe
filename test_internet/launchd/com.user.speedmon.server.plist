@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.speedmon.server</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/Caskroom/miniforge/base/bin/python3</string>
+        <string>/Users/agaibadulin/Desktop/projects/vibe/test_internet/internet_speed_monitor.py</string>
+        <string>server</string>
+        <string>--host</string>
+        <string>127.0.0.1</string>
+        <string>--port</string>
+        <string>9876</string>
+    </array>
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>WorkingDirectory</key>
+    <string>/Users/agaibadulin/Desktop/projects/vibe/test_internet</string>
+    <key>StandardOutPath</key>
+    <string>/Users/agaibadulin/Desktop/projects/vibe/test_internet/logs/launchd-server.out</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/agaibadulin/Desktop/projects/vibe/test_internet/logs/launchd-server.err</string>
+</dict>
+</plist>
