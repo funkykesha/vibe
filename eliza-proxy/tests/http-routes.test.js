@@ -264,3 +264,74 @@ test('closeServerIfListening skips non-listening server', async () => {
 
   assert.equal(closeCalled, false);
 });
+
+test('POST /v1/messages non-stream returns Anthropic message format', async () => {
+  function makeElizaWithChat(chunks) {
+    return {
+      probeMode: false,
+      async getModels() { return { models: [], validated: false, onValidated: () => {} }; },
+      async probe() { return { available: true, probe: { ok: true, kind: 'ok' }, realProviderCalls: true }; },
+      onModelUpdate() {},
+      async *chat() { for (const c of chunks) yield c; },
+    };
+  }
+
+  const app = createApp({
+    eliza: makeElizaWithChat([
+      { delta: 'Hello' },
+      { delta: ' world' },
+      { usage: { input: 5, output: 10 }, done: true },
+    ]),
+    probeState: createProbeState(),
+    usageStats: createUsageStats(),
+    logUsage: false,
+  });
+
+  const res = await callRoute(app, 'POST', '/v1/messages', {
+    body: { model: 'claude-sonnet-4-6', messages: [{ role: 'user', content: 'hi' }] },
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.type, 'message');
+  assert.equal(res.body.role, 'assistant');
+  assert.equal(res.body.content[0].type, 'text');
+  assert.equal(res.body.content[0].text, 'Hello world');
+  assert.equal(res.body.stop_reason, 'end_turn');
+  assert.equal(res.body.usage.input_tokens, 5);
+  assert.equal(res.body.usage.output_tokens, 10);
+});
+
+test('POST /v1/messages normalizes array content and system blocks', async () => {
+  let capturedMessages;
+  let capturedSystem;
+
+  const elizaMock = {
+    probeMode: false,
+    async getModels() { return { models: [], validated: false, onValidated: () => {} }; },
+    async probe() { return {}; },
+    onModelUpdate() {},
+    async *chat(model, messages, { system } = {}) {
+      capturedMessages = messages;
+      capturedSystem = system;
+      yield { done: true };
+    },
+  };
+
+  const app = createApp({
+    eliza: elizaMock,
+    probeState: createProbeState(),
+    usageStats: createUsageStats(),
+    logUsage: false,
+  });
+
+  await callRoute(app, 'POST', '/v1/messages', {
+    body: {
+      model: 'claude-sonnet-4-6',
+      system: [{ type: 'text', text: 'You are helpful' }],
+      messages: [{ role: 'user', content: [{ type: 'text', text: 'hello' }] }],
+    },
+  });
+
+  assert.equal(capturedSystem, 'You are helpful');
+  assert.equal(capturedMessages[0].content, 'hello');
+});

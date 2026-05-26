@@ -177,6 +177,52 @@ describe('chat()', () => {
   });
 });
 
+describe('chat() — 429 retry', () => {
+  it('retries on 429 then succeeds', async () => {
+    const sse = 'data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\ndata: [DONE]\n\n';
+    let fetchCount = 0;
+    const sleepDelays = [];
+    globalThis.fetch = async () => {
+      fetchCount += 1;
+      if (fetchCount < 2) return { ok: false, status: 429, headers: { get: () => null }, text: async () => 'rate limit' };
+      return { ok: true, status: 200, body: makeStream(sse) };
+    };
+    const eliza = createElizaClient({ token: 't', _skipProbe: true, _sleep: async (ms) => { sleepDelays.push(ms); } });
+    const { content } = await eliza.chatOnce('gpt-4.1', []);
+    assert.equal(content, 'ok');
+    assert.equal(fetchCount, 2);
+    assert.deepEqual(sleepDelays, [1000]);
+  });
+
+  it('throws ElizaError(429) after 3 failed attempts', async () => {
+    let fetchCount = 0;
+    globalThis.fetch = async () => {
+      fetchCount += 1;
+      return { ok: false, status: 429, headers: { get: () => null }, text: async () => 'rate limit' };
+    };
+    const eliza = createElizaClient({ token: 't', _skipProbe: true, _sleep: async () => {} });
+    await assert.rejects(
+      async () => { for await (const _ of eliza.chat('gpt-4.1', [])) {} },
+      (e) => e instanceof ElizaError && e.status === 429,
+    );
+    assert.equal(fetchCount, 3);
+  });
+
+  it('respects Retry-After header', async () => {
+    const sse = 'data: {"choices":[{"delta":{"content":"x"},"finish_reason":"stop"}]}\ndata: [DONE]\n\n';
+    let fetchCount = 0;
+    const sleepDelays = [];
+    globalThis.fetch = async () => {
+      fetchCount += 1;
+      if (fetchCount < 2) return { ok: false, status: 429, headers: { get: (h) => h === 'Retry-After' ? '3' : null }, text: async () => '' };
+      return { ok: true, status: 200, body: makeStream(sse) };
+    };
+    const eliza = createElizaClient({ token: 't', _skipProbe: true, _sleep: async (ms) => { sleepDelays.push(ms); } });
+    await eliza.chatOnce('gpt-4.1', []);
+    assert.deepEqual(sleepDelays, [3000]);
+  });
+});
+
 describe('getModels — probe failure notifies onValidated with raw', () => {
   it('does not call runProbe by default', async () => {
     const rawModels = [

@@ -223,7 +223,7 @@ tick();
 function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FILE, logUsage = LOG_USAGE }) {
   const app = express();
   app.use(cors({ origin: '*' }));
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
 
   let seedPromise = null;
 
@@ -288,7 +288,9 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
       const { models, validated } = await eliza.getModels();
       await ensureProbeStateSeeded();
       const withProbe = probeState.withProbeMetadata(models);
-      res.json({ models: withProbe, validated, updatedAt: new Date().toISOString() });
+      const created = Math.floor(Date.now() / 1000);
+      const data = withProbe.map((m) => ({ id: m.id, object: 'model', created, owned_by: m.provider || 'eliza' }));
+      res.json({ object: 'list', data, models: withProbe, validated, updatedAt: new Date().toISOString() });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -357,6 +359,230 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
         safeWrite(`data: ${JSON.stringify({ error: `Model ${model} does not support streaming` })}\n\n`);
       } else {
         safeWrite(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      }
+    } finally {
+      if (!res.writableEnded) {
+        try { res.end(); } catch { /* noop */ }
+      }
+    }
+  });
+
+  app.post('/v1/chat/completions', async (req, res) => {
+    const { model, messages, stream } = req.body;
+
+    if (!model || !Array.isArray(messages)) {
+      res.status(400).json({ error: { type: 'invalid_request_error', message: 'model and messages required' } });
+      return;
+    }
+
+    const systemParts = messages.filter((m) => m.role === 'system').map((m) => m.content);
+    const chatMessages = messages.filter((m) => m.role !== 'system' && m.content != null && m.content !== '');
+    const system = systemParts.length ? systemParts.join('\n') : undefined;
+
+    const chatId = 'chatcmpl-' + Math.random().toString(36).slice(2, 10);
+    const created = Math.floor(Date.now() / 1000);
+
+    if (!stream) {
+      try {
+        const { models } = await eliza.getModels();
+        const modelMeta = models.find((item) => item.id === model);
+        const prices = modelMeta?.prices || {};
+        let fullText = '';
+        let usageInput = 0;
+        let usageOutput = 0;
+        for await (const { delta, done, usage, error } of eliza.chat(model, chatMessages, { system })) {
+          if (error) { res.status(500).json({ error: { type: 'api_error', message: error } }); return; }
+          if (usage) { usageInput = usage.input ?? usageInput; usageOutput = usage.output ?? usageOutput; }
+          if (delta) fullText += delta;
+          if (done) break;
+        }
+        recordUsage(usageStats, model, usageInput, usageOutput, prices, { usageLogFile, logUsage });
+        res.json({
+          id: chatId, object: 'chat.completion', created, model,
+          choices: [{ index: 0, message: { role: 'assistant', content: fullText }, finish_reason: 'stop' }],
+          usage: { prompt_tokens: usageInput, completion_tokens: usageOutput, total_tokens: usageInput + usageOutput },
+        });
+      } catch (err) {
+        res.status(500).json({ error: { type: 'api_error', message: err.message } });
+      }
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    let clientConnected = true;
+    res.on('close', () => { clientConnected = false; });
+    res.on('error', () => { clientConnected = false; });
+
+    function safeWrite(data) {
+      if (!clientConnected || res.destroyed || res.writableEnded) return false;
+      try { res.write(data); return true; } catch { clientConnected = false; return false; }
+    }
+
+    function chunk(delta, finishReason, usage) {
+      const choice = { index: 0, delta, finish_reason: finishReason ?? null };
+      const obj = { id: chatId, object: 'chat.completion.chunk', created, model, choices: [choice] };
+      if (usage) obj.usage = usage;
+      return `data: ${JSON.stringify(obj)}\n\n`;
+    }
+
+    try {
+      const { models } = await eliza.getModels();
+      const modelMeta = models.find((item) => item.id === model);
+      const prices = modelMeta?.prices || {};
+
+      let usageInput = 0;
+      let usageOutput = 0;
+
+      for await (const { delta, done, usage, error } of eliza.chat(model, chatMessages, { system })) {
+        if (!clientConnected) break;
+
+        if (error) {
+          safeWrite(`data: ${JSON.stringify({ error: { type: 'api_error', message: error } })}\n\n`);
+          break;
+        }
+
+        if (usage) {
+          usageInput = usage.input ?? usageInput;
+          usageOutput = usage.output ?? usageOutput;
+        }
+
+        if (done) {
+          const costUsd = recordUsage(usageStats, model, usageInput, usageOutput, prices, { usageLogFile, logUsage });
+          void costUsd;
+          const openAiUsage = { prompt_tokens: usageInput, completion_tokens: usageOutput, total_tokens: usageInput + usageOutput };
+          safeWrite(chunk({}, 'stop', openAiUsage));
+          safeWrite('data: [DONE]\n\n');
+          break;
+        }
+
+        if (delta) {
+          safeWrite(chunk({ content: delta }, null));
+        }
+      }
+    } catch (err) {
+      if (err instanceof ElizaError && err.status === 429) {
+        safeWrite(`data: ${JSON.stringify({ error: { type: 'rate_limit_error', message: 'Rate limit exceeded' } })}\n\n`);
+      } else if (err instanceof ElizaError && err.status === 501) {
+        safeWrite(`data: ${JSON.stringify({ error: { type: 'invalid_request_error', message: `Model ${model} does not support streaming` } })}\n\n`);
+      } else {
+        safeWrite(`data: ${JSON.stringify({ error: { type: 'api_error', message: err.message } })}\n\n`);
+      }
+    } finally {
+      if (!res.writableEnded) {
+        try { res.end(); } catch { /* noop */ }
+      }
+    }
+  });
+
+  app.post('/v1/messages', async (req, res) => {
+    const { model, messages, system, stream } = req.body;
+
+    if (!model || !Array.isArray(messages)) {
+      res.status(400).json({ type: 'error', error: { type: 'invalid_request_error', message: 'model and messages required' } });
+      return;
+    }
+
+    function normalizeContent(content) {
+      if (typeof content === 'string') return content;
+      if (Array.isArray(content)) return content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+      return '';
+    }
+
+    const systemStr = typeof system === 'string' ? system
+      : Array.isArray(system) ? system.filter((s) => s.type === 'text').map((s) => s.text).join('\n')
+      : undefined;
+
+    const chatMessages = messages
+      .filter((m) => m.role !== 'system' && m.content != null)
+      .map((m) => ({ role: m.role, content: normalizeContent(m.content) }))
+      .filter((m) => m.content !== '');
+
+    const msgId = 'msg_' + Math.random().toString(36).slice(2, 14);
+    const created = Math.floor(Date.now() / 1000);
+    void created;
+
+    if (!stream) {
+      try {
+        const { models } = await eliza.getModels();
+        const modelMeta = models.find((m) => m.id === model);
+        const prices = modelMeta?.prices || {};
+        let fullText = '';
+        let usageInput = 0;
+        let usageOutput = 0;
+        for await (const { delta, done, usage, error } of eliza.chat(model, chatMessages, { system: systemStr })) {
+          if (error) { res.status(500).json({ type: 'error', error: { type: 'api_error', message: error } }); return; }
+          if (usage) { usageInput = usage.input ?? usageInput; usageOutput = usage.output ?? usageOutput; }
+          if (delta) fullText += delta;
+          if (done) break;
+        }
+        recordUsage(usageStats, model, usageInput, usageOutput, prices, { usageLogFile, logUsage });
+        res.json({
+          id: msgId, type: 'message', role: 'assistant',
+          content: [{ type: 'text', text: fullText }],
+          model, stop_reason: 'end_turn', stop_sequence: null,
+          usage: { input_tokens: usageInput, output_tokens: usageOutput },
+        });
+      } catch (err) {
+        if (err instanceof ElizaError && err.status === 429) {
+          res.status(429).json({ type: 'error', error: { type: 'rate_limit_error', message: 'Rate limit exceeded' } });
+        } else {
+          res.status(500).json({ type: 'error', error: { type: 'api_error', message: err.message } });
+        }
+      }
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    let clientConnected = true;
+    res.on('close', () => { clientConnected = false; });
+    res.on('error', () => { clientConnected = false; });
+
+    function sse(event, data) {
+      if (!clientConnected || res.destroyed || res.writableEnded) return false;
+      try { res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`); return true; } catch { clientConnected = false; return false; }
+    }
+
+    try {
+      const { models } = await eliza.getModels();
+      const modelMeta = models.find((m) => m.id === model);
+      const prices = modelMeta?.prices || {};
+
+      sse('message_start', { type: 'message_start', message: { id: msgId, type: 'message', role: 'assistant', content: [], model, stop_reason: null, stop_sequence: null, usage: { input_tokens: 0, output_tokens: 0 } } });
+      sse('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } });
+      sse('ping', { type: 'ping' });
+
+      let usageInput = 0;
+      let usageOutput = 0;
+
+      for await (const { delta, done, usage, error } of eliza.chat(model, chatMessages, { system: systemStr })) {
+        if (!clientConnected) break;
+        if (error) { sse('error', { type: 'error', error: { type: 'api_error', message: error } }); break; }
+        if (usage) { usageInput = usage.input ?? usageInput; usageOutput = usage.output ?? usageOutput; }
+        if (done) {
+          const costUsd = recordUsage(usageStats, model, usageInput, usageOutput, prices, { usageLogFile, logUsage });
+          void costUsd;
+          sse('content_block_stop', { type: 'content_block_stop', index: 0 });
+          sse('message_delta', { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: usageOutput } });
+          sse('message_stop', { type: 'message_stop' });
+          break;
+        }
+        if (delta) sse('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: delta } });
+      }
+    } catch (err) {
+      if (err instanceof ElizaError && err.status === 429) {
+        sse('error', { type: 'error', error: { type: 'rate_limit_error', message: 'Rate limit exceeded' } });
+      } else if (err instanceof ElizaError && err.status === 501) {
+        sse('error', { type: 'error', error: { type: 'invalid_request_error', message: `Model ${model} does not support streaming` } });
+      } else {
+        sse('error', { type: 'error', error: { type: 'api_error', message: err.message } });
       }
     } finally {
       if (!res.writableEnded) {

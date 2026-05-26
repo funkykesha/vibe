@@ -124,6 +124,19 @@ function createElizaClient({
     validatedCache = { models, validated: true };
   }
 
+  async function fetchWithRetry429(url, opts) {
+    const backoffMs = [1000, 2000];
+    let attempt = 0;
+    while (true) {
+      const res = await fetch(url, opts);
+      if (res.status !== 429 || attempt >= 2) return res;
+      const retryAfter = res.headers?.get?.('Retry-After');
+      const delay = retryAfter ? parseInt(retryAfter, 10) * 1000 : backoffMs[attempt];
+      await _sleep(delay);
+      attempt += 1;
+    }
+  }
+
   async function* chat(model, messages, { system } = {}) {
     const config = elizaConfig(model, baseUrl);
 
@@ -153,7 +166,7 @@ function createElizaClient({
           stream: true,
         };
 
-    const res = await fetch(config.url, {
+    const res = await fetchWithRetry429(config.url, {
       method: 'POST',
       headers: { Authorization: `OAuth ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

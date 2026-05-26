@@ -39,9 +39,9 @@ npm test -- lib/eliza-client/test/models.test.js  # Одна suite
 `https://oauth.yandex-team.ru/authorize?response_type=token&client_id=60c90ec3a2b846bcbf525b0b46baac80`
 
 **Доступность моделей:**
-- Работают: `deepseek-v3-1-terminus`, `deepseek-v3-2`, `glm-4-7` (internal/communal models)
-- Требуют sec-review: Claude, Google, внешние DeepSeek, OpenAI
-- Подробнее см. `docs/eliza-api-models-guide.md`
+- Все 243+ модели доступны без дополнительных заявок: Claude (Anthropic), GPT (OpenAI), Gemini (Google), DeepSeek, внутренние (GLM, Alice, etc.)
+- Примеры рабочих моделей: `claude-sonnet-4-6`, `claude-opus-4-7`, `gpt-4o`, `gpt-5-pro`, `deepseek-v3-2`, `glm-4-7`
+- Полный список: `npx @yandex-tools/ai-eliza-cli models list` (ELIZA_API_KEY = содержимое ~/.eliza/token)
 
 ## API
 
@@ -49,7 +49,8 @@ npm test -- lib/eliza-client/test/models.test.js  # Одна suite
 |---|---|---|
 | `GET` | `/v1/health` | Healthcheck + `modelsValidated` флаг |
 | `GET` | `/v1/models` | Список моделей с prices и валидацией |
-| `POST` | `/v1/chat` | SSE стриминг с usage tracking |
+| `POST` | `/v1/chat` | SSE стриминг с usage tracking (кастомный формат) |
+| `POST` | `/v1/chat/completions` | OpenAI-совместимый endpoint (stream и non-stream) |
 | `POST` | `/v1/probe` | Проверка доступности модели (sync) |
 | `GET` | `/v1/usage` | Агрегированная статистика (in-memory) |
 
