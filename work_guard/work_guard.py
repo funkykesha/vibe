@@ -357,62 +357,12 @@ class WorkGuardApp(rumps.App):
     def run(self, **options):
         """Запуск NSApplication.
 
-        Лаунчер делает ``exec python3 work_guard.py`` — процесс = интерпретатор conda.
-        По умолчанию ``NSApplicationActivationPolicyRegular`` (строка меню + иконка в Dock);
-        только агент строки меню: ``WORKGUARD_MENU_BAR_ONLY=1``.
+        LSUIElement=YES в Info.plist скрывает приложение из Dock и App Switcher на уровне ОС.
         """
-        from AppKit import (
-            NSApplication,
-            NSApplicationActivationPolicyAccessory,
-            NSApplicationActivationPolicyRegular,
-        )
+        from AppKit import NSApplication
 
         ns_app = NSApplication.sharedApplication()
-        policy_before = int(ns_app.activationPolicy())
-        # Только строка меню без Dock: WORKGUARD_MENU_BAR_ONLY=1 → accessory.
-        # По умолчанию Regular: иначе у части конфигураций (conda, .app через exec python)
-        # статус-айтем не появляется или не кликается при policy Accessory.
-        if os.environ.get("WORKGUARD_MENU_BAR_ONLY") == "1":
-            target = NSApplicationActivationPolicyAccessory
-            name = "accessory"
-        else:
-            target = NSApplicationActivationPolicyRegular
-            name = "regular"
-        int_target = int(target)
-        # Повторный setActivationPolicy_(Regular) при уже Regular часто даёт set_ok=False в AppKit;
-        # ориентируемся на policy_after == int_target, а не на булев возврат.
-        if policy_before == int_target:
-            logger.info(
-                "NSApplication activationPolicy: before=%s target=%s (%s) skip_set=True after=%s",
-                policy_before,
-                int_target,
-                name,
-                policy_before,
-            )
-        else:
-            set_ok = bool(ns_app.setActivationPolicy_(target))
-            policy_after = int(ns_app.activationPolicy())
-            if policy_after != int_target:
-                set_ok_retry = bool(ns_app.setActivationPolicy_(target))
-                policy_after = int(ns_app.activationPolicy())
-                logger.info(
-                    "NSApplication activationPolicy: retry set_ok=%s after=%s",
-                    set_ok_retry,
-                    policy_after,
-                )
-            logger.info(
-                "NSApplication activationPolicy: before=%s target=%s (%s) set_ok=%s after=%s",
-                policy_before,
-                int_target,
-                name,
-                set_ok,
-                policy_after,
-            )
-            if policy_after != int_target:
-                logger.warning(
-                    "activationPolicy не совпала с целью (%s); строка меню/Dock могут вести себя нестабильно.",
-                    int_target,
-                )
+        logger.info("NSApplication activationPolicy: %s", int(ns_app.activationPolicy()))
         _notify_started_menu_bar_hint()
         self._start_swift_menu_agent()
         if os.environ.get("WORKGUARD_DEBUG") == "1":
@@ -715,11 +665,6 @@ class WorkGuardApp(rumps.App):
         if in_work_time:
             self._reset_overtime_state()
             self._update_icon(emoji="🟢")
-            self._status_line = "Рабочее время"
-            try:
-                self.menu[STATUS_MENU_KEY].title = self._status_line
-            except Exception:
-                pass
             return
 
         if not working:
@@ -785,11 +730,6 @@ class WorkGuardApp(rumps.App):
         if in_work_time:
             self._reset_overtime_state()
             self._update_icon(emoji="🟢")
-            self._status_line = "Рабочее время"
-            try:
-                self.menu[STATUS_MENU_KEY].title = self._status_line
-            except Exception:
-                pass
             return
 
         if not working:
@@ -900,6 +840,7 @@ class WorkGuardApp(rumps.App):
             status = "..."
 
         self._bar_title_pending = bar_title
+        self._status_line = status
         try:
             self.menu[STATUS_MENU_KEY].title = status
         except Exception:

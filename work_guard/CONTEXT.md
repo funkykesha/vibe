@@ -66,6 +66,45 @@ The installed WorkGuard bundle identity, `com.agaibadulin.workguard`, retained
 across rebuilds.
 _Avoid_: timestamp Bundle ID churn, permission-reset identity changes
 
+**Overlay Deferral**:
+A user-granted delay before the next overtime overlay in the current overtime
+session.
+_Avoid_: schedule extension, pause, workday extension
+
+**Overlay Deferral Cutoff**:
+The final period before an overlay when the user can no longer defer that
+overlay.
+_Avoid_: hidden grace period, automatic postponement
+
+**Overlay Deferral Ladder**:
+A one-way sequence of allowed overlay deferrals that gets stricter as overtime
+continues.
+_Avoid_: unlimited postpone button, resettable deferral choice
+
+**Deferral Period**:
+The work-period window during which overlay deferral choices are consumed.
+_Avoid_: calendar day, overtime session, app run, pause window
+
+**Pending Schedule Change**:
+A schedule edit saved during an active deferral period that applies only to a
+future work period.
+_Avoid_: immediate schedule override, current-period reset
+
+**Pending Period Settings**:
+Settings saved during an active deferral period that apply only to a future work
+period.
+_Avoid_: immediate current-period override, partial current-period settings
+
+**Current Period Settings**:
+The settings snapshot that governs the active deferral period until the next work
+period begins.
+_Avoid_: latest config, process-local settings
+
+**Contextual Pause Control**:
+The menu control that acts as pause outside overtime and as overlay deferral
+during overtime.
+_Avoid_: treating deferral as monitoring pause
+
 ## Relationships
 
 - A **Supported GUI target** starts one Python core process through its launcher.
@@ -89,6 +128,39 @@ _Avoid_: timestamp Bundle ID churn, permission-reset identity changes
   `RunAtLoad=true`, and `KeepAlive=false`.
 - **Stable App Identity** is preserved by reinstalling and re-registering the app,
   not by changing Bundle ID on every rebuild.
+- An **Overlay Deferral** postpones the next overtime overlay without changing
+  the user's configured schedule or ending the current overtime session.
+- An **Overlay Deferral** adds its duration to the currently scheduled next
+  overlay time, not to the time when the user clicks the control.
+- An **Overlay Deferral Cutoff** prevents last-moment deferral immediately before
+  an overlay is due, and applies to every **Overlay Deferral** option.
+- An **Overlay Deferral Cutoff** is measured against the currently scheduled next
+  overlay time, including any prior deferrals.
+- An **Overlay Deferral Ladder** permits progressively smaller deferrals and ends
+  after the smallest deferral is used.
+- The **Overlay Deferral Ladder** starts before the first overtime overlay in a
+  session.
+- The **Overlay Deferral Ladder** advances only when the user chooses an
+  **Overlay Deferral**, not when an overlay is shown.
+- Overlay cadence and lock escalation continue after an overlay is shown; an
+  **Overlay Deferral** only postpones the currently scheduled next overlay.
+- A **Deferral Period** resets the **Overlay Deferral Ladder** only when the next
+  work period begins, not when the current overtime session temporarily stops or
+  the calendar day changes.
+- **Pending Period Settings** may be saved during a **Deferral Period**, but they
+  must not change the current period's enforcement behavior.
+- **Current Period Settings** must persist across app restarts so restarting
+  WorkGuard cannot apply **Pending Period Settings** to the current period early.
+- When settings are saved as **Pending Period Settings**, the settings dialog
+  tells the user they will apply in the next work period.
+- **Overlay Deferral** is controlled from the same menu area as pause controls,
+  not from the overlay itself.
+- A **Contextual Pause Control** may change meaning during overtime: it defers
+  the next overlay while monitoring and overtime accounting continue.
+- During overtime, the **Contextual Pause Control** label uses the current
+  deferral step, such as "Отложить на 30 минут".
+- When no overtime deferral is available, the **Contextual Pause Control**
+  remains visible but disabled with a clear unavailable label.
 
 ## Example Dialogue
 
@@ -137,6 +209,69 @@ _Avoid_: timestamp Bundle ID churn, permission-reset identity changes
 > **Domain expert:** "No. Keep **Stable App Identity** and make reinstall
 > unregister, replace, sign, register, and fail loudly if verification fails."
 
+> **Dev:** "Does '+20 minutes' extend today's work schedule?"
+> **Domain expert:** "No. It is an **Overlay Deferral**: the user stays in
+> overtime, but the next overlay is postponed."
+
+> **Dev:** "If the next overlay is due in 12 minutes and the user chooses
+> '+30', when is the overlay due?"
+> **Domain expert:** "In 42 minutes. **Overlay Deferral** adds to the scheduled
+> overlay time, not to the click time."
+
+> **Dev:** "Can the user keep pressing '+5 minutes' forever?"
+> **Domain expert:** "No. The **Overlay Deferral Ladder** ends after '+5
+> minutes'; after that, the next overlay cannot be deferred."
+
+> **Dev:** "Does showing an overlay consume the next deferral step?"
+> **Domain expert:** "No. The **Overlay Deferral Ladder** advances only on an
+> explicit **Overlay Deferral** choice."
+
+> **Dev:** "Does deferral replace the normal overlay cadence?"
+> **Domain expert:** "No. **Overlay Deferral** only moves the next overlay; after
+> an overlay appears, normal cadence and lock escalation continue."
+
+> **Dev:** "If the user stops working for a while and resumes the same evening,
+> do deferrals reset?"
+> **Domain expert:** "No. The same **Deferral Period** is still active; deferrals
+> reset only in the next work period."
+
+> **Dev:** "Can changing the schedule make the current evening stop being
+> overtime?"
+> **Domain expert:** "No. During the current **Deferral Period**, schedule edits
+> become **Pending Period Settings** for a future work period."
+
+> **Dev:** "If WorkGuard restarts, do pending settings become active
+> immediately?"
+> **Domain expert:** "No. **Current Period Settings** continue to govern the
+> active **Deferral Period** until the next work period begins."
+
+> **Dev:** "Should the menu status keep reminding the user about pending
+> settings?"
+> **Domain expert:** "No. A settings-dialog confirmation is enough; the menu
+> should stay focused on current overtime and deferral state."
+
+> **Dev:** "Should the overlay itself offer '+30 minutes'?"
+> **Domain expert:** "No. **Overlay Deferral** belongs in the menu near pause
+> controls; the overlay is already enforcement."
+
+> **Dev:** "When overtime is active, does the Pause menu item still pause
+> monitoring?"
+> **Domain expert:** "No. The **Contextual Pause Control** becomes an **Overlay
+> Deferral** action; monitoring stays active."
+
+> **Dev:** "Should the menu item say 'pause overlay'?"
+> **Domain expert:** "No. During overtime it should simply say 'Отложить на N
+> минут'."
+
+> **Dev:** "Should the deferral menu item disappear when it cannot be used?"
+> **Domain expert:** "No. Keep the **Contextual Pause Control** visible but
+> disabled so the unavailable state is explicit."
+
+> **Dev:** "Is the cutoff measured from the original overlay time or the
+> currently deferred overlay time?"
+> **Domain expert:** "The currently scheduled next overlay time; previous
+> **Overlay Deferrals** move the cutoff with the overlay."
+
 ## Flagged Ambiguities
 
 - "LaunchAgent target" was used for both `/Applications/WorkGuard.app` and
@@ -146,3 +281,19 @@ _Avoid_: timestamp Bundle ID churn, permission-reset identity changes
   Resolved: future behavior uses local coarse **Activity Signals**; data leaves
   the machine only after an **Explicit User Request**, and **Sensitive Secrets**
   never leave.
+- "+20 minutes" could mean changing the configured work schedule, pausing
+  monitoring, or postponing enforcement. Resolved: it means **Overlay Deferral**
+  only.
+- "+5 minutes" could mean the smallest repeatable snooze. Resolved: it is the
+  final step in the **Overlay Deferral Ladder**, not a repeatable action.
+- "Session reset" could mean resetting overtime accounting or resetting deferral
+  choices. Resolved: overtime accounting may reset during the day, but the
+  **Overlay Deferral Ladder** resets only with the next work-period **Deferral
+  Period**.
+- "Cannot change settings" could mean the settings UI refuses edits entirely or
+  that current enforcement is protected. Resolved: settings edits may be saved as
+  **Pending Period Settings**, but must not affect the current **Deferral
+  Period**.
+- "Pause" in the menu can mean either monitoring pause or overtime deferral
+  depending on state. Resolved: this is a **Contextual Pause Control**; during
+  overtime it performs **Overlay Deferral**, not monitoring pause.

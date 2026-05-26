@@ -22,6 +22,17 @@ if ! bash "$STOP_SCRIPT"; then
     exit 1
 fi
 
+# Belt-and-suspenders: kill any straggler WorkGuard/work_guard.py processes
+pkill -f "WorkGuard\\.app/Contents/MacOS/WorkGuard" 2>/dev/null || true
+pkill -f "work_guard\\.py" 2>/dev/null || true
+sleep 1
+if pgrep -f "work_guard\\.py" >/dev/null 2>&1; then
+    echo "WorkGuard still alive; force-killing..." >&2
+    pkill -9 -f "WorkGuard\\.app/Contents/MacOS/WorkGuard" 2>/dev/null || true
+    pkill -9 -f "work_guard\\.py" 2>/dev/null || true
+    sleep 1
+fi
+
 CONDA_DISCOVERY="$PROJECT_ROOT/scripts/lib/conda_discovery.sh"
 if [ ! -f "$CONDA_DISCOVERY" ]; then
     echo "conda_discovery.sh not found at $CONDA_DISCOVERY" >&2
