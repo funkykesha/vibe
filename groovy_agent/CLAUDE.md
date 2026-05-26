@@ -15,17 +15,16 @@ npm run dev    # Start with --watch hot-reload (Node 18+)
 npm start      # Start production server
 ```
 
-**Prerequisites:** Groovy installed (`brew install groovy`), `.env` with `ELIZA_TOKEN`.
+**Prerequisites:** Groovy installed (`brew install groovy`), `.env` with `ELIZA_PROXY_URL`, eliza-proxy running at `../eliza-proxy`.
 
 ## Environment
 
 | Variable | Purpose |
 |---|---|
-| `ELIZA_TOKEN` | OAuth token for Yandex Eliza API (required) |
+| `ELIZA_PROXY_URL` | URL of running eliza-proxy instance (required, e.g. `http://localhost:3100`) |
 | `PORT` | Server port (default: 3000) |
 
-Token URL: `https://oauth.yandex-team.ru/authorize?response_type=token&client_id=60c90ec3a2b846bcbf525b0b46baac80`  
-Auth header: `Authorization: OAuth <ELIZA_TOKEN>` (not Bearer).
+**Setup:** Start eliza-proxy first (`cd ../eliza-proxy && npm run dev`), then start this server. The proxy handles Eliza auth (`ELIZA_TOKEN` lives in proxy's `.env`).
 
 ## Architecture
 
@@ -33,15 +32,14 @@ Auth header: `Authorization: OAuth <ELIZA_TOKEN>` (not Bearer).
 
 Single Express file with these subsystems:
 
-**Model management** — fetches from `https://api.eliza.yandex.net/v1/models` on startup, caches to `models.json`. `parseModels()` filters, deduplicates, and normalizes models. Deduplication key: `provider:family` — one canonical model per family is kept via `preferredModel()`.
+**Eliza proxy client** (`createProxyClient()` in `server.js`) — thin HTTP client wrapping the eliza-proxy at `ELIZA_PROXY_URL`. Calls `GET /v1/models`, `POST /v1/chat` (SSE), `POST /v1/probe`. Model parsing, routing, and stream normalization live in `../eliza-proxy/lib/eliza-client/`.
 
-**Model probing** (`scripts/test-models.js`) — background subprocess spawned at startup by `prefetchModels()`. Sends probe requests to each model to verify actual access, writes results back to `models.json` with `validated: true`. `/api/models` returns `pending: true` until this completes.
+**Model management** — `GET /api/models` calls proxy's `/v1/models`, returns `{ models, validated, updatedAt }`. Probe status (`validated: true/false`) comes from the proxy's background probe.
 
-**Provider routing** (`elizaConfig()`) — Claude models use Anthropic API format + `/raw/anthropic/v1/messages`; all others use OpenAI-compatible format + `/raw/openai/v1/chat/completions`. Some internal Yandex models use dedicated `/raw/internal/<model>/...` endpoints. Provider inferred from model ID/title/developer fields.
-
-**Chat streaming** (`/api/chat`) — proxies to Eliza with SSE. Normalizes both Anthropic and OpenAI stream formats to unified client format:
+**Chat streaming** (`/api/chat`) — SSE from proxy's `/v1/chat`. Proxy normalizes Anthropic/OpenAI formats; groovy_agent receives unified format:
 ```
 data: {"text":"chunk"}\n\n
+data: {"usage":{...}}\n\n
 data: [DONE]\n\n
 data: {"error":"message"}\n\n
 ```
@@ -77,20 +75,15 @@ Single self-contained file. All UI text and prompts are in **Russian**.
 
 ## Agent Rules
 
+Also read `AGENTS.md` — it has complementary workflow rules and the authoritative endpoint invariant list.
+
 - Read `ARCHITECTURE.md` before any non-trivial change.
 - Use `Grep` + targeted `Read` with `offset`/`limit` — do not read entire files blindly.
 - Never read `models.json` in full — read only the first ~30 lines for structure.
 - Modify **only** files directly related to the task. If touching an unrelated file seems necessary, stop and ask first.
 - Do not refactor outside task scope.
 - API contracts must stay stable; do not change function signatures without updating all callers.
-- After changes: `npm test` (no tests currently defined — verify manually). If tests fail, revert immediately.
-
-## Karpathy Coding Rules (also in global ~/.claude/CLAUDE.md)
-
-- **Think first:** state assumptions, ask when unclear, surface tradeoffs before coding
-- **Simplicity:** minimum code for the task — no speculative features, no premature abstractions
-- **Surgical:** touch only task-related files, match existing style, don't refactor adjacent code
-- **Goal-driven:** define success criteria; multi-step = brief plan + verify steps
+- After changes: run `npm test`. If tests fail, revert the change and explain rather than patch blindly.
 
 ## Key Invariants
 

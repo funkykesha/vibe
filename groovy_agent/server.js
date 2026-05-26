@@ -73,7 +73,7 @@ if (!fs.existsSync(RULES_FILE)) fs.writeFileSync(RULES_FILE, JSON.stringify({ ru
 
 app.get('/api/models', async (req, res) => {
   if (!eliza) {
-    res.status(500).json({ error: 'ELIZA_TOKEN не задан в .env' });
+    res.status(500).json({ error: 'ELIZA_PROXY_URL не задан в .env' });
     return;
   }
   try {
@@ -89,7 +89,7 @@ app.post('/api/chat', async (req, res) => {
   const { messages, currentCode, inputData, model, system: systemOverride, cubeType } = req.body;
 
   if (!eliza) {
-    res.status(500).json({ error: 'ELIZA_TOKEN не задан в .env' });
+    res.status(500).json({ error: 'ELIZA_PROXY_URL не задан в .env' });
     return;
   }
 

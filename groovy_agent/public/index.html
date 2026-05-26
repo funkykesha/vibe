@@ -761,6 +761,8 @@ let activeProvider = '';
 let activeFamily = '';
 let activeSort = '';
 let autoRunTimer = null;
+let modelsPollTimer = null;
+let modelsListenersAdded = false;
 
 function formatFamilyLabel(family) {
   return family
@@ -874,14 +876,6 @@ async function loadModels() {
     const res = await fetch('/api/models');
     const data = await res.json();
 
-    if (!data.validated) {
-      allModels = data.models || [];
-      countEl.textContent = 'проверяются';
-      select.innerHTML = '<option value="">— проверка моделей —</option>';
-      setStatus('Список моделей еще формируется фоновым тестом');
-      return;
-    }
-
     if (data.error) {
       countEl.textContent = 'ошибка';
       select.innerHTML = '<option value="">— ошибка загрузки —</option>';
@@ -906,32 +900,43 @@ async function loadModels() {
     const saved = localStorage.getItem('eliza-model');
     applyFiltersAndSort(saved);
     select.disabled = allModels.length === 0;
+
+    if (!data.validated) {
+      countEl.textContent = `${allModels.length} (проверяются)`;
+      setStatus('Список моделей формируется фоновым тестом, обновится автоматически');
+      if (!modelsPollTimer) modelsPollTimer = setTimeout(() => { modelsPollTimer = null; loadModels(); }, 5000);
+    } else {
+      clearTimeout(modelsPollTimer);
+      modelsPollTimer = null;
+    }
   } catch {
     countEl.textContent = 'нет связи';
     select.innerHTML = '<option value="">— нет связи —</option>';
   }
 
-  select.addEventListener('change', () => {
-    localStorage.setItem('eliza-model', select.value);
-    setStatus(`Модель: ${select.value}`);
-    resetModelDot();
-  });
-
-  document.getElementById('model-search').addEventListener('input', () => {
-    applyFiltersAndSort(select.value);
-  });
-  document.getElementById('model-provider-filter').addEventListener('change', (e) => {
-    activeProvider = e.target.value;
-    applyFiltersAndSort(select.value);
-  });
-  document.getElementById('model-family-filter').addEventListener('change', (e) => {
-    activeFamily = e.target.value;
-    applyFiltersAndSort(select.value);
-  });
-  document.getElementById('model-sort').addEventListener('change', (e) => {
-    activeSort = e.target.value;
-    applyFiltersAndSort(select.value);
-  });
+  if (!modelsListenersAdded) {
+    modelsListenersAdded = true;
+    select.addEventListener('change', () => {
+      localStorage.setItem('eliza-model', select.value);
+      setStatus(`Модель: ${select.value}`);
+      resetModelDot();
+    });
+    document.getElementById('model-search').addEventListener('input', () => {
+      applyFiltersAndSort(select.value);
+    });
+    document.getElementById('model-provider-filter').addEventListener('change', (e) => {
+      activeProvider = e.target.value;
+      applyFiltersAndSort(select.value);
+    });
+    document.getElementById('model-family-filter').addEventListener('change', (e) => {
+      activeFamily = e.target.value;
+      applyFiltersAndSort(select.value);
+    });
+    document.getElementById('model-sort').addEventListener('change', (e) => {
+      activeSort = e.target.value;
+      applyFiltersAndSort(select.value);
+    });
+  }
 }
 
 function applyFiltersAndSort(savedOrCurrent) {
@@ -1054,6 +1059,7 @@ async function sendMessage() {
 
   const thinkEl = appendThinking();
 
+  let msgEl = null;
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -1078,7 +1084,7 @@ async function sendMessage() {
     let buffer = '';
 
     thinkEl.remove();
-    const msgEl = appendMsg('assistant', '');
+    msgEl = appendMsg('assistant', '');
 
     while (true) {
       const { done, value } = await reader.read();
@@ -1120,6 +1126,7 @@ async function sendMessage() {
 
   } catch (err) {
     thinkEl?.remove();
+    if (msgEl && !msgEl.textContent.trim()) msgEl.remove();
     appendMsg('system-note', `Ошибка: ${err.message}`);
     setStatus(`Ошибка: ${err.message}`, 'err');
   } finally {
