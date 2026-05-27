@@ -610,13 +610,22 @@ class WorkGuardApp(rumps.App):
         steps = deferral.get("steps_consumed", [])
         if len(steps) >= len(LADDER_STEPS):
             return {"title": "пора отдыхать", "enabled": False}
+        now = datetime.datetime.now()
         try:
             next_at = datetime.datetime.fromisoformat(deferral["next_overlay_at"])
-            if datetime.datetime.now() >= next_at - datetime.timedelta(seconds=DEFER_CUTOFF_SEC):
+            if now >= next_at - datetime.timedelta(seconds=DEFER_CUTOFF_SEC):
                 return {"title": "пора отдыхать", "enabled": False}
         except Exception:
             pass
         step = LADDER_STEPS[len(steps)]
+        step_unlock_str = deferral.get("step_unlock_at")
+        if step_unlock_str:
+            try:
+                unlock_at = datetime.datetime.fromisoformat(step_unlock_str)
+            except Exception:
+                unlock_at = None
+            if unlock_at is not None and now < unlock_at:
+                return {"title": f"Отложить на {step} мин", "enabled": False}
         return {"title": f"Отложить на {step} мин", "enabled": True}
 
     def _on_defer_click(self, _=None):
@@ -632,18 +641,31 @@ class WorkGuardApp(rumps.App):
             logger.info("defer_step: ladder exhausted")
             return
         try:
+            now = datetime.datetime.now()
             next_at = datetime.datetime.fromisoformat(deferral["next_overlay_at"])
-            if datetime.datetime.now() >= next_at - datetime.timedelta(seconds=DEFER_CUTOFF_SEC):
+            if now >= next_at - datetime.timedelta(seconds=DEFER_CUTOFF_SEC):
                 logger.info("defer_step: within cutoff window")
                 return
+            step_unlock_str = deferral.get("step_unlock_at")
+            if step_unlock_str:
+                try:
+                    unlock_at = datetime.datetime.fromisoformat(step_unlock_str)
+                except Exception:
+                    unlock_at = None
+                if unlock_at is not None and now < unlock_at:
+                    logger.info("defer_step: step unlock delay active until %s", unlock_at)
+                    return
             step = LADDER_STEPS[len(steps)]
             steps.append(f"+{step}")
             next_at += datetime.timedelta(minutes=step)
+            unlock_delay_min = step * 3 // 4
             deferral["steps_consumed"] = steps
             deferral["next_overlay_at"] = next_at.isoformat()
+            deferral["step_unlock_at"] = (now + datetime.timedelta(minutes=unlock_delay_min)).isoformat()
             self.cfg["deferral"] = deferral
             save_config(self.cfg)
-            logger.info("Deferred +%s min; next_overlay_at=%s", step, next_at)
+            logger.info("Deferred +%s min; next_overlay_at=%s; unlock_at=%s",
+                        step, next_at, deferral["step_unlock_at"])
             self._refresh_defer_item()
             self._write_status_json()
         except Exception as e:

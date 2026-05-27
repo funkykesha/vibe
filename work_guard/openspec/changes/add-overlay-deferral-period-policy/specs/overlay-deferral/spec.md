@@ -57,10 +57,28 @@ The system SHALL add the chosen step duration to the currently scheduled next ov
 - **WHEN** the scheduled next overlay is 12 minutes away and the user clicks `Отложить на 30 мин` (or any active step `X`)
 - **THEN** the scheduled next overlay becomes `12 + X` minutes away from `now`
 
-#### Scenario: Defer right after previous defer
+#### Scenario: Defer right after previous defer — time arithmetic
 
-- **WHEN** the user has just clicked `Отложить на 20 мин` and then clicks `Отложить на 10 мин`
+- **WHEN** the user clicks `Отложить на 20 мин` and later (after unlock delay) clicks `Отложить на 10 мин`
 - **THEN** the scheduled next overlay time gains exactly 10 minutes relative to its value after the first defer
+
+### Requirement: Step unlock delay
+
+After a deferral click, the system SHALL prevent the next ladder step from being available for `step * 3 // 4` minutes (integer division). The delay is measured from the moment of the click, not from the scheduled overlay time.
+
+Unlock delays by step: `+20` → 15 min, `+10` → 7 min. After `+5` the ladder is exhausted so no unlock delay applies.
+
+During the unlock period the contextual control SHALL show the next step title (`Отложить на N мин`) but remain **disabled** — preventing rapid ladder sprint without hiding what is coming.
+
+#### Scenario: Immediate re-click after +20 is blocked
+
+- **WHEN** the user clicks `Отложить на 20 мин` and immediately clicks the control again
+- **THEN** the second click is ignored; `steps_consumed` remains `["+20"]`; the contextual control shows `Отложить на 10 мин` but is **disabled**
+
+#### Scenario: Step unlocks after delay elapses
+
+- **WHEN** 15 minutes have elapsed since the user clicked `Отложить на 20 мин`
+- **THEN** the contextual control for `Отложить на 10 мин` becomes **enabled** (provided more than 2 minutes remain before the scheduled overlay)
 
 ### Requirement: Pre-overlay cutoff
 

@@ -58,6 +58,14 @@ def contextual_button_state(overtime_started_at, deferral, now=None):
     except Exception:
         pass
     step = LADDER_STEPS[len(steps)]
+    step_unlock_str = deferral.get("step_unlock_at")
+    if step_unlock_str:
+        try:
+            unlock_at = datetime.datetime.fromisoformat(step_unlock_str)
+        except Exception:
+            unlock_at = None
+        if unlock_at is not None and now < unlock_at:
+            return {"title": f"Отложить на {step} мин", "enabled": False}
     return {"title": f"Отложить на {step} мин", "enabled": True}
 
 
@@ -73,12 +81,22 @@ def defer_step(deferral, overtime_started_at, now=None):
     next_at = datetime.datetime.fromisoformat(deferral["next_overlay_at"])
     if now >= next_at - datetime.timedelta(seconds=DEFER_CUTOFF_SEC):
         raise ValueError("within cutoff")
+    step_unlock_str = deferral.get("step_unlock_at")
+    if step_unlock_str:
+        try:
+            unlock_at = datetime.datetime.fromisoformat(step_unlock_str)
+        except Exception:
+            unlock_at = None
+        if unlock_at is not None and now < unlock_at:
+            raise ValueError("step unlock delay active")
     step = LADDER_STEPS[len(steps)]
     steps.append(f"+{step}")
     new_next_at = next_at + datetime.timedelta(minutes=step)
+    unlock_delay_min = step * 3 // 4
     result = dict(deferral)
     result["steps_consumed"] = steps
     result["next_overlay_at"] = new_next_at.isoformat()
+    result["step_unlock_at"] = (now + datetime.timedelta(minutes=unlock_delay_min)).isoformat()
     return result
 
 
@@ -158,15 +176,18 @@ class TestDeferStep(unittest.TestCase):
         self.assertEqual(new_d["next_overlay_at"], expected.isoformat())
 
     def test_ladder_advance_sequence(self):
+        # Each step has unlock delay = step * 3 // 4 minutes; advance now past it.
         next_at_dt = datetime.datetime(2026, 5, 26, 20, 30, 0)
         d = _make_deferral(steps_consumed=[], next_overlay_at=next_at_dt.isoformat())
         onset = datetime.datetime(2026, 5, 26, 20, 0, 0)
-        now = self._now()
-        d = defer_step(d, onset, now)
+        t0 = self._now()  # 20:05
+        d = defer_step(d, onset, t0)
         self.assertEqual(d["steps_consumed"], ["+20"])
-        d = defer_step(d, onset, now)
+        t1 = t0 + datetime.timedelta(minutes=15)  # past +20 unlock (15 min)
+        d = defer_step(d, onset, t1)
         self.assertEqual(d["steps_consumed"], ["+20", "+10"])
-        d = defer_step(d, onset, now)
+        t2 = t1 + datetime.timedelta(minutes=7)   # past +10 unlock (7 min)
+        d = defer_step(d, onset, t2)
         self.assertEqual(d["steps_consumed"], ["+20", "+10", "+5"])
 
     def test_ladder_exhaustion_rejection(self):
@@ -183,6 +204,72 @@ class TestDeferStep(unittest.TestCase):
         onset = datetime.datetime(2026, 5, 26, 20, 0, 0)
         with self.assertRaises(ValueError, msg="within cutoff"):
             defer_step(d, onset, now)
+
+
+# ─────────────────────────────────────────────────────────────
+# 10.1a  Step unlock delay
+# ─────────────────────────────────────────────────────────────
+
+class TestStepUnlockDelay(unittest.TestCase):
+
+    def _onset(self):
+        return datetime.datetime(2026, 5, 26, 20, 0, 0)
+
+    def _next_at(self, minutes_away, base=None):
+        if base is None:
+            base = datetime.datetime(2026, 5, 26, 20, 5, 0)
+        return (base + datetime.timedelta(minutes=minutes_away)).isoformat()
+
+    def test_immediate_reclick_blocked(self):
+        # Click +20 at t0; re-click at t0 → unlock delay active → raises
+        t0 = datetime.datetime(2026, 5, 26, 20, 5, 0)
+        d = _make_deferral(steps_consumed=[], next_overlay_at=self._next_at(30, t0))
+        d = defer_step(d, self._onset(), t0)
+        self.assertEqual(d["steps_consumed"], ["+20"])
+        with self.assertRaises(ValueError, msg="step unlock delay active"):
+            defer_step(d, self._onset(), t0)
+
+    def test_button_disabled_during_unlock(self):
+        t0 = datetime.datetime(2026, 5, 26, 20, 5, 0)
+        d = _make_deferral(steps_consumed=[], next_overlay_at=self._next_at(30, t0))
+        d = defer_step(d, self._onset(), t0)
+        # 5 minutes later — still within 15-min unlock for +20
+        t1 = t0 + datetime.timedelta(minutes=5)
+        s = contextual_button_state(self._onset(), d, t1)
+        self.assertEqual(s["title"], "Отложить на 10 мин")
+        self.assertFalse(s["enabled"])
+
+    def test_button_enabled_after_unlock(self):
+        t0 = datetime.datetime(2026, 5, 26, 20, 5, 0)
+        d = _make_deferral(steps_consumed=[], next_overlay_at=self._next_at(30, t0))
+        d = defer_step(d, self._onset(), t0)
+        # 15 minutes later — past unlock for +20 (15 = 20 * 3 // 4)
+        t1 = t0 + datetime.timedelta(minutes=15)
+        s = contextual_button_state(self._onset(), d, t1)
+        self.assertEqual(s["title"], "Отложить на 10 мин")
+        self.assertTrue(s["enabled"])
+
+    def test_unlock_delay_formula(self):
+        # +20 → unlock after 15 min, +10 → unlock after 7 min
+        t0 = datetime.datetime(2026, 5, 26, 20, 5, 0)
+        d = _make_deferral(steps_consumed=[], next_overlay_at=self._next_at(60, t0))
+        d = defer_step(d, self._onset(), t0)
+        unlock_at_20 = datetime.datetime.fromisoformat(d["step_unlock_at"])
+        self.assertEqual(unlock_at_20, t0 + datetime.timedelta(minutes=15))
+
+        t1 = t0 + datetime.timedelta(minutes=15)
+        d = defer_step(d, self._onset(), t1)
+        unlock_at_10 = datetime.datetime.fromisoformat(d["step_unlock_at"])
+        self.assertEqual(unlock_at_10, t1 + datetime.timedelta(minutes=7))
+
+    def test_step_unlock_cleared_by_elapsed_time(self):
+        # After +5, ladder exhausted — step_unlock_at irrelevant, button disabled
+        t0 = datetime.datetime(2026, 5, 26, 20, 5, 0)
+        d = _make_deferral(steps_consumed=["+20", "+10", "+5"],
+                           next_overlay_at=self._next_at(60, t0))
+        s = contextual_button_state(self._onset(), d, t0)
+        self.assertEqual(s["title"], "пора отдыхать")
+        self.assertFalse(s["enabled"])
 
 
 # ─────────────────────────────────────────────────────────────

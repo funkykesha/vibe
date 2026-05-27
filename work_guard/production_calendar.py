@@ -38,7 +38,8 @@ class ProductionCalendar:
         if marker == "":
             return DayInfo(is_workday=False, is_short_day=False, source="calendar")
 
-        work_days = self._config.get("work_days", [1, 2, 3, 4, 5])
+        ps = self._config.get("current_period_settings", {})
+        work_days = ps.get("work_days") or self._config.get("work_days", [1, 2, 3, 4, 5])
         return DayInfo(
             is_workday=date_value.isoweekday() in work_days,
             is_short_day=False,

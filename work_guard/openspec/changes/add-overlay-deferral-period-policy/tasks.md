@@ -20,6 +20,7 @@
 - [x] 3.2 Initialise `deferral.period_id = isoformat(work_end_of_first_onset)`, `deferral.steps_consumed = []`, `deferral.next_overlay_at = _overtime_started_at + OVERLAY_FIRST_DELAY_MIN` on the first overtime onset of a period.
 - [x] 3.3 Persist `deferral` after every mutation (onset, defer click, overlay fire).
 - [x] 3.4 Add `defer_step()` action: validate state (in overtime, not at cutoff, ladder not exhausted), append `LADDER_STEPS[len(steps_consumed)]`, advance `next_overlay_at` by that many minutes, persist.
+- [x] 3.7 Add step unlock delay: on defer click write `deferral.step_unlock_at = now + step * 3 // 4 minutes`; in `defer_step()` and `_contextual_button_state()` reject/disable if `now < step_unlock_at`. During delay show step title but `enabled: false`.
 - [x] 3.5 In monitoring loop, fire overlay when `now >= next_overlay_at`; on fire, double cadence delay (existing logic), apply lock seconds doubled from `LOCK_INITIAL_SEC` up to `LOCK_MAX_SEC`, write new `next_overlay_at` (does not reset ladder).
 - [x] 3.6 Add clock-jump guard: if `abs(next_overlay_at - now) > 24h` after restart, treat deferral as stale and reset (`deferral = None`).
 
@@ -32,7 +33,7 @@
 
 ## 5. Contextual button label state machine
 
-- [x] 5.1 Add `_contextual_button_state()` returning `{title, enabled}` per spec rules: outside overtime → `("Работаем!", False)`; cutoff or ladder exhausted → `("пора отдыхать", False)`; otherwise `(f"Отложить на {LADDER_STEPS[len(steps_consumed)]} мин", True)`.
+- [x] 5.1 Add `_contextual_button_state()` returning `{title, enabled}` per spec rules: outside overtime → `("Работаем!", False)`; cutoff or ladder exhausted → `("пора отдыхать", False)`; step unlock delay active → `("Отложить на N мин", False)`; otherwise `(f"Отложить на {LADDER_STEPS[len(steps_consumed)]} мин", True)`.
 - [x] 5.2 In `_status_json_payload`, replace the legacy pause/resume menu item with a single `defer_button` field carrying `{title, enabled}`.
 - [x] 5.3 In `_status_json_payload`, drop legacy `paused` field and stop emitting pause-related menu items in `items`.
 
@@ -78,8 +79,9 @@
 - [x] 10.4 Unit test for legacy config migration: backup written, lifted fields preserved, dropped fields gone, new keys initialised.
 - [x] 10.5 Unit test for clock-jump guard: deferral reset when `abs(next_overlay_at - now) > 24h`.
 - [ ] 10.6 Integration test for restart-during-overtime: ladder and `next_overlay_at` survive process restart; period_id mismatch resets deferral.
-- [ ] 10.7 Manual test (cannot be automated): rebuild + relaunch via `bash rebuild.sh`, verify menu shows `Работаем!` outside overtime and `Отложить на 20 мин` once overtime begins; defer click cycles label through 10 → 5 → `пора отдыхать`.
-- [ ] 10.8 Manual test: open settings dialog in Mode 1 and Mode 2; verify banner, three-row layout, and that saved Mode 2 changes appear only after the next work-period boundary.
+- [ ] 10.7 Manual test (cannot be automated): rebuild + relaunch via `bash rebuild.sh`, verify menu shows `Работаем!` outside overtime and `Отложить на 20 мин` once overtime begins; defer click cycles label through 10 → 5 → `пора отдыхать`; verify step unlock delay prevents rapid re-click.
+- [x] 10.8 Manual test: open settings dialog in Mode 1 and Mode 2; verify banner, three-row layout, and that saved Mode 2 changes appear only after the next work-period boundary.
+- [x] 10.9 Unit tests for step unlock delay: immediate re-click blocked, button disabled during delay, button enabled after 15/7 min, formula check (+20→15 min, +10→7 min).
 
 ## 11. Documentation
 
