@@ -273,3 +273,6 @@
 {"ts":"2026-05-25T14:12:36.174Z","model":"gpt-4o","input":0,"output":0,"cost_usd":0}
 {"ts":"2026-05-25T14:14:49.230Z","model":"gpt-4o","input":0,"output":0,"cost_usd":0}
 {"ts":"2026-05-25T14:16:39.329Z","model":"gpt-4o","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-28T07:42:40.505Z","model":"moonshotai/kimi-k2.5","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-28T12:11:26.372Z","model":"gemini-3.5-flash","input":0,"output":0,"cost_usd":0}
+{"ts":"2026-05-28T12:11:48.257Z","model":"moonshotai/kimi-k2.5","input":0,"output":0,"cost_usd":0}
