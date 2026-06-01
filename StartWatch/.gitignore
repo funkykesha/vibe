@@ -21,10 +21,7 @@ worktrees/
 # Claude
 .claude/
 
-# Beads / Dolt files (added by bd init)
 .dolt/
 *.db
-.beads-credential-key
 
-# bv (beads viewer) local config and caches
 .bv/
