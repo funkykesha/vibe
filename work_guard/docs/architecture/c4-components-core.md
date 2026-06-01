@@ -11,7 +11,7 @@ C4Component
   Container_Boundary(core, "Python core process") {
     Component(app, "WorkGuardApp", "rumps.App", "Menu construction, NSApplication policy, Swift agent hooks")
     Component(loop, "Monitoring loop", "threading", "Fast tick (~5s): status refresh, elapsed overtime, notify/overlay cadence")
-    Component(mon, "ActivityMonitor", "Python", "KeyboardWatcher, LidWatcher, schedule + work_apps heuristics")
+    Component(mon, "ActivityMonitor", "Python", "InputWatcher (keyboard+mouse), LidWatcher, schedule heuristics")
     Component(signals, "ActivitySignals boundary", "Planned", "Future local/coarse-only activity facts; no collectors yet")
     Component(cal, "ProductionCalendar", "Python", "xmlcalendar.ru cache/fetch + day marker classification")
     Component(notify, "notifier", "osascript", "Escalating overtime notifications")
@@ -32,7 +32,8 @@ C4Component
   Rel(overlay, ascii, "Passes art to child")
   Rel(app, cfg, "Loads/saves")
   Rel(settings, cfg, "Reads/writes same file")
-  Rel(mon, cfg, "Uses work_apps, schedule, pause_until")
+  Rel(mon, cfg, "Uses current_period_settings (schedule)")
+  Rel(loop, cfg, "Reads/writes deferral state (ladder, next_overlay_at)")
 ```
 
 ## Module map (codebase)
@@ -41,7 +42,7 @@ C4Component
 |-----------|----------------|
 | **WorkGuardApp** | `work_guard.py` (`WorkGuardApp`, menu handlers, Swift IPC) |
 | **Monitoring loop** | `work_guard.py` (`_monitoring_loop`, elapsed overtime state) |
-| **ActivityMonitor** | `monitor.py` (`ActivityMonitor`, `KeyboardWatcher`, `LidWatcher`) |
+| **ActivityMonitor** | `monitor.py` (`ActivityMonitor`, `InputWatcher`, `LidWatcher`) |
 | **ActivitySignals boundary** | Planned docs-only boundary; no source file or collectors yet |
 | **ProductionCalendar** | `production_calendar.py` |
 | **notifier** | `notifier.py` |

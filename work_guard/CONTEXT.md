@@ -165,8 +165,9 @@ _Avoid_: pause, monitoring pause, treating deferral as schedule change
   installed login-startup identity.
 - An **Activity Signal** may come from macOS, browsers, or app-specific sources,
   but WorkGuard should consume it as a local coarse fact rather than raw history.
-- The **Activity Signals Boundary** is documented now but not implemented as
-  collectors in the install change.
+- The **Activity Signals Boundary** now has its first opt-in collector — the
+  Todoist engagement monitor (disabled by default) — while remaining coarse-grained;
+  any further collectors stay opt-in and local.
 - An **Explicit User Request** may allow non-secret data to leave the machine.
 - A **Sensitive Secret** must not leave the machine even after an **Explicit User
   Request**, except for **Authorized Credential Use**.

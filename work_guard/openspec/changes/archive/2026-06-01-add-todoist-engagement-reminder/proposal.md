@@ -17,14 +17,12 @@ Todoist Interaction, показывать фуллскрин-оверлей с �
   мини-дашбордом: развёрнутый список задач p1+p2 (кап 10), счётчики p3/p4, число
   просроченных.
 - Reminder срабатывает только в рабочее время, при Todoist Non-Interaction Time
-  > 2 ч; активность или бездействие за компьютером не suppress-гейт; утром нет
-  ожидания порога: при первой проверке рабочего периода overlay показывается
-  сразу, если с начала периода не было Todoist Interaction; каденс повтора 30 мин.
+  > 2 ч; активность или бездействие за компьютером не suppress-гейт; после старта/
+  пробуждения из сна — wake-grace 5 мин (не швырять фуллскрин в лицо при открытии
+  крышки), затем проверка last Todoist Interaction против порога; каденс повтора 30 мин.
 - **BREAKING (intent):** граница `ActivitySignals` перестаёт быть «no collectors» —
   вводится первый коллектор. Впервые добавляется opt-in исходящий вызов с секретом
   (Todoist API token к `api.todoist.com`), хранится локально в gitignored `.env`.
-- Удаление Beads из `CLAUDE.md`/`AGENTS.md` (task-tracking через beads больше не
-  используется; OpenSpec остаётся).
 
 ## Capabilities
 
@@ -44,8 +42,8 @@ Todoist Interaction, показывать фуллскрин-оверлей с �
 ## Impact
 
 - Новые модули: `todoist_signals.py`, `engagement_monitor.py`, `todoist_overlay.py`.
-- Правки: `work_guard.py` (`_tick` wiring), `config.py` (секция `todoist_reminder`),
-  `.gitignore`, `.env.example`, `CONTEXT.md`, `CLAUDE.md`, `AGENTS.md`.
+- Правки: `work_guard.py` (`_tick` wiring + wake-detect), `config.py` (секция
+  `todoist_reminder`), `.gitignore`, `.env.example`, `CONTEXT.md`.
 - Новый файл состояния `~/.config/work_guard/todoist_state.json`.
 - Внешняя зависимость: Todoist API (`api.todoist.com`, текущие REST endpoints
   `/api/v1/...`), бесплатный тариф.

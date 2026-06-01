@@ -16,17 +16,15 @@ For multi-step tasks:
 
 ## Session Start
 
-1. `bd prime` — load beads workflow.
-2. `.memory-bank/active-context/current-status.md` — operational status.
-3. `.memory-bank/progress.md` — recent changes.
-4. `README.md` — current human-facing workflow.
-5. `CONTEXT.md` — glossary/domain context. Not agent instructions. Not runbook.
-6. `docs/architecture/README.md` — C4 index with `Current` / `Planned` / `Archive` labels.
+1. `.memory-bank/active-context/current-status.md` — operational status.
+2. `.memory-bank/progress.md` — recent changes.
+3. `README.md` — current human-facing workflow.
+4. `CONTEXT.md` — glossary/domain context. Not agent instructions. Not runbook.
+5. `docs/architecture/README.md` — C4 index with `Current` / `Planned` / `Archive` labels.
 
 ## Source Of Truth Map
 
 - **Agent workflow / session rules:** `AGENTS.md`
-- **Task tracking:** `bd` / beads. Do not use markdown TODO instead of beads.
 - **Current public run/install contract:** `README.md`
 - **Domain glossary and terminology:** `CONTEXT.md`
 - **Architecture views and intent boundaries:** `docs/architecture/`
@@ -106,32 +104,19 @@ WorkGuard is a macOS menu bar app: Python core + optional Swift menu agent.
 - ActivitySignals = future boundary only; local/coarse-only; no collectors yet.
 - Nothing leaves the machine without explicit user request; secrets never leave under any path.
 
-## OpenSpec and Beads
+## OpenSpec
 
-Enable OpenSpec workflow only when `openspec/` and `.beads/` exist or user explicitly requests OpenSpec.
+Enable OpenSpec workflow only when `openspec/` exists or user explicitly requests OpenSpec.
 
 Order:
 1. OpenSpec captures intent.
-2. Beads captures task graph and execution state.
-3. Code and docs are aligned with intent.
+2. Code and docs are aligned with intent.
 
 Rules:
 - Don't start implementation before clear intent.
-- Keep OpenSpec, Beads, code/docs in sync.
+- Keep OpenSpec, code/docs in sync.
 - If `openspec/AGENTS.md` exists, it is authoritative for schema and commands inside `openspec/`.
 - Don't overwrite others' changes without explicit request.
-
-## Beads
-
-Run `bd prime` at session start.
-
-```bash
-bd ready
-bd show <id>
-bd update <id> --claim
-bd close <id>
-bd dolt push
-```
 
 ## Non-Interactive Shell
 

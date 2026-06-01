@@ -43,7 +43,7 @@
 - [x] 6.2 On click of the deferral menu item, write `command.json {"action": "defer", "ts": ...}`.
 - [x] 6.3 Remove pause / resume rendering and pause / resume command emission from Swift.
 - [x] 6.4 Add fallback: if `defer_button` field is missing in `status.json`, render the menu without the deferral item (do not crash).
-- [ ] 6.5 Rebuild Swift binary as part of the rebuild flow; verify the bundle launches and reads the new payload.
+- [x] 6.5 Rebuild Swift binary as part of the rebuild flow; verify the bundle launches and reads the new payload.
 
 ## 7. Pause feature removal in Python core
 
@@ -78,8 +78,8 @@
 - [x] 10.3 Unit test for period boundary detection: opens on first onset, closes on False→True transition; promotion atomicity (pending → current → null in one persisted write).
 - [x] 10.4 Unit test for legacy config migration: backup written, lifted fields preserved, dropped fields gone, new keys initialised.
 - [x] 10.5 Unit test for clock-jump guard: deferral reset when `abs(next_overlay_at - now) > 24h`.
-- [ ] 10.6 Integration test for restart-during-overtime: ladder and `next_overlay_at` survive process restart; period_id mismatch resets deferral.
-- [ ] 10.7 Manual test (cannot be automated): rebuild + relaunch via `bash rebuild.sh`, verify menu shows `Работаем!` outside overtime and `Отложить на 20 мин` once overtime begins; defer click cycles label through 10 → 5 → `пора отдыхать`; verify step unlock delay prevents rapid re-click.
+- [x] 10.6 Integration test for restart-during-overtime: ladder and `next_overlay_at` survive process restart; period_id mismatch resets deferral.
+- [x] 10.7 Manual test (cannot be automated): rebuild + relaunch via `bash rebuild.sh`, verify menu shows `Работаем!` outside overtime and `Отложить на 20 мин` once overtime begins; defer click cycles label through 10 → 5 → `пора отдыхать`; verify step unlock delay prevents rapid re-click.
 - [x] 10.8 Manual test: open settings dialog in Mode 1 and Mode 2; verify banner, three-row layout, and that saved Mode 2 changes appear only after the next work-period boundary.
 - [x] 10.9 Unit tests for step unlock delay: immediate re-click blocked, button disabled during delay, button enabled after 15/7 min, formula check (+20→15 min, +10→7 min).
 
@@ -88,5 +88,5 @@
 - [x] 11.1 Update `CLAUDE.md` and `AGENTS.md` Architecture section to reflect: new config shape, removed pause feature, removed work_apps, new constants location.
 - [x] 11.2 Update `CONTEXT.md` glossary entries that mention the ladder shape (30→20→10→5 → 20→10→5) and any remaining references to pause as a user feature.
 - [x] 11.3 Update `README.md` Features section: remove pause-related lines, add a short note about the deferral ladder.
-- [ ] 11.4 Update `docs/architecture/` C4 diagrams if any container/component changed (Swift IPC payload, pause removal).
-- [ ] 11.5 Add a one-line release note in the project changelog (if maintained) for users upgrading from a pause-aware build.
+- [x] 11.4 Update `docs/architecture/` C4 diagrams if any container/component changed (Swift IPC payload, pause removal).
+- [x] 11.5 Add a one-line release note in the project changelog (if maintained) for users upgrading from a pause-aware build.

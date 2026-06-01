@@ -4,7 +4,7 @@ WorkGuard is a **local macOS menu bar utility** that helps a user stay within co
 
 ## Scope
 
-- **In scope:** activity heuristics (foreground app, keyboard idle, laptop lid), schedule and pause settings, user notifications, and a full-screen overlay when overtime is detected.
+- **In scope:** activity heuristics (keyboard/mouse input, foreground app, laptop lid), schedule settings, the overtime deferral ladder (20→10→5), user notifications, and a full-screen overlay when overtime is detected.
 - **Planned boundary:** `ActivitySignals` may later add local, coarse-grained system/browser/app activity facts.
 - **Out of scope:** cloud sync, multi-user accounts, employer telemetry, raw activity history collection, and outbound telemetry.
 
@@ -21,7 +21,7 @@ C4Context
   System_Ext(xmlcalendar, "xmlcalendar.ru", "Russian production calendar JSON")
 
   Rel(user, workguard, "Configures and responds to prompts", "Menu bar UI")
-  Rel(workguard, macos, "Reads foreground app, keyboard signals, display power", "PyObjC / pynput / Apple APIs")
+  Rel(workguard, macos, "Reads foreground app, keyboard/mouse input, display power", "PyObjC / pynput / Apple APIs")
   Rel(workguard, fs, "Reads and writes", "config.json, status.json, command.json, logs")
   Rel(workguard, xmlcalendar, "Fetches calendar by year", "HTTPS JSON, cached locally")
 ```
@@ -30,7 +30,7 @@ C4Context
 
 | Actor / system | Role |
 |----------------|------|
-| **User** | Sets schedule and work-app list, acknowledges pause/overlay behavior. |
+| **User** | Sets work schedule, defers overtime via the ladder, and responds to notifications/overlay. |
 | **macOS** | Supplies active application name, notification surface (`osascript`), display/lid hints via `ioreg`, optional login startup via `launchd`, and requires **Accessibility** for keyboard monitoring. |
 | **Local files** | Persistence under `~/.config/work_guard/` (see container view). |
 | **xmlcalendar.ru** | Optional external calendar source; failures fall back to fresh/stale cache or configured weekdays. |

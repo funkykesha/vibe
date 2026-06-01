@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WorkGuard · Todoist overlay — prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* =========================================================
+     Todoist-in-terminal — design tokens
+     Все значения портируемы в AppKit (NSColor / NSFont / CALayer).
+     ========================================================= */
+  :root {
+    --p1: #d1453b;   /* красный   */
+    --p2: #eb8909;   /* оранжевый */
+    --p3: #246fe0;   /* синий     */
+    --p4: #7d7d7d;   /* серый     */
+
+    --bg-0: #141414;
+    --bg-1: #1c1c1c;
+    --bg-2: #242424;
+    --bg-2h: #2b2b2b;
+
+    --line:   #313131;
+    --line-2: #3c3c3c;
+
+    --ink-0: #f2f1ec;
+    --ink-1: #b9b8b2;
+    --ink-2: #6f6e69;
+    --ink-3: #4a4946;
+
+    --overdue: #ff6b5e;
+
+    --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+
+    --radius: 10px;
+    --gutter: 22px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--mono);
+    background: var(--bg-0);
+    color: var(--ink-0);
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background-image:
+      radial-gradient(1200px 620px at 50% -8%, rgba(209,69,59,0.10), transparent 60%),
+      radial-gradient(900px 520px at 50% 112%, rgba(36,111,224,0.06), transparent 60%);
+  }
+  body::after {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px);
+    mix-blend-mode: overlay;
+    opacity: 0.5;
+  }
+
+  /* ===================== Панель ===================== */
+  .stage {
+    width: min(1180px, 92vw);
+    opacity: 0;
+    transform: translateY(8px);
+    animation: rise 620ms cubic-bezier(.22,.61,.36,1) 80ms forwards;
+    transition: width 280ms ease;
+  }
+  body.wide .stage { width: min(1680px, 96vw); }
+
+  .panel {
+    position: relative;
+    background: linear-gradient(180deg, rgba(255,255,255,0.018), transparent 120px), var(--bg-1);
+    border: 1px solid var(--line-2);
+    border-radius: 16px;
+    padding: 30px 34px 26px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 40px 120px -30px rgba(0,0,0,0.8),
+      0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .panel::before {
+    content: "● ● ●";
+    position: absolute; top: 16px; left: 22px;
+    font-size: 11px; letter-spacing: 4px; color: var(--ink-3);
+  }
+  .panel__tag {
+    position: absolute; top: 14px; right: 22px;
+    font-size: 11px; font-weight: 500; letter-spacing: 1.5px;
+    color: var(--ink-2); text-transform: uppercase;
+  }
+  .panel__tag b { color: var(--p1); font-weight: 700; }
+
+  /* ===================== Хедер ===================== */
+  .head { text-align: center; margin: 14px 0 26px; }
+  .head__eyebrow {
+    font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--ink-2); margin-bottom: 12px;
+  }
+  .head__title {
+    font-size: 27px; font-weight: 800; line-height: 1.25;
+    letter-spacing: -0.4px; color: var(--ink-0);
+  }
+  .head__title .accent { color: var(--p1); }
+  .head__clock { margin-top: 12px; font-size: 13px; color: var(--ink-2); font-weight: 500; }
+  .head__clock .blink { color: var(--p3); animation: blink 1.4s steps(1) infinite; }
+
+  /* ===================== Раскладки ===================== */
+  /* Показываем одну из двух раскладок по tier-классу на body. */
+  .layout { display: none; }
+  body:not(.wide) .layout--normal { display: grid; }
+  body.wide        .layout--wide   { display: grid; }
+
+  /* --- WIDE: 4 колонки, по приоритету в каждой --- */
+  .layout--wide {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gutter);
+    align-items: start;
+  }
+
+  /* --- NORMAL: 2 колонки --- */
+  .layout--normal {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gutter);
+  }
+  .layout--normal .col { display: flex; flex-direction: column; gap: var(--gutter); }
+
+  /* ===================== Секция приоритета ===================== */
+  .section {
+    --accent: var(--p4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255,255,255,0.012);
+    overflow: hidden;
+  }
+  .section.p1 { --accent: var(--p1); }
+  .section.p2 { --accent: var(--p2); }
+  .section.p3 { --accent: var(--p3); }
+  .section.p4 { --accent: var(--p4); }
+
+  .section__head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  }
+  .section__head::before {
+    content: ""; width: 3px; height: 16px; border-radius: 2px;
+    background: var(--accent); box-shadow: 0 0 12px -1px var(--accent);
+  }
+  .section__name { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; color: var(--ink-0); }
+  .section__name .lvl { color: var(--accent); }
+  .section__count {
+    margin-left: auto; font-size: 12px; font-weight: 500;
+    color: var(--ink-2); font-variant-numeric: tabular-nums;
+  }
+
+  .rows { padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+
+  .row {
+    display: grid; grid-template-columns: auto 1fr auto;
+    align-items: center; gap: 11px;
+    padding: 9px 11px; border-radius: 7px;
+    background: var(--bg-2); border: 1px solid transparent;
+    transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+    opacity: 0; animation: rowin 420ms ease forwards;
+  }
+  .row:hover { background: var(--bg-2h); border-color: var(--line-2); transform: translateX(2px); }
+
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+  .section.p4 .dot { box-shadow: none; border: 1.5px solid var(--accent); background: transparent; }
+
+  .task { min-width: 0; }
+  .task__name {
+    font-size: 13.5px; font-weight: 500; color: var(--ink-0);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .task__proj { font-size: 11px; color: var(--ink-2); margin-top: 2px; }
+  .task__proj::before { content: "# "; color: var(--ink-3); }
+
+  .due {
+    font-size: 12px; font-weight: 500; color: var(--ink-1);
+    white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right;
+  }
+  .due.overdue { color: var(--overdue); font-weight: 700; }
+  .due.today   { color: var(--p2); }
+
+  .more { padding: 7px 12px 4px; font-size: 12px; color: var(--ink-2); letter-spacing: 0.3px; }
+  .more::before { content: "└─ "; color: var(--ink-3); }
+
+  /* стата на секцию (под списком задач) */
+  .section__stat {
+    display: flex; gap: 14px;
+    padding: 9px 14px;
+    border-top: 1px dashed var(--line);
+    font-size: 11.5px; color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .section__stat b { font-weight: 700; color: var(--ink-1); }
+  .section__stat .over b { color: var(--overdue); }
+  .section__stat .sep { color: var(--ink-3); }
+
+  /* ===================== Count-карточка (P3/P4 в normal) ===================== */
+  .countcard {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: rgba(255,255,255,0.012);
+  }
+  .countcard .flag { width: 3px; align-self: stretch; border-radius: 2px; background: var(--accent); box-shadow: 0 0 12px -1px var(--accent); }
+  .countcard.p3 { --accent: var(--p3); }
+  .countcard.p4 { --accent: var(--p4); }
+  .countcard__label { display: flex; flex-direction: column; gap: 3px; }
+  .countcard__name { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+  .countcard__name .lvl { color: var(--accent); }
+  .countcard__sub { font-size: 11px; color: var(--ink-2); }
+  .countcard__num {
+    margin-left: auto; font-size: 30px; font-weight: 800; line-height: 1;
+    color: var(--ink-0); font-variant-numeric: tabular-nums;
+  }
+  .countcard__num small { font-size: 12px; font-weight: 500; color: var(--ink-2); margin-left: 4px; }
+  .countrow { display: flex; flex-direction: column; gap: var(--gutter); }
+
+  /* ===================== Футер — кнопки по центру ===================== */
+  .foot {
+    margin-top: 26px; padding-top: 20px;
+    border-top: 1px dashed var(--line);
+    display: flex; justify-content: center; gap: 12px;
+  }
+  .btn {
+    font-family: var(--mono); font-size: 13.5px; font-weight: 700; letter-spacing: 0.3px;
+    padding: 12px 26px; border-radius: 9px; border: 1px solid transparent; cursor: pointer;
+    transition: transform 120ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn--primary { background: var(--p1); color: #fff; box-shadow: 0 8px 24px -8px var(--p1); }
+  .btn--primary:hover { background: #e0524a; box-shadow: 0 10px 30px -8px var(--p1); }
+  .btn--ghost { background: transparent; color: var(--ink-1); border-color: var(--line-2); }
+  .btn--ghost:hover { background: rgba(255,255,255,0.04); color: var(--ink-0); border-color: #4a4a4a; }
+
+  /* devbar (только прототип) */
+  .devbar {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; align-items: center;
+    font-size: 11px; color: var(--ink-2);
+    background: rgba(0,0,0,0.5); border: 1px solid var(--line);
+    padding: 6px 10px; border-radius: 999px; backdrop-filter: blur(8px); z-index: 10;
+  }
+  .devbar button {
+    font-family: var(--mono); font-size: 11px;
+    background: transparent; border: 1px solid var(--line-2);
+    color: var(--ink-1); padding: 3px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .devbar button.on { background: var(--p3); color: #fff; border-color: var(--p3); }
+
+  .row:nth-child(1){animation-delay:200ms}.row:nth-child(2){animation-delay:250ms}
+  .row:nth-child(3){animation-delay:300ms}.row:nth-child(4){animation-delay:350ms}
+  .row:nth-child(5){animation-delay:400ms}
+
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+  @keyframes rowin { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="panel">
+      <span class="panel__tag">WORK<b>·</b>GUARD ENGAGEMENT</span>
+
+      <header class="head">
+        <div class="head__eyebrow">напоминание · todoist</div>
+        <h1 class="head__title">Ты давно не <span class="accent">заглядывал в задачи</span></h1>
+        <div class="head__clock">14:32, 01 июня 2026 <span class="blink">_</span></div>
+      </header>
+
+      <!-- ================= WIDE (>2560): 4 колонки ================= -->
+      <div class="layout layout--wide">
+        <!-- P1 -->
+        <section class="section p1">
+          <div class="section__head"><span class="section__name"><span class="lvl">P1</span> · срочно</span><span class="section__count">3 / 4</span></div>
+          <div class="rows">
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Подготовить отчёт по Q2</div><div class="task__proj">Работа</div></div><span class="due overdue">просрочено 2д</span></div>
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Созвон с подрядчиком</div><div class="task__proj">Работа</div></div><span class="due today">сегодня 16:00</span></div>
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Ответить юристам</div><div class="task__proj">Входящие</div></div><span class="due overdue">просрочено 1д</span></div>
+          </div>
+          <div class="more">ещё 1</div>
+          <div class="section__stat"><span class="over">просрочено <b>2</b></span><span class="sep">·</span><span>без даты <b>1</b></span></div>
+        </section>
+        <!-- P2 -->
+        <section class="section p2">
+          <div class="section__head"><span class="section__name"><span class="lvl">P2</span> · важно</span><span class="section__count">2</span></div>
+          <div class="rows">
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Ревью PR redesign-overlay</div><div class="task__proj">WorkGuard</div></div><span class="due today">сегодня</span></div>
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Забронировать переговорку</div><div class="task__proj">Работа</div></div><span class="due">завтра 10:00</span></div>
+          </div>
+          <div class="section__stat"><span class="over">просрочено <b>0</b></span><span class="sep">·</span><span>без даты <b>2</b></span></div>
+        </section>
+        <!-- P3 -->
+        <section class="section p3">
+          <div class="section__head"><span class="section__name"><span class="lvl">P3</span> · обычные</span><span class="section__count">3</span></div>
+          <div class="rows">
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Обновить зависимости</div><div class="task__proj">WorkGuard</div></div><span class="due">3 июн</span></div>
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Записаться к стоматологу</div><div class="task__proj">Личное</div></div><span class="due">5 июн</span></div>
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Глава по PyObjC threading</div><div class="task__proj">Учёба</div></div><span class="due">7 июн</span></div>
+          </div>
+          <div class="section__stat"><span class="over">просрочено <b>0</b></span><span class="sep">·</span><span>без даты <b>4</b></span></div>
+        </section>
+        <!-- P4 -->
+        <section class="section p4">
+          <div class="section__head"><span class="section__name"><span class="lvl">P4</span> · потом</span><span class="section__count">1</span></div>
+          <div class="rows">
+            <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Разобрать закладки</div><div class="task__proj">Личное</div></div><span class="due">10 июн</span></div>
+          </div>
+          <div class="section__stat"><span class="over">просрочено <b>1</b></span><span class="sep">·</span><span>без даты <b>3</b></span></div>
+        </section>
+      </div>
+
+      <!-- ================= NORMAL (≤2560): 2 колонки ================= -->
+      <div class="layout layout--normal">
+        <!-- Колонка 1: P1 (полный список) -->
+        <div class="col">
+          <section class="section p1">
+            <div class="section__head"><span class="section__name"><span class="lvl">P1</span> · срочно</span><span class="section__count">3 / 4</span></div>
+            <div class="rows">
+              <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Подготовить отчёт по Q2 для совета</div><div class="task__proj">Работа</div></div><span class="due overdue">просрочено 2д</span></div>
+              <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Созвон с подрядчиком по миграции</div><div class="task__proj">Работа</div></div><span class="due today">сегодня 16:00</span></div>
+              <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Ответить на письмо юристам</div><div class="task__proj">Входящие</div></div><span class="due overdue">просрочено 1д</span></div>
+            </div>
+            <div class="more">ещё 1</div>
+            <div class="section__stat"><span class="over">просрочено <b>2</b></span><span class="sep">·</span><span>без даты <b>1</b></span></div>
+          </section>
+        </div>
+
+        <!-- Колонка 2: P2 (полный) справа + P3/P4 счётчиком -->
+        <div class="col">
+          <section class="section p2">
+            <div class="section__head"><span class="section__name"><span class="lvl">P2</span> · важно</span><span class="section__count">2</span></div>
+            <div class="rows">
+              <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Ревью PR redesign-todoist-overlay</div><div class="task__proj">WorkGuard</div></div><span class="due today">сегодня</span></div>
+              <div class="row"><span class="dot"></span><div class="task"><div class="task__name">Забронировать переговорку на пятницу</div><div class="task__proj">Работа</div></div><span class="due">завтра 10:00</span></div>
+            </div>
+            <div class="section__stat"><span class="over">просрочено <b>0</b></span><span class="sep">·</span><span>без даты <b>2</b></span></div>
+          </section>
+
+          <div class="countrow">
+            <div class="countcard p3">
+              <span class="flag"></span>
+              <div class="countcard__label"><span class="countcard__name"><span class="lvl">P3</span> · обычные</span><span class="countcard__sub">просрочено 0 · без даты 4</span></div>
+              <span class="countcard__num">3<small>задачи</small></span>
+            </div>
+            <div class="countcard p4">
+              <span class="flag"></span>
+              <div class="countcard__label"><span class="countcard__name"><span class="lvl">P4</span> · потом</span><span class="countcard__sub">просрочено 1 · без даты 3</span></div>
+              <span class="countcard__num">1<small>задача</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="foot">
+        <button class="btn btn--ghost">Свернуть оверлей</button>
+        <button class="btn btn--primary">Перейти в Todoist →</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="devbar">
+    <span>tier:</span>
+    <button id="t-normal" class="on" onclick="setTier('normal')">2 колонки (≤2560)</button>
+    <button id="t-wide" onclick="setTier('wide')">4 колонки (&gt;2560)</button>
+  </div>
+  <script>
+    function setTier(t){
+      document.body.classList.toggle('wide', t === 'wide');
+      document.getElementById('t-normal').classList.toggle('on', t === 'normal');
+      document.getElementById('t-wide').classList.toggle('on', t === 'wide');
+    }
+  </script>
+</body>
+</html>

@@ -7,6 +7,9 @@ packaging/WorkGuard.app/Contents/MacOS/WorkGuard
 # Собирается swiftc из WorkGuardMenu/main.swift
 WorkGuardMenu/workguard-menu
 
+# Секреты: Todoist API token (см. .env.example)
+.env
+
 # Локальные окружения и кэши
 .venv/
 venv/
@@ -17,7 +20,5 @@ __pycache__/
 # Ручные диагностические бинарники
 tests/manual/test_menu
 
-# Beads / Dolt files (added by bd init)
 .dolt/
 *.db
-.beads-credential-key

@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import os
@@ -19,6 +20,17 @@ DEFAULTS = {
     "deferral": None,
     "calendar_source": "xmlcalendar_ru",
     "calendar_cache_days": 30,
+    "todoist_reminder": {
+        "enabled": False,
+        "idle_threshold_min": 120,
+        "poll_interval_min": 5,
+        "reminder_cadence_min": 30,
+        "grace_after_wake_min": 5,
+        "history_browsers": ["yandex", "chrome"],
+        "frontmost_app_name": "Todoist",
+        "open_app_path": "/Applications/Todoist.app",
+        "task_list_cap": 10,
+    },
 }
 
 _LEGACY_FIELDS = {
@@ -66,6 +78,7 @@ def load_config() -> dict:
             "deferral": None,
             "calendar_source": DEFAULTS["calendar_source"],
             "calendar_cache_days": DEFAULTS["calendar_cache_days"],
+            "todoist_reminder": copy.deepcopy(DEFAULTS["todoist_reminder"]),
         }
         save_config(cfg)
         return cfg
@@ -81,13 +94,42 @@ def load_config() -> dict:
     # Ensure all top-level keys present
     for k, v in DEFAULTS.items():
         if k not in data:
-            data[k] = v
+            data[k] = copy.deepcopy(v)
     # Ensure schedule sub-keys present
     ps = data.setdefault("current_period_settings", {})
     for k, v in DEFAULTS["current_period_settings"].items():
         ps.setdefault(k, v)
+    # Ensure todoist_reminder sub-keys present (auto-fill for older configs)
+    tr = data.setdefault("todoist_reminder", {})
+    if isinstance(tr, dict):
+        for k, v in DEFAULTS["todoist_reminder"].items():
+            tr.setdefault(k, copy.deepcopy(v))
 
     return data
+
+
+def read_todoist_token() -> str:
+    """Read Todoist API token from process env or gitignored `.env`.
+
+    Order: `TODOIST_API_TOKEN` process env → `.env` next to project.
+    Token value is never logged. Returns "" if unset.
+    """
+    tok = os.environ.get("TODOIST_API_TOKEN", "").strip()
+    if tok:
+        return tok
+    env_path = Path(__file__).resolve().parent / ".env"
+    if env_path.is_file():
+        try:
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                if key.strip() == "TODOIST_API_TOKEN":
+                    return val.strip().strip('"').strip("'")
+        except OSError as e:
+            logger.warning("read_todoist_token: .env read failed: %s", e)
+    return ""
 
 
 def save_config(cfg: dict):

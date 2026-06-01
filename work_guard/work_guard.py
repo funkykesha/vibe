@@ -25,6 +25,8 @@ from config import load_config, save_config
 from monitor import ActivityMonitor
 from notifier import notify_overtime
 from overlay import FullScreenOverlay
+from todoist_overlay import TodoistReminderOverlay
+from engagement_monitor import TodoistEngagementMonitor
 from ascii_art import get_entry
 
 # ------------------------------------------------------------------
@@ -164,10 +166,14 @@ CHECK_INTERVAL = 5           # seconds between status refresh ticks
 
 OVERLAY_FIRST_DELAY_MIN = 20
 LOCK_INITIAL_SEC = 120
+TEST_OVERLAY_LOCK_SEC = 5    # lock duration for the manual overlay test
 LOCK_MAX_SEC = 1800
 NOTIFY_INTERVAL_MIN = 5
 LADDER_STEPS = [20, 10, 5]
 DEFER_CUTOFF_SEC = 120
+
+# Gap between monitoring ticks above this ⇒ sleep/wake (start a wake-grace window).
+TODOIST_WAKE_GAP_SEC = 120
 
 STATUS_MENU_KEY = "Статус: загрузка..."
 
@@ -286,6 +292,13 @@ class WorkGuardApp(rumps.App):
         self.monitor = ActivityMonitor(self.cfg)
         self.overlay = FullScreenOverlay()
 
+        # Todoist engagement reminder (opt-in, disabled by default)
+        self.todoist = TodoistEngagementMonitor(self.cfg)
+        self.todoist_overlay = TodoistReminderOverlay()
+        self._todoist_next_fire_at: datetime.datetime | None = None
+        self._last_tick_at: datetime.datetime | None = None
+        self._wake_grace_until: datetime.datetime | None = None
+
         self._minutes_overtime = 0
         self._overtime_started_at: datetime.datetime | None = None
         self._last_notification_minute = -1
@@ -311,6 +324,7 @@ class WorkGuardApp(rumps.App):
             {"id": "settings", "text": "Настройки...", "enabled": True},
             {"id": "defer", "text": defer_btn["title"], "enabled": defer_btn["enabled"]},
             {"id": "test_overlay", "text": "Показать оверлей (тест)", "enabled": True},
+            {"id": "test_todoist_overlay", "text": "Тест Todoist-оверлея", "enabled": True},
         ]
         title = getattr(self, "_bar_title_pending", MENU_BAR_LABEL) or MENU_BAR_LABEL
         return {
@@ -376,6 +390,8 @@ class WorkGuardApp(rumps.App):
             self.defer_step()
         elif action == "test_overlay":
             self.test_overlay()
+        elif action == "test_todoist_overlay":
+            self.test_todoist_overlay()
         elif action == "quit":
             self.quit_app()
         else:
@@ -571,6 +587,7 @@ class WorkGuardApp(rumps.App):
             self._defer_item,
             None,
             rumps.MenuItem("Показать оверлей (тест)", callback=self.test_overlay),
+            rumps.MenuItem("Тест Todoist-оверлея", callback=self.test_todoist_overlay),
             None,
             rumps.MenuItem("Выйти", callback=self.quit_app),
         ]
@@ -675,8 +692,20 @@ class WorkGuardApp(rumps.App):
     def test_overlay(self, _=None):
         art, msg = get_entry(2)
         threading.Thread(
-            target=self.overlay.show, args=(art, msg, LOCK_INITIAL_SEC), daemon=True
+            target=self.overlay.show, args=(art, msg, TEST_OVERLAY_LOCK_SEC), daemon=True
         ).start()
+
+    @rumps.clicked("Тест Todoist-оверлея")
+    def test_todoist_overlay(self, _=None):
+        dashboard = self.todoist.dashboard()
+        app_path = self.cfg.get("todoist_reminder", {}).get(
+            "open_app_path", "/Applications/Todoist.app"
+        )
+        self.todoist_overlay.show(
+            "Тест: давно не заглядывал в Todoist — проверь план задач",
+            dashboard, app_path,
+            on_result=self._on_todoist_overlay_result,
+        )
 
     @rumps.clicked("Выйти")
     def quit_app(self, _=None):
@@ -684,6 +713,7 @@ class WorkGuardApp(rumps.App):
             logger.info("Quitting WorkGuard")
             self._stop_swift_menu_agent()
             self.overlay.close()
+            self.todoist_overlay.close()
             self.monitor.stop()
             _release_lock()
             rumps.quit_application()
@@ -705,6 +735,10 @@ class WorkGuardApp(rumps.App):
     def _tick(self):
         self.cfg = load_config()
         self.monitor.update_config(self.cfg)
+        self.todoist.update_config(self.cfg)
+
+        now = datetime.datetime.now()
+        self._update_wake_grace(now)
 
         in_work_time = self.monitor.is_work_time()
         working = self.monitor.is_work_happening()
@@ -720,14 +754,16 @@ class WorkGuardApp(rumps.App):
         if in_work_time:
             self._reset_overtime_state()
             self._update_icon(emoji="🟢")
+            self._check_todoist(now)
             return
+
+        # Outside work time → no Todoist reminder; reset its cadence gate.
+        self._todoist_next_fire_at = None
 
         if not working:
             self._reset_overtime_state()
             self._update_icon(emoji="⚪")
             return
-
-        now = datetime.datetime.now()
 
         if self._overtime_started_at is None:
             self._overtime_started_at = now
@@ -751,6 +787,70 @@ class WorkGuardApp(rumps.App):
                 logger.warning("Overlay scheduling error: %s", e)
 
         self._refresh_defer_item()
+
+    # ------------------------------------------------------------------
+    # Todoist engagement reminder
+    # ------------------------------------------------------------------
+
+    def _update_wake_grace(self, now: datetime.datetime) -> None:
+        """Start a wake-grace window on process start or after a sleep/wake gap."""
+        grace_min = int(self.cfg.get("todoist_reminder", {}).get("grace_after_wake_min", 5))
+        if grace_min > 0 and (
+            self._last_tick_at is None
+            or (now - self._last_tick_at).total_seconds() > TODOIST_WAKE_GAP_SEC
+        ):
+            self._wake_grace_until = now + datetime.timedelta(minutes=grace_min)
+            logger.info("Todoist wake-grace until %s", self._wake_grace_until)
+        self._last_tick_at = now
+
+    def _check_todoist(self, now: datetime.datetime) -> None:
+        tr = self.cfg.get("todoist_reminder", {})
+        if not self.todoist.is_enabled():
+            return
+
+        active_app = self.monitor.get_active_app() or ""
+        self.todoist.update(active_app, now)
+
+        # Wake-grace: give the user a chance to open Todoist themselves first.
+        if self._wake_grace_until is not None:
+            if now < self._wake_grace_until:
+                return
+            self._wake_grace_until = None
+
+        if self.todoist_overlay.is_active():
+            return
+
+        threshold = int(tr.get("idle_threshold_min", 120))
+        mins = self.todoist.minutes_since(now)
+        # No engagement on record OR idle past threshold → candidate for reminder.
+        if mins is not None and mins < threshold:
+            return
+
+        # Cadence gate (anti-spam) — mirrors deferral.next_overlay_at pattern.
+        if self._todoist_next_fire_at is not None and now < self._todoist_next_fire_at:
+            return
+
+        cadence = int(tr.get("reminder_cadence_min", 30))
+        dashboard = self.todoist.dashboard()
+        app_path = tr.get("open_app_path", "/Applications/Todoist.app")
+        message = "Давно не заглядывал в Todoist — проверь план задач"
+        self.todoist_overlay.show(
+            message, dashboard, app_path,
+            on_result=self._on_todoist_overlay_result,
+        )
+        self._todoist_next_fire_at = now + datetime.timedelta(minutes=cadence)
+        logger.info("Todoist reminder shown; next cadence at %s", self._todoist_next_fire_at)
+
+    def _on_todoist_overlay_result(self, result: str) -> None:
+        """Handle the overlay action: `open` resets engagement; `dismiss` keeps cadence."""
+        if result == "open":
+            now = datetime.datetime.now()
+            self.todoist.mark_engagement_now(now)
+            # Engagement just refreshed → next reminder governed by threshold, not cadence.
+            self._todoist_next_fire_at = None
+            logger.info("Todoist overlay: user opened Todoist; engagement reset")
+        else:
+            logger.info("Todoist overlay: dismissed; cadence armed")
 
     @rumps.timer(1)
     def _sync_bar_title(self, _timer) -> None:

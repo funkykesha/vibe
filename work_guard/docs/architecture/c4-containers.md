@@ -43,7 +43,7 @@ C4Container
 | **Swift menu agent** | Cocoa `NSStatusBar` | When enabled (`workguard-menu` binary present), shows menu from `status.json`; user actions produce `command.json` for the Python core to poll. |
 | **Overlay child process** | Same Conda `python`, `overlay.py` `__main__` | Separate process so `NSApplication` main thread rules are satisfied; shows blocking overlay with dismiss timer. |
 | **Settings subprocess** | `tkinter` | Modal settings window in its own process to avoid threading issues with Tk on macOS. |
-| **Local store** | Files under `~/.config/work_guard/` | `config.json` (schedule, apps, pause, overlay locks), `work_guard.lock`, `work_guard.log`, `calendar_ru_<year>.json`, `status.json` / `command.json` for Swift IPC. |
+| **Local store** | Files under `~/.config/work_guard/` | `config.json` (`current_period_settings`, `pending_period_settings`, `deferral`, `calendar_source`, `calendar_cache_days`), `work_guard.lock`, `work_guard.log`, `calendar_ru_<year>.json`, `status.json` / `command.json` for Swift IPC. Overlay/lock/notification constants live in `work_guard.py`, not config. |
 
 ## Deployment notes
 
