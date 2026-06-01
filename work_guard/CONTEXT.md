@@ -45,6 +45,53 @@ _Avoid_: exportable user activity, diagnostic payload, support bundle content
 A direct user action that asks WorkGuard to send or export non-secret data.
 _Avoid_: implied consent, default telemetry, hidden sync
 
+**Authorized Credential Use**:
+Use of a user-configured third-party credential only as authentication to that
+credential's own service endpoint for an explicitly enabled integration.
+_Avoid_: credential export, telemetry consent, sending secrets to WorkGuard or
+support destinations
+
+**Local Secret Environment File**:
+A gitignored local `.env` file that stores user-provided integration secrets.
+_Avoid_: tracked config, shared defaults, writing secrets into `config.json`
+
+**Todoist Interaction**:
+A recent contact with Todoist through the Todoist app, the Todoist website, or a
+task change observed through the explicitly enabled Todoist integration. Any
+observed Todoist task change counts, regardless of who or what caused it.
+_Avoid_: productivity score, task completion, generic work activity
+
+**Todoist Non-Interaction Time**:
+Work time during which no **Todoist Interaction** happened, regardless of whether
+the user was active in another app or inactive at the computer.
+_Avoid_: idle time only, non-work time, productivity judgment
+
+**Morning Todoist Check**:
+The first Todoist reminder evaluation that WorkGuard can perform during a work
+period, for example after the user opens the laptop or WorkGuard resumes.
+_Avoid_: morning grace period, waiting for the normal idle threshold
+
+**Todoist Change Time**:
+The Todoist-provided timestamp for an observed task change, such as `updated_at`
+for active task changes, `completed_at` for completed tasks, or an activity event
+time for deleted tasks, used to decide whether the change is still recent.
+_Avoid_: poll time, time WorkGuard noticed an already-old change
+
+**System Todoist Change**:
+A Todoist-generated maintenance change that updates task metadata without a user
+or collaborator changing the plan, such as automatic recurring due-date reschedule.
+_Avoid_: task completion, deletion, content/priority edits, explicit user actions
+
+**Unavailable Todoist Signal**:
+A configured Todoist signal source that cannot currently report an interaction,
+for example because an API call failed or browser history could not be read.
+_Avoid_: implicit interaction, reminder suppression reason
+
+**Todoist Task Snapshot**:
+The latest successfully fetched local copy of active Todoist tasks used to render
+the Todoist reminder dashboard.
+_Avoid_: live Todoist UI, clickable task list, source of truth for editing tasks
+
 **Rebuild Install Flow**:
 The repeatable root-level command that rebuilds WorkGuard, replaces the installed
 app bundle, refreshes macOS app metadata, reloads login startup, and relaunches.
@@ -122,7 +169,49 @@ _Avoid_: pause, monitoring pause, treating deferral as schedule change
   collectors in the install change.
 - An **Explicit User Request** may allow non-secret data to leave the machine.
 - A **Sensitive Secret** must not leave the machine even after an **Explicit User
-  Request**.
+  Request**, except for **Authorized Credential Use**.
+- **Authorized Credential Use** sends a credential only to the third-party service
+  endpoint that issued or accepts it, and only for an explicitly enabled
+  integration.
+- A **Local Secret Environment File** stores integration credentials locally and
+  must be ignored by git.
+- A **Todoist Interaction** can reset the Todoist reminder idle clock.
+- **Todoist Non-Interaction Time** accumulates during work time when Todoist did
+  not change and the Todoist app or website was not opened on the computer.
+- Lunches and breaks are not modeled separately; inside the configured work window,
+  **Todoist Non-Interaction Time** is wall-clock time.
+- A **Morning Todoist Check** shows the reminder immediately when no **Todoist
+  Interaction** has happened within the configured threshold before that check.
+- API-based **Todoist Interaction** recency uses **Todoist Change Time** when the
+  API provides it, so an old change noticed at laptop-open does not look fresh.
+- On API cold start, active tasks with fresh `updated_at` values count as
+  **Todoist Interaction**.
+- A **System Todoist Change** does not count as **Todoist Interaction**.
+- Completed and deleted Todoist tasks also count as **Todoist Interaction** when
+  their **Todoist Change Time** is within the reminder threshold.
+- Todoist task move and reorder events count as **Todoist Interaction**.
+- Completed/deleted Todoist API lookback covers the configured threshold plus the
+  poll interval plus a five-minute buffer.
+- A running Todoist app does not count as **Todoist Interaction** unless Todoist is
+  frontmost, because background presence does not prove the user saw the plan.
+- A browser History visit to `todoist.com` counts as **Todoist Interaction** even
+  if WorkGuard cannot prove that the tab was frontmost.
+- An **Unavailable Todoist Signal** does not count as **Todoist Interaction** and
+  does not suppress the Todoist reminder by itself.
+- Todoist reminder enablement and Todoist API access are separate: the enabled
+  flag activates app/browser monitoring, while a configured token adds the API
+  signal through **Authorized Credential Use**.
+- The Todoist reminder dashboard renders the latest **Todoist Task Snapshot**,
+  refreshed periodically in the background when API access is configured.
+- Missing **Todoist Task Snapshot** does not suppress the reminder; the overlay
+  still shows the reminder message and actions without task details.
+- Dismissing the Todoist reminder overlay does not count as **Todoist
+  Interaction**; it only delays the next reminder by the configured cadence.
+- Choosing the Todoist reminder's open-Todoist action counts immediately as
+  **Todoist Interaction**, before waiting for the next monitoring tick.
+- After the open-Todoist action, the next reminder is governed by the normal
+  non-interaction threshold from that interaction time; repeat cadence applies to
+  dismiss only.
 - A **Rebuild Install Flow** produces and installs the **Supported GUI target**.
 - An **Obsolete Setup Path** should be removed from user-facing docs and future
   implementation rather than preserved as a second command.
@@ -188,6 +277,107 @@ _Avoid_: pause, monitoring pause, treating deferral as schedule change
 > **Dev:** "If the user asks to export diagnostics, can secrets be included?"
 > **Domain expert:** "No. An **Explicit User Request** can export non-secret
 > diagnostics only; **Sensitive Secrets** stay local."
+
+> **Dev:** "Can an enabled Todoist integration send the Todoist token to
+> Todoist?"
+> **Domain expert:** "Yes. That is **Authorized Credential Use**: the credential is
+> stored locally, not logged or exported, and sent only to Todoist's API endpoint
+> as authentication for the explicitly enabled integration."
+
+> **Dev:** "Where should the Todoist API token live?"
+> **Domain expert:** "In a gitignored **Local Secret Environment File**, not in
+> `config.json`."
+
+> **Dev:** "If the user works in an IDE for two hours but never opens Todoist, did
+> they interact with Todoist?"
+> **Domain expert:** "No. They may be working, but there was no **Todoist
+> Interaction**."
+
+> **Dev:** "Does a background-running Todoist app count as interaction?"
+> **Domain expert:** "No. Todoist must be frontmost or opened as a website visit,
+> or Todoist task data must change."
+
+> **Dev:** "Does a `todoist.com` browser History visit count if the tab may not
+> have been frontmost?"
+> **Domain expert:** "Yes. Browser History is a coarse signal; any recorded
+> Todoist visit counts."
+
+> **Dev:** "Does any observed Todoist task change count as interaction, including
+> mobile edits, recurring updates, or shared project changes?"
+> **Domain expert:** "Yes for user-visible task changes, but not for **System
+> Todoist Change**."
+
+> **Dev:** "Should inactivity at the computer suppress the Todoist reminder?"
+> **Domain expert:** "No. During work time, inactivity is still **Todoist
+> Non-Interaction Time** if Todoist did not change and the Todoist app or website
+> was not opened."
+
+> **Dev:** "Should lunch or breaks pause Todoist Non-Interaction Time?"
+> **Domain expert:** "No. Breaks are not modeled; inside the work window the timer
+> is wall-clock."
+
+> **Dev:** "Should the start of the work day wait for the normal threshold before
+> showing a Todoist reminder?"
+> **Domain expert:** "No. At the first **Morning Todoist Check**, show the reminder
+> immediately if there has been no **Todoist Interaction** in the current work
+> period."
+
+> **Dev:** "If Todoist changed from a phone before opening the laptop, should the
+> morning overlay show?"
+> **Domain expert:** "Only if that **Todoist Change Time** is older than the
+> configured threshold when WorkGuard checks."
+
+> **Dev:** "On API cold start, do active tasks with fresh `updated_at` count as
+> interaction?"
+> **Domain expert:** "Yes. A fresh active-task `updated_at` is **Todoist
+> Interaction** even if WorkGuard has no previous snapshot."
+
+> **Dev:** "Should automatic recurring reschedules count as Todoist Interaction?"
+> **Domain expert:** "No. System-generated changes are **System Todoist Change**,
+> not **Todoist Interaction**."
+
+> **Dev:** "Do moved or reordered Todoist tasks count as interaction?"
+> **Domain expert:** "Yes. Moving or reordering tasks is work with the plan."
+
+> **Dev:** "Do completed and deleted Todoist tasks count for the same recency
+> rule?"
+> **Domain expert:** "Yes. Use `completed_at` for completed tasks and the Todoist
+> activity event time for deleted tasks."
+
+> **Dev:** "How far back should completed/deleted Todoist checks look?"
+> **Domain expert:** "Look back `idle_threshold_min + poll_interval_min + 5 min`."
+
+> **Dev:** "If the Todoist API call fails, should WorkGuard treat that as possible
+> hidden interaction and stay quiet?"
+> **Domain expert:** "No. A failed call is an **Unavailable Todoist Signal**, not a
+> **Todoist Interaction**."
+
+> **Dev:** "If the reminder is enabled but the Todoist token is empty or invalid,
+> should the reminder still work?"
+> **Domain expert:** "Yes. It still works from app and browser signals; the token
+> only adds the API signal."
+
+> **Dev:** "What should the reminder dashboard show?"
+> **Domain expert:** "It should show the latest **Todoist Task Snapshot**. Tasks
+> should be requested periodically in the background."
+
+> **Dev:** "If there is no Todoist task snapshot yet, should the overlay still
+> show?"
+> **Domain expert:** "Yes. Show a simple reminder overlay without task details."
+
+> **Dev:** "Does dismissing the Todoist reminder reset Todoist interaction time?"
+> **Domain expert:** "No. Dismiss only arms the repeat cadence; Todoist Interaction
+> is reset only by opening Todoist, a Todoist browser visit, or a Todoist task
+> change."
+
+> **Dev:** "Does clicking the reminder's open-Todoist action count immediately as
+> interaction?"
+> **Domain expert:** "Yes. The user explicitly chose Todoist; update interaction
+> time immediately instead of waiting for the next monitoring tick."
+
+> **Dev:** "After the open-Todoist action, should cadence or the normal threshold
+> decide the next reminder?"
+> **Domain expert:** "The normal threshold. Cadence is for dismiss only."
 
 > **Dev:** "Should install live in a separate helper script?"
 > **Domain expert:** "No. Follow ServicesMenu: use one root **Rebuild Install
@@ -280,7 +470,51 @@ _Avoid_: pause, monitoring pause, treating deferral as schedule change
 - "User action data" could mean local guidance facts or exportable telemetry.
   Resolved: future behavior uses local coarse **Activity Signals**; data leaves
   the machine only after an **Explicit User Request**, and **Sensitive Secrets**
-  never leave.
+  never leave except for **Authorized Credential Use**.
+- "Todoist token storage" could mean `config.json`. Resolved: token lives in a
+  gitignored **Local Secret Environment File**.
+- "Todoist engagement" could mean productivity, task completion, or general work.
+  Resolved: use **Todoist Interaction** for direct contact with Todoist; unrelated
+  work activity does not count.
+- "Opened Todoist" could mean the app is merely running. Resolved: app signal is
+  frontmost-only.
+- "Browser visit" could require proving the active tab. Resolved: a recorded
+  `todoist.com` History visit is enough.
+- "User away" could mean the reminder should wait for computer activity. Resolved:
+  during work time, inactivity still counts as **Todoist Non-Interaction Time**.
+- "Lunch" or "break" could mean pausing the reminder timer. Resolved: breaks are
+  not modeled; inside work time the timer is wall-clock.
+- "Morning grace" could mean waiting `idle_threshold_min` after `work_start`.
+  Resolved: no morning grace; first check in a work period can show the reminder if
+  there was no **Todoist Interaction** within the threshold before that check.
+- "API task change time" could mean when WorkGuard noticed the diff. Resolved: use
+  **Todoist Change Time** when available.
+- "Cold start snapshot" could mean no engagement is recorded. Resolved: active
+  tasks with fresh `updated_at` count as interaction on cold start.
+- "Any Todoist change" could include system-generated recurring reschedules.
+  Resolved: **System Todoist Change** does not count as **Todoist Interaction**.
+- "Moved/reordered task" could be ignored because content did not change. Resolved:
+  task move and reorder events count as **Todoist Interaction**.
+- "Task disappeared from active tasks" could be ignored because active snapshot has
+  no timestamp. Resolved: query completed/deleted Todoist sources and use their
+  event timestamps.
+- "Completed/deleted lookback" could be unbounded. Resolved: threshold plus poll
+  interval plus five-minute buffer is enough for reminder recency.
+- "API failed" could mean possible hidden Todoist activity. Resolved: a failed
+  signal is an **Unavailable Todoist Signal**, not **Todoist Interaction**.
+- "Enabled Todoist reminder" could mean API token is mandatory. Resolved: the
+  enabled flag activates local app/browser signals; the token only adds API
+  access.
+- "Dashboard data" could mean live fetch at overlay time. Resolved: dashboard uses
+  the latest **Todoist Task Snapshot** refreshed periodically in the background.
+- "No task snapshot" could mean no overlay. Resolved: show the reminder overlay
+  without task details.
+- "Dismiss reminder" could mean the user engaged with Todoist. Resolved: dismiss
+  only delays the next reminder by cadence.
+- "Open Todoist action" could wait for the next active-app tick. Resolved: clicking
+  the action is immediate **Todoist Interaction**.
+- "Open Todoist action" could arm repeat cadence. Resolved: it restarts the normal
+  threshold; cadence applies to dismiss only.
 - "+20 minutes" could mean changing the configured work schedule, pausing
   monitoring, or postponing enforcement. Resolved: it means **Overlay Deferral**
   only.
