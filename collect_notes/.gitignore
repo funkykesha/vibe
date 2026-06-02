@@ -1,0 +1,6 @@
+
+.dolt/
+*.db
+
+research-pipeline/.env
+.env
