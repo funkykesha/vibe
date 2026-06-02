@@ -157,8 +157,7 @@ LAUNCHCTL_DOMAIN="gui/$(id -u)"
 launchctl bootout "$LAUNCHCTL_DOMAIN" "$LAUNCH_AGENT_PLIST" 2>/dev/null || true
 launchctl bootstrap "$LAUNCHCTL_DOMAIN" "$LAUNCH_AGENT_PLIST"
 launchctl enable "$LAUNCHCTL_DOMAIN/com.agaibadulin.workguard" 2>/dev/null || true
-echo "Launching $APP_INSTALL_TARGET..."
-/usr/bin/open "$APP_INSTALL_TARGET"
+echo "Launching $APP_INSTALL_TARGET via LaunchAgent RunAtLoad..."
 echo "GUI target: $APP_INSTALL_TARGET"
 
 echo "Rebuild complete."

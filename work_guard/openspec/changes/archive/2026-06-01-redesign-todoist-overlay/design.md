@@ -78,18 +78,18 @@ Priority accent appears three ways per section: a colored flag bar at the sectio
 ### D4 — Two-tier width-responsive packing
 Per `screen.frame().size.width` (`W`). The two tiers differ in BOTH column count and in how p3/p4 are presented (revised after the prototype review):
 
-- **Tier 1, `W ≤ 2560` (laptop / single monitor)**: `n_cols = 2`.
+- **Tier 1, `W < 2560` (laptop / compact monitor)**: `n_cols = 2`.
   - Left column: **P1 full task list** (header + dated rows + per-section stat).
   - Right column: **P2 full task list** (same), stacked above two **count-cards** for P3 and P4.
   - P3/P4 are NOT listed task-by-task here — each is a single compact count-card (see D8): accent flag, `PX · <name>`, a sub-line `просрочено O · без даты U`, and a large task count (`N задач`). Rationale: a laptop column can't show four full lists legibly; the high-priority work gets the rows, the low-priority load is conveyed as a number.
-- **Tier 2, `W > 2560` (wide / external monitor)**: `n_cols = 4`, `sections_per_col = 1`. One priority per column, P1→P4 left to right, **all four as full task lists** with per-section stat footers.
+- **Tier 2, `W ≥ 2560` (wide / external monitor)**: `n_cols = 4`, `sections_per_col = 1`. One priority per column, P1→P4 left to right, **all four as full task lists** with per-section stat footers.
 
-Threshold `2560` is a module constant `WIDE_TIER_MIN_WIDTH`. (Alternatives rejected: 3 tiers — user wants 2 only; tier-1 four-full-lists — illegible in a laptop column, hence the count-card treatment for p3/p4.)
+Threshold `2560` is an inclusive module constant `WIDE_TIER_MIN_WIDTH`: a 2560×1440 external display gets the wide 4-column tier. (Alternatives rejected: 3 tiers — user wants 2 only; tier-1 four-full-lists — illegible in a laptop column, hence the count-card treatment for p3/p4.)
 
 ### D5 — Layout proportions (APPROVED via prototype)
 Validated visually in `docs/design/todoist-overlay-prototype.html` (both tiers). The overlay paints a dark full-screen backdrop and centers a single rounded **panel** that holds the headline, the grid, and the actions — content is not stretched edge-to-edge. All vertical bands below are relative to the panel; row pitch stays absolute px so taller panels fit more rows.
 
-Panel: centered, width `min(0.92W, 1180px)` in tier 1 and `min(0.96W, 1680px)` in tier 2; corner radius ~16px; 1px hairline border; subtle drop shadow.
+Panel: centered, width `min(0.92W, 1180px)` in tier 1 and `min(0.96W, 2200px)` in tier 2; corner radius ~16px; 1px hairline border; subtle drop shadow. The wider tier-2 cap keeps 2560×1440 displays from feeling cramped.
 
 Panel zones (top → bottom):
 | Zone | Content |
@@ -172,7 +172,7 @@ Within any section: `rows_region = section_h − HEADER_H(40) − FOOTER_H(30)`,
 - **Content overflow in narrow columns** (long task text) → truncate with ellipsis to `col_width` measured at RENDER time via `NSString.sizeWithAttributes:` / `NSAttributedString` bounding width in the actual `NSFont`, NOT a static per-font character budget. The prototype uses JetBrains Mono (a web font absent on macOS); the renderer uses SF Mono → Menlo (D3), whose glyph advance differs, so a char-count budget calibrated on the prototype would be wrong. Runtime measurement is font-agnostic and exact.
 - **Very short monitors** (cap → 0 or 1) → enforce `cap ≥ 1`; if 1 and overflow, show only `…ещё N`. Acceptable edge.
 - **Dynamic cap drops low-priority/far-future tasks silently** → footer `всего D` shows the true dated count per section, so nothing hidden is invisible.
-- **2560 threshold misclassifies a wide-but-single laptop** → constant is tunable; tier 1 (2 cols) is a safe default even on mid monitors.
+- **2560 threshold misclassifies a wide external monitor as compact** → resolved by treating `WIDE_TIER_MIN_WIDTH` as inclusive; 2560×1440 now gets tier 2.
 
 ## Migration Plan
 

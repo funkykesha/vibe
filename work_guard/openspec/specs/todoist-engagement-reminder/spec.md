@@ -1,11 +1,11 @@
 # todoist-engagement-reminder Specification
 
 ## Purpose
-Opt-in, default-disabled monitor that, during work time, tracks the user's most recent Todoist Interaction across three local signals (frontmost Todoist app, Chromium browser history visits to `todoist.com`, and Todoist REST API task changes) and shows a full-screen reminder overlay with a task mini-dashboard when Todoist Non-Interaction Time exceeds a configured threshold.
+Opt-in, default-disabled monitor that, during work time, tracks the user's most recent Todoist Interaction via the Todoist REST API (user-visible task changes) and shows a full-screen reminder overlay with a task mini-dashboard when Todoist Non-Interaction Time exceeds a configured threshold.
 
 ## Requirements
 ### Requirement: Feature is opt-in and disabled by default
-The Todoist engagement reminder SHALL be disabled by default and SHALL only activate when the user explicitly enables it in local configuration. A Todoist API token SHALL NOT be required for app/browser monitoring; it SHALL be read from local environment (`TODOIST_API_TOKEN`) and SHALL only enable the API signal and API-backed dashboard data.
+The Todoist engagement reminder SHALL be disabled by default and SHALL only activate when the user explicitly enables it in local configuration. Engagement detection SHALL require a Todoist API token; the token SHALL be read from local environment (`TODOIST_API_TOKEN`) and SHALL NOT be stored in `config.json`. When no token is available there SHALL be no engagement signal of any kind.
 
 #### Scenario: Default configuration is inert
 - **WHEN** WorkGuard runs with default configuration
@@ -13,10 +13,10 @@ The Todoist engagement reminder SHALL be disabled by default and SHALL only acti
 - **THEN** no Todoist reminder overlay is shown
 - **THEN** no outbound Todoist API call is made
 
-#### Scenario: Enabled without token stays inert for API
+#### Scenario: Enabled without token has no engagement signal
 - **WHEN** the feature is enabled but `TODOIST_API_TOKEN` is not set
 - **THEN** no outbound Todoist API call is made
-- **THEN** Todoist Interaction is still tracked from app and browser signals
+- **THEN** no Todoist Interaction is tracked from any signal
 - **THEN** the reminder may still be shown when work time and threshold gates are satisfied
 
 #### Scenario: Token is not stored in config
@@ -24,21 +24,13 @@ The Todoist engagement reminder SHALL be disabled by default and SHALL only acti
 - **THEN** the token is read from a local `.env` file or process environment
 - **THEN** the token is not stored in `config.json`
 
-### Requirement: Engagement is derived from three signal families
-The system SHALL compute the most recent Todoist engagement timestamp as the maximum of: frontmost application equal to `Todoist`, the latest `todoist.com` visit time read from Chromium browser history (Yandex, Chrome), and Todoist-provided event/change times observed via the REST API for user-visible task changes. System Todoist Changes SHALL NOT count as Todoist Interaction.
+### Requirement: Engagement is derived from the Todoist API
+The system SHALL compute the most recent Todoist engagement timestamp solely from user-visible task changes observed via the Todoist REST API (snapshot-diff active-task changes, completed tasks, and deleted/moved/reordered activity). The frontmost application name and browser history SHALL NOT be consulted as engagement signals. System Todoist Changes SHALL NOT count as Todoist Interaction.
 
-#### Scenario: Frontmost Todoist counts as engagement
-- **WHEN** the monitoring tick observes the frontmost application name is `Todoist`
-- **THEN** the last engagement timestamp is set to the current time
-
-#### Scenario: Background Todoist does not count as engagement
-- **WHEN** Todoist is running but is not the frontmost application
-- **THEN** the app signal does not advance the last engagement timestamp
-
-#### Scenario: Browser visit counts as engagement
-- **WHEN** the latest `todoist.com` visit in a configured Chromium history is newer than the stored engagement time
-- **THEN** the last engagement timestamp is advanced to that visit time
-- **THEN** the system does not need to prove that the browser tab was frontmost
+#### Scenario: Viewing Todoist does not count as engagement
+- **WHEN** the user opens or focuses the Todoist app or visits `todoist.com` in a browser without changing any task
+- **THEN** the last engagement timestamp is not advanced
+- **THEN** WorkGuard does not read the frontmost application name or any browser history for engagement
 
 #### Scenario: User-visible API task mutation counts as interaction
 - **WHEN** Todoist activity or completed-task data reports a task change in the recency lookback window
@@ -106,13 +98,56 @@ The system SHALL show the reminder only during work time. The system SHALL use t
 - **THEN** the next reminder is not shown earlier than the configured repeat cadence
 
 ### Requirement: Reminder overlay presents a non-interactive task dashboard
-The reminder overlay SHALL be full-screen without a countdown timer, SHALL present two actionable buttons, and SHALL display a non-clickable Todoist task summary sourced from the latest successful Todoist Task Snapshot refreshed periodically in the background.
+The reminder overlay SHALL be full-screen without a countdown timer, SHALL present two actionable buttons, and SHALL display a non-clickable Todoist task dashboard sourced from the latest successful Todoist Task Snapshot refreshed periodically in the background. The dashboard SHALL include only tasks that have a due date, SHALL group tasks by priority, SHALL show a relative due label per task, and SHALL adapt its layout to the monitor's pixel width.
 
-#### Scenario: Overlay content
+#### Scenario: Dated tasks only
 - **WHEN** the reminder overlay is shown
-- **THEN** it lists priority p1 and p2 tasks expanded up to the configured cap with an overflow indicator when exceeded
-- **THEN** it shows the counts of p3 and p4 tasks and the number of overdue tasks
-- **THEN** the task summary is not interactive
+- **THEN** only tasks that have a due date or due datetime no later than today are listed
+- **THEN** tasks without any due date are not listed
+- **THEN** the number of undated tasks excluded is available per priority for the section counter
+
+#### Scenario: Priority-grouped sections across all four priorities
+- **WHEN** the reminder overlay is shown
+- **THEN** all four priorities (p1, p2, p3, p4) are represented
+- **THEN** each priority is visually distinguished using the Todoist priority color (p1 red, p2 orange, p3 blue, p4 gray)
+- **THEN** within a listed priority section tasks are ordered by due date ascending, with overdue tasks first
+- **THEN** the task dashboard is not interactive
+
+#### Scenario: Priority sections rendered as task cards
+- **WHEN** a priority is shown as a full task list
+- **THEN** the section is a bordered box with a header carrying a colored accent flag, the priority label in the accent color, and the section's dated task count
+- **THEN** each task is a card showing a priority dot, the task content, an optional project label, and the relative due label
+- **THEN** the actions row presents the two buttons centered
+
+#### Scenario: Per-task relative due label with red overdue
+- **WHEN** a task is listed in the dashboard
+- **THEN** the task row shows a relative due label (for example "просрочено 3д", "сегодня", "завтра", "Пн 12", "23 июн")
+- **THEN** when the task is overdue its due label is rendered in red
+- **THEN** when the task is not overdue its due label is rendered in a neutral color
+
+#### Scenario: Per-section counters
+- **WHEN** a priority section is shown as a task list
+- **THEN** the section header reports its dated task count
+- **THEN** the section's stat footer reports the overdue count and the undated-hidden count for that priority
+
+#### Scenario: Dynamic per-section task cap
+- **WHEN** a priority section cannot fit all its dated tasks in the available section height
+- **THEN** the section lists as many tasks as fit at the fixed row pitch
+- **THEN** the section shows an overflow indicator "…ещё N" for the remaining tasks
+
+#### Scenario: Two-tier width-responsive layout
+- **WHEN** the monitor pixel width is below the wide-tier threshold
+- **THEN** the dashboard uses two columns
+- **THEN** the p1 task list fills the left column and the p2 task list occupies the top of the right column
+- **THEN** p3 and p4 are presented as compact count-cards (not task-by-task lists) below the p2 list
+- **WHEN** the monitor pixel width is at or above the wide-tier threshold
+- **THEN** the dashboard uses four columns, one priority per column, with all four priorities shown as full task lists
+
+#### Scenario: Low-priority count-cards in the narrow tier
+- **WHEN** the dashboard is shown below the wide-tier threshold
+- **THEN** each of p3 and p4 is shown as a single count-card reporting its dated task count
+- **THEN** the count-card also reports that priority's overdue and undated-hidden counts
+- **THEN** no individual p3 or p4 task rows are listed in this tier
 
 #### Scenario: Overlay uses last successful task snapshot
 - **WHEN** the reminder overlay is shown after at least one successful Todoist task poll
@@ -136,10 +171,10 @@ The reminder overlay SHALL be full-screen without a countdown timer, SHALL prese
 - **THEN** the last engagement timestamp is not advanced
 
 ### Requirement: Unavailable signals do not count as interaction
-The system SHALL treat an unavailable or failed Todoist signal as no observed Todoist Interaction. A failed signal SHALL NOT reset Todoist Non-Interaction Time and SHALL NOT suppress a reminder by itself.
+The system SHALL treat an unavailable or failed Todoist API signal as no observed Todoist Interaction. A failed signal SHALL NOT reset Todoist Non-Interaction Time and SHALL NOT suppress a reminder by itself.
 
-#### Scenario: Signal sources unavailable
-- **WHEN** browser history is unreadable, the API errors or is offline, or the token is invalid
+#### Scenario: API source unavailable
+- **WHEN** the Todoist API errors or is offline, or the token is invalid
 - **THEN** the system logs the condition
 - **THEN** the last engagement timestamp is not advanced by that failed signal
 - **THEN** the reminder may still be shown when work time and threshold gates are satisfied

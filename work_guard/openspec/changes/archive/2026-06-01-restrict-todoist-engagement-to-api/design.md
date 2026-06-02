@@ -41,7 +41,7 @@ With the monitor as its only consumer, `BrowserHistoryReader` and its Chromium h
 
 - **User who relied on app/browser viewing to silence reminders** now gets reminders until they actually change a task → this is the intended behavior change; called out in the spec REMOVED migration note.
 - **No token ⇒ feature is effectively just a threshold timer with an empty dashboard** → acceptable; documented in the modified "opt-in" requirement. The feature is opt-in and token-gated by design.
-- **Coordination with `redesign-todoist-overlay`** (also edits `engagement_monitor.py` and `todoist_signals.py`) → the two diffs are disjoint: this change deletes signal sources in `update()` / `__init__` / the reader class; the other reshapes `dashboard()` and the persisted snapshot. Land order does not matter; if both are open, merge carefully around `__init__` and the imports.
+- **Coordination with `redesign-todoist-overlay`** (now archived: `openspec/changes/archive/2026-06-01-redesign-todoist-overlay`) → it also touched `engagement_monitor.py` and `todoist_signals.py`, but it has landed, so there is no concurrent-merge risk. The diffs are disjoint anyway: this change deletes signal sources in `update()` / `__init__` / the reader class; the other reshaped `dashboard()` and the persisted snapshot. Edit against the current working tree (which includes its uncommitted changes), not the last commit.
 
 ## Migration Plan
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Останавливает WorkGuard: снимает старый LaunchAgent (если остался от прежней установки),
-# затем шлёт сигнал по lock-файлу (PID) и добивает оставшиеся процессы.
+# затем шлёт сигнал по lock-файлу (PID) и добивает оставшиеся Python/Swift процессы.
 set -euo pipefail
 
 LAUNCH_AGENTS_DIR="${HOME}/Library/LaunchAgents"
@@ -39,12 +39,22 @@ if [[ -f "$PID_FILE" ]]; then
   fi
 fi
 
-# На случай второго экземпляра или устаревшего pid-файла
+# На случай второго экземпляра, устаревшего pid-файла или осиротевшего Swift menu agent.
+pkill -f '[/]WorkGuard\.app/Contents/MacOS/WorkGuard' 2>/dev/null || true
 pkill -f '[/]work_guard\.py' 2>/dev/null || true
+pkill -f '[/]WorkGuardMenu[/]workguard-menu' 2>/dev/null || true
 
 sleep 0.3
-if pgrep -f '[/]work_guard\.py' >/dev/null 2>&1; then
-  echo "Процесс всё ещё жив — принудительно: pkill -9 -f work_guard.py" >&2
+if pgrep -f '[/]work_guard\.py|[/]WorkGuardMenu[/]workguard-menu|[/]WorkGuard\.app/Contents/MacOS/WorkGuard' >/dev/null 2>&1; then
+  echo "Процесс всё ещё жив — принудительно добиваем WorkGuard процессы" >&2
+  pkill -9 -f '[/]WorkGuard\.app/Contents/MacOS/WorkGuard' 2>/dev/null || true
+  pkill -9 -f '[/]work_guard\.py' 2>/dev/null || true
+  pkill -9 -f '[/]WorkGuardMenu[/]workguard-menu' 2>/dev/null || true
+  sleep 0.3
+fi
+
+if pgrep -f '[/]work_guard\.py|[/]WorkGuardMenu[/]workguard-menu|[/]WorkGuard\.app/Contents/MacOS/WorkGuard' >/dev/null 2>&1; then
+  echo "FAIL: WorkGuard процессы всё ещё живы после остановки." >&2
   exit 1
 fi
 echo "WorkGuard остановлен."

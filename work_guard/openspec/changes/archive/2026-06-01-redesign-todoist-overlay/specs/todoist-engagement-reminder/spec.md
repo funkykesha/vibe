@@ -39,15 +39,15 @@ The reminder overlay SHALL be full-screen without a countdown timer, SHALL prese
 - **THEN** the section shows an overflow indicator "…ещё N" for the remaining tasks
 
 #### Scenario: Two-tier width-responsive layout
-- **WHEN** the monitor pixel width is at or below the wide-tier threshold
+- **WHEN** the monitor pixel width is below the wide-tier threshold
 - **THEN** the dashboard uses two columns
 - **THEN** the p1 task list fills the left column and the p2 task list occupies the top of the right column
 - **THEN** p3 and p4 are presented as compact count-cards (not task-by-task lists) below the p2 list
-- **WHEN** the monitor pixel width is above the wide-tier threshold
+- **WHEN** the monitor pixel width is at or above the wide-tier threshold
 - **THEN** the dashboard uses four columns, one priority per column, with all four priorities shown as full task lists
 
 #### Scenario: Low-priority count-cards in the narrow tier
-- **WHEN** the dashboard is shown at or below the wide-tier threshold
+- **WHEN** the dashboard is shown below the wide-tier threshold
 - **THEN** each of p3 and p4 is shown as a single count-card reporting its dated task count
 - **THEN** the count-card also reports that priority's overdue and undated-hidden counts
 - **THEN** no individual p3 or p4 task rows are listed in this tier

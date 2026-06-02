@@ -38,6 +38,12 @@ if [ "$PROC_COUNT" -ne 1 ]; then
     exit 1
 fi
 
+SWIFT_COUNT="$(pgrep -f '[/]WorkGuardMenu[/]workguard-menu' | wc -l | tr -d ' ')"
+if [ "$SWIFT_COUNT" -gt 1 ]; then
+    echo "FAIL: expected at most 1 workguard-menu process, found $SWIFT_COUNT" >&2
+    exit 1
+fi
+
 if kill -0 "$DEBUG_PID" 2>/dev/null; then
     kill "$DEBUG_PID" 2>/dev/null || true
 fi

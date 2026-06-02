@@ -1,10 +1,10 @@
 """
 Todoist engagement aggregator.
 
-Folds three local signals into one recency timestamp `last_engagement`:
-  - frontmost app == Todoist (active PWA / app viewing — primary signal);
-  - last todoist.com visit from Chromium history (regular tabs);
-  - Todoist API changes from other devices (snapshot-diff + completed + deleted).
+Single engagement signal: Todoist REST API task changes (snapshot-diff +
+completed + deleted). `last_engagement` advances only when the API reports a
+user-visible task mutation; opening the Todoist app or browser tab does not
+count.
 
 The API poll runs in a non-blocking background thread; the main monitoring tick
 only reads cached state. Shared state is guarded by a single lock with atomic
@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Optional
 
 from config import read_todoist_token
-from todoist_signals import BrowserHistoryReader, TodoistApiClient
+from todoist_signals import TodoistApiClient
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,6 @@ class TodoistEngagementMonitor:
     def __init__(self, config: dict):
         self._cfg = config.get("todoist_reminder", {}) if config else {}
         self._token = read_todoist_token()
-        self._reader = BrowserHistoryReader(self._cfg.get("history_browsers"))
         self._client = TodoistApiClient()
 
         self._lock = threading.Lock()
@@ -54,7 +53,6 @@ class TodoistEngagementMonitor:
 
     def update_config(self, config: dict) -> None:
         self._cfg = config.get("todoist_reminder", {}) if config else {}
-        self._reader.update_browsers(self._cfg.get("history_browsers", []))
         # Token may be added/removed without restart.
         self._token = read_todoist_token()
 
@@ -67,19 +65,10 @@ class TodoistEngagementMonitor:
     # -- 3.2 update -------------------------------------------------------
 
     def update(self, active_app: Optional[str], now: datetime.datetime) -> None:
-        """Refresh signals. Front-app + history run inline; API poll spawns a thread."""
+        """Refresh signals. API poll spawns a background thread."""
+        _ = active_app  # retained for caller compatibility; no longer used for engagement
         if not self.is_enabled():
             return
-
-        # 3.2a: app signal only when Todoist is frontmost (not background-running).
-        frontmost = self._cfg.get("frontmost_app_name", "Todoist")
-        if active_app and active_app == frontmost:
-            self._bump_engagement(now)
-
-        # Browser history (throttled inside the reader).
-        visit = self._reader.last_visit(now)
-        if visit is not None:
-            self._bump_engagement(visit)
 
         # API poll — non-blocking background thread, throttled by poll_interval.
         if self.api_enabled() and self._poll_due(now):

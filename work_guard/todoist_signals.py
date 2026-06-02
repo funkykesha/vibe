@@ -1,14 +1,9 @@
 """
-Local Todoist engagement signals.
+Todoist REST API engagement signal.
 
-Two collectors:
-  - BrowserHistoryReader: last visit to todoist.com from Chromium history
-    (Yandex / Chrome), read-only via sqlite `immutable=1` (no Full Disk Access,
-    no copy). Covers regular browser tabs only — the PWA app-mode window does
-    NOT write to the shared Default/History (empirically verified 2026-06-01).
-  - TodoistApiClient: active tasks snapshot + completed/deleted recency via the
-    Todoist REST API v1. Used to detect edits made from other devices and to
-    render the reminder mini-dashboard.
+Single collector: TodoistApiClient — active tasks snapshot + completed/deleted
+recency via the Todoist REST API v1. Used to detect user-visible task changes
+and to render the reminder mini-dashboard.
 
 All errors degrade to None — a missing signal is NOT a Todoist Interaction and
 never suppresses the reminder by itself.
@@ -18,42 +13,15 @@ import datetime
 import hashlib
 import json
 import logging
-import sqlite3
 import urllib.error
 import urllib.parse
 import urllib.request
-from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Chrome/Chromium epoch: microseconds since 1601-01-01 UTC.
-_CHROME_EPOCH = datetime.datetime(1601, 1, 1)
-
-_HISTORY_THROTTLE_SEC = 60
-
-# Chromium history DB paths per browser key.
-_BROWSER_HISTORY_PATHS = {
-    "yandex": Path.home()
-    / "Library/Application Support/Yandex/YandexBrowser/Default/History",
-    "chrome": Path.home()
-    / "Library/Application Support/Google/Chrome/Default/History",
-}
-
 _API_BASE = "https://api.todoist.com"
 _API_TIMEOUT = 30
-
-
-def _chrome_time_to_dt(value: int) -> Optional[datetime.datetime]:
-    """Convert Chromium last_visit_time (µs since 1601) to naive local datetime."""
-    if not value:
-        return None
-    try:
-        utc = _CHROME_EPOCH + datetime.timedelta(microseconds=int(value))
-        # Stored in UTC; convert to local wall-clock to match the rest of the app.
-        return utc.replace(tzinfo=datetime.timezone.utc).astimezone().replace(tzinfo=None)
-    except (ValueError, OverflowError):
-        return None
 
 
 def _parse_iso(value: Optional[str]) -> Optional[datetime.datetime]:
@@ -95,63 +63,6 @@ def _due_label(due_dt: datetime.datetime, has_time: bool,
     if delta <= 6:
         return f"{_RU_WEEKDAY_SHORT[d.weekday()]} {d.day}"
     return f"{d.day} {_RU_MONTH_SHORT[d.month - 1]}"
-
-
-class BrowserHistoryReader:
-    """Reads the most recent todoist.com visit time from Chromium history."""
-
-    def __init__(self, browsers: Optional[list] = None):
-        self._browsers = browsers or ["yandex", "chrome"]
-        self._last_read_at: Optional[datetime.datetime] = None
-        self._cached: Optional[datetime.datetime] = None
-
-    def update_browsers(self, browsers: list) -> None:
-        if browsers:
-            self._browsers = browsers
-
-    def last_visit(self, now: datetime.datetime) -> Optional[datetime.datetime]:
-        """Most recent todoist.com visit across configured browsers.
-
-        Throttled to one read per `_HISTORY_THROTTLE_SEC`; returns the cached
-        value between reads. Any error → cached/None (never raises).
-        """
-        if (
-            self._last_read_at is not None
-            and (now - self._last_read_at).total_seconds() < _HISTORY_THROTTLE_SEC
-        ):
-            return self._cached
-
-        self._last_read_at = now
-        best: Optional[datetime.datetime] = None
-        for key in self._browsers:
-            path = _BROWSER_HISTORY_PATHS.get(key)
-            if not path or not path.is_file():
-                continue
-            visit = self._read_one(path)
-            if visit is not None and (best is None or visit > best):
-                best = visit
-        if best is not None:
-            self._cached = best
-        return self._cached
-
-    @staticmethod
-    def _read_one(path: Path) -> Optional[datetime.datetime]:
-        uri = f"file:{path}?immutable=1"
-        try:
-            conn = sqlite3.connect(uri, uri=True, timeout=2.0)
-            try:
-                row = conn.execute(
-                    "SELECT MAX(last_visit_time) FROM urls WHERE url LIKE ?",
-                    ("%todoist.com%",),
-                ).fetchone()
-            finally:
-                conn.close()
-        except sqlite3.Error as e:
-            logger.debug("History read failed for %s: %s", path, e)
-            return None
-        if not row or row[0] is None:
-            return None
-        return _chrome_time_to_dt(row[0])
 
 
 class TodoistApiClient:
@@ -384,11 +295,11 @@ class TodoistApiClient:
             }
 
         REST priority mapping: 4=p1, 3=p2, 2=p3, 1=p4.
-        Only tasks with a due date enter `columns[pX]`; undated tasks are
-        excluded and counted in `counts[pX].undated_hidden`. Each list is sorted
-        by `due_sort` ascending (overdue first, then nearest). The producer does
-        NOT cap — the renderer slices to per-monitor geometry. `cap` is accepted
-        for call-site compatibility and ignored.
+        Only tasks with a due date no later than today enter `columns[pX]`;
+        undated tasks are excluded and counted in `counts[pX].undated_hidden`.
+        Each list is sorted by `due_sort` ascending (overdue first, then today).
+        The producer does NOT cap — the renderer slices to per-monitor
+        geometry. `cap` is accepted for call-site compatibility and ignored.
         """
         now = datetime.datetime.now()
         today = now.date()
@@ -407,6 +318,8 @@ class TodoistApiClient:
             due_dt = _parse_iso(due_raw)
             if due_dt is None:
                 counts[key]["undated_hidden"] += 1
+                continue
+            if due_dt.date() > today:
                 continue
             has_time = bool(due.get("datetime"))
             overdue = due_dt.date() < today

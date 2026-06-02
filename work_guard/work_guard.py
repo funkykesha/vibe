@@ -61,6 +61,7 @@ def _notify_already_running() -> None:
     _notify_osascript(
         "WorkGuard",
         "Уже запущен — смотрите строку меню (WG) или иконку в Dock.",
+        wait=False,
     )
 
 
@@ -105,13 +106,21 @@ def _osascript_escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def _notify_osascript(title: str, body: str) -> bool:
+def _notify_osascript(title: str, body: str, wait: bool = True) -> bool:
     """display notification через osascript; True если команда завершилась без ошибки."""
     t = _osascript_escape(title)
     b = _osascript_escape(body)
+    cmd = ["osascript", "-e", f'display notification "{b}" with title "{t}"']
     try:
+        if not wait:
+            subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return True
         r = subprocess.run(
-            ["osascript", "-e", f'display notification "{b}" with title "{t}"'],
+            cmd,
             check=False,
             capture_output=True,
             timeout=10,
