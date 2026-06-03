@@ -43,7 +43,7 @@ test('openai: finish_reason stop without [DONE]', async () => {
   const items = await collect(normalizeStream(stream, 'openai'));
   assert.deepEqual(items, [
     { delta: 'hi', done: false },
-    { delta: '', done: true },
+    { delta: '', done: true, finishReason: 'stop' },
   ]);
 });
 
@@ -56,7 +56,21 @@ test('openai: usage capture before done', async () => {
   assert.deepEqual(items, [
     { delta: 'hi', done: false },
     { delta: '', done: false, usage: { input: 10, output: 5 } },
-    { delta: '', done: true },
+    { delta: '', done: true, finishReason: 'stop' },
+  ]);
+});
+
+test('openai: tool_call deltas are surfaced + finishReason tool_calls', async () => {
+  const stream = makeStream([
+    'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"get_stock_data","arguments":""}}]}}]}\n\n',
+    'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\\"symbol\\":\\"NVDA\\"}"}}]}}]}\n\n',
+    'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n',
+  ]);
+  const items = await collect(normalizeStream(stream, 'openai'));
+  assert.deepEqual(items, [
+    { delta: '', done: false, toolCalls: [{ index: 0, id: 'call_1', type: 'function', function: { name: 'get_stock_data', arguments: '' } }] },
+    { delta: '', done: false, toolCalls: [{ index: 0, function: { arguments: '{"symbol":"NVDA"}' } }] },
+    { delta: '', done: true, finishReason: 'tool_calls' },
   ]);
 });
 

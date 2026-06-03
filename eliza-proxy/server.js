@@ -15,6 +15,18 @@ const LOG_USAGE = process.env.LOG_USAGE !== 'false';
 const TOKEN_FILE = '/Users/agaibadulin/.eliza/token';
 const FINAL_DISPLAY_DELAY_MS = 100;
 
+// Merge streamed OpenAI tool_call deltas (index-keyed) into a full tool_calls array.
+function accumulateToolCalls(acc, deltas) {
+  for (const tc of deltas) {
+    const i = tc.index ?? 0;
+    if (!acc[i]) acc[i] = { id: tc.id || `call_${i}`, type: tc.type || 'function', function: { name: '', arguments: '' } };
+    if (tc.id) acc[i].id = tc.id;
+    if (tc.type) acc[i].type = tc.type;
+    if (tc.function?.name) acc[i].function.name += tc.function.name;
+    if (tc.function?.arguments) acc[i].function.arguments += tc.function.arguments;
+  }
+}
+
 async function closeServerIfListening(serverRef) {
   if (!serverRef || !serverRef.listening) return;
   await new Promise((resolve) => serverRef.close(resolve));
@@ -368,7 +380,7 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
   });
 
   app.post('/v1/chat/completions', async (req, res) => {
-    const { model, messages, stream } = req.body;
+    const { model, messages, stream, tools, tool_choice, response_format } = req.body;
 
     if (!model || !Array.isArray(messages)) {
       res.status(400).json({ error: { type: 'invalid_request_error', message: 'model and messages required' } });
@@ -376,8 +388,15 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
     }
 
     const systemParts = messages.filter((m) => m.role === 'system').map((m) => m.content);
-    const chatMessages = messages.filter((m) => m.role !== 'system' && m.content != null && m.content !== '');
+    // Keep tool results and assistant tool_call messages (content may be null) for function-calling turns
+    const chatMessages = messages.filter((m) => {
+      if (m.role === 'system') return false;
+      if (m.role === 'tool') return true;
+      if (Array.isArray(m.tool_calls) && m.tool_calls.length > 0) return true;
+      return m.content != null && m.content !== '';
+    });
     const system = systemParts.length ? systemParts.join('\n') : undefined;
+    const chatOpts = { system, tools, tool_choice, response_format };
 
     const chatId = 'chatcmpl-' + Math.random().toString(36).slice(2, 10);
     const created = Math.floor(Date.now() / 1000);
@@ -390,16 +409,23 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
         let fullText = '';
         let usageInput = 0;
         let usageOutput = 0;
-        for await (const { delta, done, usage, error } of eliza.chat(model, chatMessages, { system })) {
+        let finishReason = null;
+        const toolCallsAcc = [];
+        for await (const { delta, done, usage, error, toolCalls, finishReason: fr } of eliza.chat(model, chatMessages, chatOpts)) {
           if (error) { res.status(500).json({ error: { type: 'api_error', message: error } }); return; }
           if (usage) { usageInput = usage.input ?? usageInput; usageOutput = usage.output ?? usageOutput; }
+          if (toolCalls) accumulateToolCalls(toolCallsAcc, toolCalls);
           if (delta) fullText += delta;
+          if (fr) finishReason = fr;
           if (done) break;
         }
         recordUsage(usageStats, model, usageInput, usageOutput, prices, { usageLogFile, logUsage });
+        const toolCallsOut = toolCallsAcc.filter(Boolean);
+        const message = { role: 'assistant', content: fullText || null };
+        if (toolCallsOut.length) message.tool_calls = toolCallsOut;
         res.json({
           id: chatId, object: 'chat.completion', created, model,
-          choices: [{ index: 0, message: { role: 'assistant', content: fullText }, finish_reason: 'stop' }],
+          choices: [{ index: 0, message, finish_reason: toolCallsOut.length ? 'tool_calls' : (finishReason || 'stop') }],
           usage: { prompt_tokens: usageInput, completion_tokens: usageOutput, total_tokens: usageInput + usageOutput },
         });
       } catch (err) {
@@ -436,8 +462,9 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
 
       let usageInput = 0;
       let usageOutput = 0;
+      let finishReason = null;
 
-      for await (const { delta, done, usage, error } of eliza.chat(model, chatMessages, { system })) {
+      for await (const { delta, done, usage, error, toolCalls, finishReason: fr } of eliza.chat(model, chatMessages, chatOpts)) {
         if (!clientConnected) break;
 
         if (error) {
@@ -450,13 +477,19 @@ function createApp({ eliza, probeState, usageStats, usageLogFile = USAGE_LOG_FIL
           usageOutput = usage.output ?? usageOutput;
         }
 
+        if (fr) finishReason = fr;
+
         if (done) {
           const costUsd = recordUsage(usageStats, model, usageInput, usageOutput, prices, { usageLogFile, logUsage });
           void costUsd;
           const openAiUsage = { prompt_tokens: usageInput, completion_tokens: usageOutput, total_tokens: usageInput + usageOutput };
-          safeWrite(chunk({}, 'stop', openAiUsage));
+          safeWrite(chunk({}, finishReason || 'stop', openAiUsage));
           safeWrite('data: [DONE]\n\n');
           break;
+        }
+
+        if (toolCalls) {
+          safeWrite(chunk({ tool_calls: toolCalls }, null));
         }
 
         if (delta) {

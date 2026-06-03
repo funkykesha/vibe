@@ -137,7 +137,7 @@ function createElizaClient({
     }
   }
 
-  async function* chat(model, messages, { system } = {}) {
+  async function* chat(model, messages, { system, tools, tool_choice, response_format } = {}) {
     const config = elizaConfig(model, baseUrl);
 
     // GPT-5 requires /v1/responses API — not supported by Eliza SSE proxy
@@ -163,6 +163,9 @@ function createElizaClient({
             : messages,
           ...(!isReasoning ? { temperature: 0 } : {}),
           ...(config.supportsReasoningEffort ? { reasoning_effort: 'medium' } : {}),
+          ...(tools ? { tools } : {}),
+          ...(tool_choice ? { tool_choice } : {}),
+          ...(response_format ? { response_format } : {}),
           stream: true,
         };
 

@@ -103,6 +103,7 @@ function* handleOpenAI(obj) {
   const choices = obj.choices;
   let finishReason = null;
   let contentDelta = null;
+  let toolCalls = null;
 
   if (Array.isArray(choices) && choices.length > 0) {
     const choice = choices[0];
@@ -111,11 +112,19 @@ function* handleOpenAI(obj) {
     if (delta && typeof delta.content === 'string' && delta.content !== '') {
       contentDelta = delta.content;
     }
+    if (delta && Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0) {
+      toolCalls = delta.tool_calls;
+    }
   }
 
   // Emit content delta first
   if (contentDelta !== null) {
     yield { delta: contentDelta, done: false };
+  }
+
+  // Emit tool_call deltas (function-calling passthrough)
+  if (toolCalls !== null) {
+    yield { delta: '', done: false, toolCalls };
   }
 
   // Emit usage chunk before done (Rev 2: top-level usage field)
@@ -127,9 +136,9 @@ function* handleOpenAI(obj) {
     };
   }
 
-  // All finish_reason values (stop, length, content_filter) map to done:true — callers cannot distinguish
+  // finish_reason (stop, length, content_filter, tool_calls) maps to done:true; surface the raw reason
   if (finishReason !== null) {
-    yield { delta: '', done: true };
+    yield { delta: '', done: true, finishReason };
   }
 }
 
