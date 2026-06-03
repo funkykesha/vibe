@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import rumps
 
-from config import load_config, save_config
+from config import CONFIG_FILE, load_config, save_config
 from monitor import ActivityMonitor
 from notifier import notify_overtime
 from overlay import FullScreenOverlay
@@ -331,6 +331,7 @@ class WorkGuardApp(rumps.App):
         items: list[dict] = [
             {"id": "status", "text": self._status_line, "enabled": False},
             {"id": "settings", "text": "Настройки...", "enabled": True},
+            {"id": "open_config", "text": "Открыть config.json", "enabled": True},
             {"id": "defer", "text": defer_btn["title"], "enabled": defer_btn["enabled"]},
             {"id": "test_overlay", "text": "Показать оверлей (тест)", "enabled": True},
             {"id": "test_todoist_overlay", "text": "Тест Todoist-оверлея", "enabled": True},
@@ -395,6 +396,8 @@ class WorkGuardApp(rumps.App):
             return  # removed feature; older Swift may still send these
         if action == "settings":
             self.open_settings()
+        elif action == "open_config":
+            self.open_config_json()
         elif action == "defer":
             self.defer_step()
         elif action == "test_overlay":
@@ -593,6 +596,7 @@ class WorkGuardApp(rumps.App):
             rumps.MenuItem(STATUS_MENU_KEY, callback=None, key=None),
             None,
             rumps.MenuItem("Настройки...", callback=self.open_settings),
+            rumps.MenuItem("Открыть config.json", callback=self.open_config_json),
             self._defer_item,
             None,
             rumps.MenuItem("Показать оверлей (тест)", callback=self.test_overlay),
@@ -626,6 +630,14 @@ class WorkGuardApp(rumps.App):
             logger.error("Settings dialog script not found: %s", script)
         except Exception as e:
             logger.exception("Failed to open settings dialog: %s", e)
+
+    @rumps.clicked("Открыть config.json")
+    def open_config_json(self, _=None):
+        import subprocess as sp
+        try:
+            sp.Popen(["open", str(CONFIG_FILE)])
+        except Exception as e:
+            logger.exception("Failed to open config.json: %s", e)
 
     def _contextual_button_state(self) -> dict:
         if self._overtime_started_at is None:
