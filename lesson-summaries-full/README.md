@@ -1,5 +1,8 @@
 # Краткие изложения уроков курса Easy-Vibe
 
+<!-- collections -->
+**📚 Коллекции:** [Кратко](../lesson-summaries/README.md) · **Расширенно** · [Полный перевод](../lesson-originals-ru/README.md) · оригинал: [easy-vibe на GitHub](https://github.com/datawhalechina/easy-vibe/tree/main/docs/zh-cn)
+
 Конспекты на русском языке по основным урокам курса [Datawhale · easy-vibe](https://github.com/datawhalechina/easy-vibe) (этапы 1–3). Каждый файл — краткое изложение соответствующего урока: суть, ключевые темы, главные выводы и упомянутые инструменты. Это не полный перевод, а конспект для быстрого ознакомления.
 
 > Источник: `docs/zh-cn/` репозитория easy-vibe (оригинал на китайском). Справочная база (`appendix`) и проектные задания (PRD) в конспекты не входят.

@@ -2,6 +2,9 @@
 
 > Этап 3 · Продвинутый AI
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/ai-advanced/llamaindex-enterprise-knowledge-base.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/ai-advanced/llamaindex-enterprise-knowledge-base.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/llamaindex-enterprise-knowledge-base/index.md)
+
 ## О чём урок
 Урок посвящён построению корпоративной базы знаний на LlamaIndex. В отличие от LangGraph (который отвечает на вопрос "как должен работать Agent или поддержка"), LlamaIndex решает другую задачу: как корпоративные знания подключить, организовать, найти и превратить в ответ. Главная мысль: корпоративная база знаний — это не "скормить PDF модели", а "превратить разрозненные знания в поддерживаемую, прослеживаемую точку входа с возможностью поиска".
 

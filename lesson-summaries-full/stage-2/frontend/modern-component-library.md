@@ -2,6 +2,9 @@
 
 > Этап 2 · Фронтенд
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/modern-component-library.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/frontend/modern-component-library.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/modern-component-library/index.md)
+
 ## О чём урок
 Урок объясняет, почему самописные кнопки, формы и модальные окна обычно выглядят непрофессионально, и как библиотеки компонентов решают эту проблему. На трёх реальных сценариях показано, как сочетать AI IDE и библиотеки компонентов в стиле Vibe Coding.
 

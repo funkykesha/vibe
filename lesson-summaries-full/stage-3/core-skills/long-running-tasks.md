@@ -2,6 +2,9 @@
 
 > Этап 3 · Ключевые навыки
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/long-running-tasks.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/long-running-tasks.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/long-running-tasks/index.md)
+
 ## О чём урок
 Традиционные AI-помощники работают в диалоговом режиме: спросил — ответил — остановился. Для реальных задач этого мало: AI часто останавливается «слишком рано», решив, что «вроде готово». Урок объясняет, как заставить Claude Code работать в цикле и продолжать, пока задача действительно не будет выполнена, на примере техники Ralph Wiggum и других методов.
 

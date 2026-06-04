@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/wechat-miniprogram-backend.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/wechat-miniprogram-backend.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/wechat-miniprogram-backend/index.md)
+
 Переход от фронтенд-онли мини-программы к полноценному продукту с сервером через WeChat Cloud Development (CloudBase).
 
 - Фронтенд — вход, бэкенд — судья: ключи, права, суммы и правила только на сервере.

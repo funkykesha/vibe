@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/vscode-extension.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/vscode-extension.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/vscode-extension/index.md)
+
 ## О чём урок
 Урок проводит полный цикл создания расширения VS Code «AI Project Bot» — AI-помощника, который генерирует проекты из шаблонов, ведёт диалог с AI прямо в панели Chat, анализирует выделенный код и связи между несколькими файлами, поддерживает свои горячие клавиши. Показаны разработка, отладка и публикация в Marketplace. Большая часть кода пишется в стиле Vibe Coding через AI-ассистента.
 

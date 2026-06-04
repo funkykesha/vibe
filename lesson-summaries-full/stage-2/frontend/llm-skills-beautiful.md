@@ -2,6 +2,9 @@
 
 > Этап 2 · Фронтенд
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/llm-skills-beautiful.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/frontend/llm-skills-beautiful.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/llm-skills-beautiful/index.md)
+
 ## О чём урок
 Урок объясняет, почему AI по умолчанию генерирует «обычные» интерфейсы с характерным «AI-привкусом» (шрифт Inter, фиолетовые градиенты, симметричные сетки), и учит двум способам это исправить: продуманным промптам с описанием стиля и плагинам-Skills, автоматически подгружающим дизайн-правила.
 

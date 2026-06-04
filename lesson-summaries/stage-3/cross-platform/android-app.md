@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/android-app.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/android-app.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/android-app/index.md)
+
 Полный цикл создания нативного Android-приложения «Электронная деревянная рыба» на Kotlin + Jetpack Compose с AI-ассистентом Trae.
 
 - Линия: окружение → каркас → описание и генерация AI → шлифовка на устройстве → сборка.

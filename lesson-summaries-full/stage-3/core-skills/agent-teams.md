@@ -2,6 +2,9 @@
 
 > Этап 3 · Ключевые навыки
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/agent-teams.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/agent-teams.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/agent-teams/index.md)
+
 ## О чём урок
 Agent Teams — функция Claude Code, позволяющая нескольким независимым экземплярам AI работать как настоящая команда разработки: одни делают фронтенд, другие бэкенд, третьи тесты, при этом они работают параллельно, общаются и координируются. Урок объясняет архитектуру, отличие от Subagent и показывает разработку RPG-игры командой агентов.
 

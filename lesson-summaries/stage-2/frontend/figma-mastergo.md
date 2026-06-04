@@ -2,6 +2,9 @@
 
 > Этап 2 · Фронтенд
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-2/frontend/figma-mastergo.md) · [Полный перевод](../../../lesson-originals-ru/stage-2/frontend/figma-mastergo.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/figma-mastergo/index.md)
+
 Зачем фронтендеру инструменты дизайна и как освоить базовые операции в Figma и её аналоге MasterGo вплоть до AI-генерации страниц.
 
 - Дизайн делается до кода: иерархия, приоритеты, удобство пользователя

@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/ios-app.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/ios-app.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/ios-app/index.md)
+
 Полный цикл создания нативного iOS-приложения «Холодильный шеф» (FridgeChef) на Swift / SwiftUI с генерацией рецептов через AI API.
 
 - Поток: HTML-прототип → перенос в SwiftUI → бизнес-логика и Core Data.

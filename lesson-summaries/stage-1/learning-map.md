@@ -2,6 +2,9 @@
 
 > Этап 1 · Карта обучения
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../lesson-summaries-full/stage-1/learning-map.md) · [Полный перевод](../../lesson-originals-ru/stage-1/learning-map.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/learning-map/index.md)
+
 Вводный обзор курса easy-vibe: с появлением LLM программирование становится доступным каждому, а язык программирования — естественным языком.
 
 - Vibe Coding — «программирование разговором» через диалог с AI

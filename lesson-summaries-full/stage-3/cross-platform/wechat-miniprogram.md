@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/wechat-miniprogram.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/wechat-miniprogram.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/wechat-miniprogram/index.md)
+
 ## О чём урок
 Урок проводит читателя через полный цикл: от идеи до реальной мини-программы, которую можно найти и открыть в WeChat. В качестве примера используется игра «Змейка» — компактный, но полноценный проект с несколькими страницами, простой логикой и записью счёта. Разработка ведётся в стиле vibecoding с помощью AI-ассистента.
 

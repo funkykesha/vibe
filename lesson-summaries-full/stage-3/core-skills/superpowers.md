@@ -2,6 +2,9 @@
 
 > Этап 3 · Ключевые навыки
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/superpowers.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/superpowers.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/superpowers/index.md)
+
 ## О чём урок
 Superpowers — открытый фреймворк агентских навыков от Джесси Винсента (obra), решающий проблему: как заставить AI писать «инженерный», а не «игрушечный» код. Если обычный AI-помощник — «умный стажёр», то Superpowers даёт ему наставника-сеньора, который заставляет соблюдать полный процесс разработки: прояснение требований, планирование, TDD, код-ревью.
 

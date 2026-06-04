@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/choose-platform.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/choose-platform.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/choose-platform/index.md)
+
 ## О чём урок
 Урок помогает определиться с платформой для воплощения идеи в реальный продукт. Он разбирает основные классы платформ — мобильные, десктопные, веб и прочие — и предлагает структурированный процесс принятия решения, основанный на трёх ключевых вопросах и наборе сценариев.
 

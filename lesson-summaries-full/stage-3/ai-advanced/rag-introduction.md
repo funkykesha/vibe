@@ -2,6 +2,9 @@
 
 > Этап 3 · Продвинутый AI
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/ai-advanced/rag-introduction.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/ai-advanced/rag-introduction.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/rag-introduction/index.md)
+
 ## О чём урок
 Урок системно знакомит с технологией RAG (Retrieval-Augmented Generation, генерация с дополненным поиском): зачем она нужна, как устроена и как развивалась. RAG позволяет большой языковой модели перед генерацией ответа сначала точно извлечь релевантные знания из внешней базы, а затем отвечать, опираясь на реальные источники. Это эффективнее и надёжнее, чем просто увеличивать длину контекста.
 

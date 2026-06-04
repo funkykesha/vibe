@@ -2,6 +2,9 @@
 
 > Этап 2 · Бэкенд
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/zeabur-deployment.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/backend/zeabur-deployment.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/zeabur-deployment/index.md)
+
 ## О чём урок
 Урок объясняет, что такое развёртывание (deployment) и как опубликовать веб-приложение в интернете, чтобы оно стало доступно другим. Рассматриваются четыре платформы — Tencent CloudBase, Vercel, Netlify и Zeabur — с упором на Zeabur и его гибкость для сложных проектов с несколькими сервисами.
 

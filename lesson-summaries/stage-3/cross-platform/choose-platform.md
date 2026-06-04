@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/choose-platform.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/choose-platform.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/choose-platform/index.md)
+
 Урок помогает выбрать платформу под идею продукта через три ключевых вопроса и набор сценариев.
 
 - Обзор платформ: iOS/Android, WeChat-мини-программы, PWA, Electron, Qt, сайты, расширения, VS Code-плагины, NFT.

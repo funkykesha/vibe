@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/ios-app.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/ios-app.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/ios-app/index.md)
+
 ## О чём урок
 Урок проводит полный цикл создания нативного iOS-приложения — от идеи до запуска на реальном iPhone. На примере приложения «Холодильный шеф» (FridgeChef), которое по введённым продуктам генерирует рецепт через настоящий AI API, показана нативная разработка на Swift / SwiftUI с AI-ассистентом Trae.
 

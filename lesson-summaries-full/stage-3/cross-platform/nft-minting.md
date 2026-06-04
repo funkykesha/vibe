@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/nft-minting.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/nft-minting.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/nft-minting/index.md)
+
 ## О чём урок
 Урок проводит полный цикл работы с NFT: написание простого смарт-контракта, его деплой в тестовую сеть Ethereum (Sepolia), минтинг собственного NFT и просмотр результата в Etherscan и OpenSea. Всё делается в браузере без установки локального окружения — примерно за 10 минут и бесплатно. В качестве примера минтится NFT-«сертификат об обучении» Vibe Coder.
 

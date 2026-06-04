@@ -2,6 +2,9 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/electron-voice-to-text.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/electron-voice-to-text.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/electron-voice-to-text/index.md)
+
 ## О чём урок
 Урок проводит полный цикл создания настольного приложения «речь в текст» на Electron с поддержкой двух режимов распознавания — облачного API и локальной модели — и итоговой сборкой под Windows, macOS и Linux. Показаны архитектура процессов Electron, запись с микрофона и интеграция Whisper.
 

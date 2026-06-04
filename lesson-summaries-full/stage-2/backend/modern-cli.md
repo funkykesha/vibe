@@ -2,6 +2,9 @@
 
 > Этап 2 · Бэкенд
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/modern-cli.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/backend/modern-cli.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/modern-cli/index.md)
+
 ## О чём урок
 Урок знакомит с AI-агентами программирования, работающими прямо в командной строке (CLI), в отличие от агентов, встроенных в AI-IDE вроде Trae или Cursor. Рассматриваются Claude Code, Codex и OpenCode, способы их установки и подключения к разным моделям через Anthropic-совместимые API, а также продвинутые приёмы использования.
 

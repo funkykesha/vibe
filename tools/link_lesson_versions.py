@@ -115,13 +115,16 @@ def insertion_index(lines):
         while i < len(lines) and lines[i].strip() == "":
             i += 1
         return i
-    # no frontmatter: skip leading blanks, the H1, then an optional quote line
+    # no frontmatter: skip leading blanks, the H1, then an optional `> Этап` quote
     while i < len(lines) and lines[i].strip() == "":
         i += 1
     if i < len(lines) and lines[i].lstrip().startswith("#"):
         i += 1
-        if i < len(lines) and lines[i].lstrip().startswith(">"):
-            i += 1
+        j = i
+        while j < len(lines) and lines[j].strip() == "":
+            j += 1
+        if j < len(lines) and lines[j].lstrip().startswith(">"):
+            i = j + 1
     return i
 
 
