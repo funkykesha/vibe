@@ -6,7 +6,8 @@ Idempotent: keyed off the ``<!-- nav -->`` marker. Re-running replaces the block
 """
 import os
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# All three collections live alongside this script, inside the lessons-ru folder.
+REPO = os.path.dirname(os.path.abspath(__file__))
 
 VERSIONS = [
     ("lesson-summaries", "Кратко"),
