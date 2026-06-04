@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/claude-agent-sdk.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/claude-agent-sdk.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/claude-agent-sdk/index.md)
 
+
 ## О чём урок
 Claude Agent SDK превращает все возможности Claude Code (чтение/запись файлов, выполнение команд, поиск кода, работа с веб) в программируемую библиотеку. В отличие от базового API («ты спросил — он ответил»), Agent SDK даёт автономное выполнение: Claude сам вызывает инструменты, итерирует и проверяет результат, пока задача не будет выполнена. Урок объясняет отличия, настройку, ключевые концепции и реальные сценарии.
 

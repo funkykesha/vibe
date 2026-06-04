@@ -3,6 +3,7 @@ title: 'Начинающий уровень 1: В эпоху AI — достат
 description: 'Позволяйте AI писать код, разговаривая с ним: от нуля создайте AI-нативную змейку и научитесь рассуждать целостно, создавая свои собственные небольшие игры или демо.'
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/ai-capabilities-through-games.md) · [Расширенно](../../lesson-summaries-full/stage-1/ai-capabilities-through-games.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/ai-capabilities-through-games/index.md)
 

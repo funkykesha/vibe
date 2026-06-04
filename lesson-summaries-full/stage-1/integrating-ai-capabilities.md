@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/integrating-ai-capabilities.md) · **Расширенно** · [Полный перевод](../../lesson-originals-ru/stage-1/integrating-ai-capabilities.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/integrating-ai-capabilities/index.md)
 
+
 ## О чём урок
 Урок превращает статичный прототип в живое приложение, которое реально вызывает AI-сервисы. Читатель разбирается с базовыми понятиями API, учится получать API Key и читать официальные документации, а затем на практике подключает текстовую модель DeepSeek и несколько сервисов генерации/понимания изображений, доверяя интеграцию AI IDE.
 

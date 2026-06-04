@@ -3,6 +3,7 @@ title: Как построить личный веб-сайт и академи�
 description: Полное руководство по созданию личной академической страницы с помощью шаблонов GitHub Pages и AI-ассистента Trae
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/personal-brand/personal-website-blog.md) · [Расширенно](../../../lesson-summaries-full/stage-3/personal-brand/personal-website-blog.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/personal-brand/personal-website-blog/index.md)
 

@@ -3,6 +3,7 @@ title: Как развернуть веб-приложение
 description: Изучите различные платформы для развертывания веб-приложений и сделайте ваш проект доступным для мира
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/zeabur-deployment.md) · [Расширенно](../../../lesson-summaries-full/stage-2/backend/zeabur-deployment.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/zeabur-deployment/index.md)
 

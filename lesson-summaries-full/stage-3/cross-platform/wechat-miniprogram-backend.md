@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/wechat-miniprogram-backend.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/wechat-miniprogram-backend.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/wechat-miniprogram-backend/index.md)
 
+
 ## О чём урок
 Урок объясняет, как перейти от «фронтенд-онли» мини-программы к полноценному продукту с серверной частью: с логином, синхронизацией данных, загрузкой файлов, заказами и оплатой. Рекомендуемый путь по умолчанию — WeChat-мини-программа в связке с облачной разработкой (微信云开发 / CloudBase).
 

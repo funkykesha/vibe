@@ -3,6 +3,7 @@ title: "Полное руководство по Claude Code MCP"
 description: "Узнайте, как использовать Model Context Protocol для подключения внешних инструментов к Claude Code"
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/mcp.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/mcp.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/mcp/index.md)
 

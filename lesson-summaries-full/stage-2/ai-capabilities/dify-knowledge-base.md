@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/ai-capabilities/dify-knowledge-base.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/ai-capabilities/dify-knowledge-base.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/ai-capabilities/dify-knowledge-base/index.md)
 
+
 ## О чём урок
 Урок показывает переход от простого чат-бота к AI-агентам и AI-рабочим процессам (workflow), приближенным к реальным бизнес-задачам. На практике учащиеся осваивают платформу Dify: создают чат-бота, собирают базу знаний на основе RAG, строят рабочий процесс с классификацией намерений и подключают созданного агента к фронтенду через API. Параллельно вводится AI IDE Trae как основной инструмент разработки вместо z.ai.
 

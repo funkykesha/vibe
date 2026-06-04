@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/browser-ai-extension.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/browser-ai-extension.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/browser-ai-extension/index.md)
 
+
 ## О чём урок
 Урок проводит полный цикл создания AI-расширения для Chrome под названием «AI Page Summarizer»: оно читает содержимое любой открытой страницы и генерирует краткое резюме с помощью AI. Показаны разработка, отладка и публикация в Chrome Web Store. Большая часть кода пишется в стиле vibecoding через AI-ассистента (Cursor / Trae / Claude Code).
 

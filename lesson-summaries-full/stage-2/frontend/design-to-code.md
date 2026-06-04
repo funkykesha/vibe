@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/design-to-code.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/frontend/design-to-code.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/design-to-code/index.md)
 
+
 ## О чём урок
 Урок показывает, как превратить готовый макет из Figma или MasterGo в работающий фронтенд-код. Разбираются три типовых пути перехода от прототипа к коду, их сильные и слабые стороны и рекомендации по выбору под конкретный проект.
 

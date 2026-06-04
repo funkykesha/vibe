@@ -3,6 +3,7 @@ title: Проект 4: Делаем Портреты Хогвартса вмес
 description: Создание интерактивного приложения с AI-персонажами, дизайн интерфейса, развёртывание проекта
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/hogwarts-portraits.md) · [Расширенно](../../../lesson-summaries-full/stage-2/frontend/hogwarts-portraits.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/hogwarts-portraits/index.md)
 

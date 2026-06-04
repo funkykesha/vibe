@@ -3,6 +3,7 @@ title: Git и GitHub рабочие процессы
 description: Изучите основы версионного контроля с использованием Git и GitHub для совместной разработки
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/git-workflow.md) · [Расширенно](../../../lesson-summaries-full/stage-2/backend/git-workflow.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/git-workflow/index.md)
 

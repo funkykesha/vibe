@@ -3,6 +3,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/android-app.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/android-app.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/android-app/index.md)
 
+
 # 1 Что такое Android App и Android разработка
 
 В этом уроке мы полностью пройдём замкнутый цикл: **от идеи в голове до реально установленного и работающего приложения на вашем Android телефоне.**

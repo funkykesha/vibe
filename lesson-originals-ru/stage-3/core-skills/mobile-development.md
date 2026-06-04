@@ -3,6 +3,7 @@ title: Claude Code мобильная удалённая разработка
 description: Разработка с Claude Code на смартфоне в любом месте
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/mobile-development.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/mobile-development.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/mobile-development/index.md)
 

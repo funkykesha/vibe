@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/ai-interface-code.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/backend/ai-interface-code.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/ai-interface-code/index.md)
 
+
 ## О чём урок
 Урок показывает, как с помощью больших языковых моделей быстро писать надёжный backend-API на Node.js + Express, соответствующий отраслевым стандартам. Объясняется роль API как «официанта» между фронтендом и базой данных, а также как качественными промптами заставить AI генерировать не «воду», а рабочий код, документацию и тесты.
 

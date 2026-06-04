@@ -3,6 +3,7 @@ title: 'Добавление AI способностей к прототипу -
 description: 'Интегрируйте реальные AI способности в существующий прототип Web: поймите основные концепции API, найдите API Key и официальные примеры; практически интегрируйте модель текста DeepSeek и различные сервисы генерирования изображений (SiliconFlow Qwen-Image, Recraft, Seedream), и овладейте методами выбора обычно используемых моделей.'
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/integrating-ai-capabilities.md) · [Расширенно](../../lesson-summaries-full/stage-1/integrating-ai-capabilities.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/integrating-ai-capabilities/index.md)
 

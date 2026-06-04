@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/mobile-development.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/mobile-development.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/mobile-development/index.md)
 
+
 ## О чём урок
 Урок показывает, как превратить телефон в «карманного помощника разработки» с Claude Code. Главная идея всех решений — архитектура тонкого клиента: телефон выступает лишь пультом управления, а настоящая работа выполняется на хосте или в облаке. Рассмотрены семь способов с разбором их плюсов, минусов и сценариев применения.
 

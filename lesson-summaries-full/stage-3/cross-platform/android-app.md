@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/android-app.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/android-app.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/android-app/index.md)
 
+
 ## О чём урок
 Урок проводит полный цикл создания нативного Android-приложения: от идеи до установки и запуска на реальном телефоне. На примере приложения «Электронная деревянная рыба» (электронный муюй) показана нативная разработка на Kotlin + Jetpack Compose с использованием AI-ассистента Trae в режиме Vibe Coding.
 

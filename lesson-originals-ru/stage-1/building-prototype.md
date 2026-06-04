@@ -3,6 +3,7 @@ title: 'Создание прототипа - От анализа бизнеса
 description: 'Пройдите полный цикл от анализа бизнеса к реализации многостраничного прототипа. Научитесь задавать вопросы бизнесу, разбирать требования, использовать AI IDE для создания одностраничных и многостраничных приложений, а также финальной доработке прототипа.'
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/building-prototype.md) · [Расширенно](../../lesson-summaries-full/stage-1/building-prototype.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/building-prototype/index.md)
 

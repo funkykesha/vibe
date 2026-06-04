@@ -3,6 +3,7 @@ title: 'Полная практика проекта - От Demo к протот
 description: 'Выходите из фазы Demo, научитесь совершенствовать цепочку продукта, строить реалистичные модельные данные, проводить быструю итерацию на основе отзывов, в конце завершить полный интерактивный прототип AI продукта.'
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/complete-project-practice.md) · [Расширенно](../../lesson-summaries-full/stage-1/complete-project-practice.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/complete-project-practice/index.md)
 

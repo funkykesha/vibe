@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/ai-capabilities-through-games.md) · **Расширенно** · [Полный перевод](../../lesson-originals-ru/stage-1/ai-capabilities-through-games.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/ai-capabilities-through-games/index.md)
 
+
 ## О чём урок
 Первый практический урок для тех, кто совсем не умеет программировать. На примере создания «AI-нативной змейки» читатель впервые ощущает, что такое программирование через диалог с AI: не нужно учить синтаксис или настраивать окружение — всё работает прямо в браузере. Главный девиз: «Завершить важнее, чем сделать идеально».
 

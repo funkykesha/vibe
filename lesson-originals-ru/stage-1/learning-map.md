@@ -3,6 +3,7 @@ title: 'От идеи к AI-продукту - Карта обучения Easy-
 description: 'Полная карта обучения AI-программированию: от нуля до full-stack разработки. Освойте Vibe Coding, Claude Code, Cursor и другие AI IDE инструменты, научитесь продуктовому мышлению, полноценной разработке и интеграции AI возможностей.'
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/learning-map.md) · [Расширенно](../../lesson-summaries-full/stage-1/learning-map.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/learning-map/index.md)
 

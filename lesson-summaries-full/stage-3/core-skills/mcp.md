@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/mcp.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/mcp.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/mcp/index.md)
 
+
 ## О чём урок
 MCP (Model Context Protocol) — протокол, позволяющий Claude Code подключаться к внешним инструментам и сервисам. С ним Claude Code превращается из помощника, который умеет лишь читать и писать локальные файлы, в «суперпомощника» с доступом к GitHub, базам данных, API, облачным сервисам и автоматизации браузера. Урок объясняет настройку, способы транспорта и лучшие практики.
 

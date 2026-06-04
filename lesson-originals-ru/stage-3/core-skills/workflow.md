@@ -3,6 +3,7 @@ title: "AI-ассистируемый рабочий процесс разраб
 description: "Научитесь строить системный рабочий процесс AI-ассистируемой разработки для эффективной работы в разных сценариях"
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/workflow.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/workflow.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/workflow/index.md)
 

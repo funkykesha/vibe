@@ -3,6 +3,7 @@ title: Полный гайд Claude Agent SDK
 description: Как использовать Agent SDK для автономного выполнения задач разработки
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/claude-agent-sdk.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/claude-agent-sdk.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/claude-agent-sdk/index.md)
 

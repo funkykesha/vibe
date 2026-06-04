@@ -3,6 +3,7 @@ title: Как выбрать платформу для разработки ва
 description: Полное руководство по выбору оптимальной платформы - от микропрограмм до нативных приложений, с примерами и матрицей сравнения
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/choose-platform.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/choose-platform.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/choose-platform/index.md)
 

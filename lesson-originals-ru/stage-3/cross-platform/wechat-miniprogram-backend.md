@@ -3,6 +3,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/wechat-miniprogram-backend.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/wechat-miniprogram-backend.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/wechat-miniprogram-backend/index.md)
 
+
 В предыдущем уроке мы создали "микропрограмму, которая полностью работает во фронтенде". Но как только ваш продукт начнёт приближаться к реальному бизнесу, вы быстро столкнётесь с несколькими типами требований:
 
 - После входа пользователя вам нужно понять "кто это"

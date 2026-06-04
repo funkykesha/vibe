@@ -3,6 +3,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/ai-advanced/llamaindex-enterprise-knowledge-base.md) · [Расширенно](../../../lesson-summaries-full/stage-3/ai-advanced/llamaindex-enterprise-knowledge-base.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/llamaindex-enterprise-knowledge-base/index.md)
 
+
 Если LangGraph лучше всего подходит для решения вопроса "как должен работать клиентский сервис или Agent", то LlamaIndex лучше решает другой, не менее важный вопрос: как знания компании должны быть подключены, организованы, извлечены и на них должны даны ответы.
 
 В этой главе мы фокусируемся только на корпоративных знаниях. Основной упор не на написание большого объёма кода, а на понимание того, какие реальные проблемы должна решать система знаний, способная работать внутри корпоративной среды.

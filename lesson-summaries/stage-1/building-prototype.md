@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** **Кратко** · [Расширенно](../../lesson-summaries-full/stage-1/building-prototype.md) · [Полный перевод](../../lesson-originals-ru/stage-1/building-prototype.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/building-prototype/index.md)
 
+
 Полный цикл от анализа бизнес-задачи до многостраничного прототипа на примере повышения эффективности публикации товаров на e-commerce платформе с помощью AI.
 
 - Сначала превратить размытое поручение в конкретные требования

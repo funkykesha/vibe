@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/pwa-local-app.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/pwa-local-app.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/pwa-local-app/index.md)
 
+
 ## О чём урок
 Урок показывает, как из обычного веб-проекта сделать PWA — приложение, устанавливаемое на рабочий стол и главный экран телефона, работающее офлайн. На примере «Помидорной фермы» (番茄农场) — сочетания техники Pomodoro и игры про выращивание овощей — React-приложение превращается в PWA и публикуется для установки на телефоне.
 

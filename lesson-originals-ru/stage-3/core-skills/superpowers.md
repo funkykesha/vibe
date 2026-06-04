@@ -3,6 +3,7 @@ title: "Claude Code Superpowers Инженерная разработка"
 description: "Овладейте навыками Superpowers для написания качественного кода инженерного уровня"
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/superpowers.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/superpowers.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/superpowers/index.md)
 

@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/workflow.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/workflow.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/workflow/index.md)
 
+
 Урок учит выстраивать систематический рабочий процесс разработки с AI: фичи, баги, рефакторинг, ревью. Главное — распределить роли: человек решает и контролирует, AI делает рутину.
 
 - Границы AI: силён в рутине и генерации по описанию, слаб в бизнес-логике и архитектуре.

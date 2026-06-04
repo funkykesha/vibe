@@ -3,6 +3,7 @@ title: Написание кода интерфейса и документац�
 description: Научитесь использовать AI для генерации API кода, документации и тестов при разработке бэкэнда
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/ai-interface-code.md) · [Расширенно](../../../lesson-summaries-full/stage-2/backend/ai-interface-code.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/ai-interface-code/index.md)
 

@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/spec-coding.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/spec-coding.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/spec-coding/index.md)
 
+
 ## О чём урок
 Урок знакомит с парадигмой Spec Coding (разработка через спецификации), основанной на докладе Шона Грова (OpenAI) «The New Code». Главный тезис: код — это «потеря при проекции намерения», а настоящим «новым кодом» становится спецификация. Показано, как применять Spec-Driven Development в Claude Code через CLAUDE.md, каталог rules/ и команду `/plan`.
 

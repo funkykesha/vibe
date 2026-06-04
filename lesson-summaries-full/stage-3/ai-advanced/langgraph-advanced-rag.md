@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/ai-advanced/langgraph-advanced-rag.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/ai-advanced/langgraph-advanced-rag.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/langgraph-advanced-rag/index.md)
 
+
 ## О чём урок
 Урок разбирает, как спроектировать клиентский Agent коммерческого уровня с помощью подхода LangGraph. Акцент сделан не на коде, а на бизнес-логике: обработке исключений, эскалации на оператора, проектировании данных и границах вывода в продакшн. Ключевая идея: цель корпоративного Agent — не "ответить побольше", а "автоматизировать там, где можно, переспросить при неопределённости и передать оператору при высоком риске".
 

@@ -3,6 +3,7 @@ title: Инструменты программирования AI в коман�
 description: Исследуйте мощные CLI AI инструменты для программирования, которые работают непосредственно в терминале с расширенными возможностями
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/modern-cli.md) · [Расширенно](../../../lesson-summaries-full/stage-2/backend/modern-cli.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/modern-cli/index.md)
 

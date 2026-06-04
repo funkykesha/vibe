@@ -3,6 +3,7 @@ title: Руководство по основным навыкам Claude Code
 description: Полное введение в Claude Code - официальный инструмент AI кодирования от Anthropic. Изучите установку, базовые операции, полезные советы и ключевые команды.
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/basics.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/basics.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/basics/index.md)
 

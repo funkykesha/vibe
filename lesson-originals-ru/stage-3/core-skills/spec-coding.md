@@ -3,6 +3,7 @@ title: "От Vibe Coding к Spec Coding: Путь развития AI прогр
 description: "Узнайте как эволюционирует AI программирование от Vibe к Spec-ориентированному подходу"
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/spec-coding.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/spec-coding.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/spec-coding/index.md)
 

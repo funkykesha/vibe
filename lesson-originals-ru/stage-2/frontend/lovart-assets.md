@@ -3,6 +3,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/lovart-assets.md) · [Расширенно](../../../lesson-summaries-full/stage-2/frontend/lovart-assets.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/lovart-assets/index.md)
 
+
 ## Глава 1: Сгенерируй первый материал за 1 минуту
 
 Прежде чем говорить о дизайне, стиле или промптах, давай сначала сгенерируем первое изображение с минимальными шагами.

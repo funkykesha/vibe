@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/ai-advanced/rag-introduction.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/ai-advanced/rag-introduction.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/rag-introduction/index.md)
 
+
 RAG (Retrieval-Augmented Generation) даёт модели извлекать релевантные знания из внешней базы перед ответом, опираясь на реальные источники.
 
 - Индексация (чанки, векторизация, БД) и поиск + генерация (Top-K, сборка промпта).

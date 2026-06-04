@@ -3,6 +3,7 @@ title: Как быстро разработать и отчеканить NFT �
 description: Полное руководство по созданию смарт-контракта NFT, развертыванию на Ethereum и чеканке вашего первого NFT
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/nft-minting.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/nft-minting.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/nft-minting/index.md)
 

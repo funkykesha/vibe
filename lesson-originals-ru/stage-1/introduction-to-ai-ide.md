@@ -3,6 +3,7 @@ title: 'Начинающий уровень 2: Обучение AI-инстру�
 description: 'От веб-программирования AI к локальной разработке: поймите IDE и AI IDE, используйте Trae для создания змейки локально и овладейте техниками эффективного диалога с AI.'
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../lesson-summaries/stage-1/introduction-to-ai-ide.md) · [Расширенно](../../lesson-summaries-full/stage-1/introduction-to-ai-ide.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/introduction-to-ai-ide/index.md)
 

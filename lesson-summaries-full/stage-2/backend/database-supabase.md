@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/database-supabase.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/backend/database-supabase.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/database-supabase/index.md)
 
+
 ## О чём урок
 Урок объясняет, что такое данные и базы данных, в чём разница между реляционными (SQL) и нереляционными (NoSQL) хранилищами, а затем переходит к Supabase — современной BaaS-платформе (Backend as a Service) на базе PostgreSQL. Цель — превратить работающее приложение в полноценный онлайн-продукт с базой данных и системой пользователей, не строя бэкенд-инфраструктуру с нуля.
 

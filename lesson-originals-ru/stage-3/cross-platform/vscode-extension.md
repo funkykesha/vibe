@@ -3,6 +3,7 @@ title: Как разработать плагин VS Code — создай св�
 description: Полное руководство по созданию плагина VS Code с поддержкой шаблонов проектов, AI чата и многофайловой аналитики
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/vscode-extension.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/vscode-extension.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/vscode-extension/index.md)
 

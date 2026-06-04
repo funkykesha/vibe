@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** **Кратко** · [Расширенно](../../lesson-summaries-full/stage-1/finding-great-idea.md) · [Полный перевод](../../lesson-originals-ru/stage-1/finding-great-idea.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/finding-great-idea/index.md)
 
+
 Урок учит находить продуктовые направления, которые реально нужны людям: через историю провалившегося фитнес-приложения разбирается методология поиска идей.
 
 - Направление важнее кода; пользователи голосуют деньгами

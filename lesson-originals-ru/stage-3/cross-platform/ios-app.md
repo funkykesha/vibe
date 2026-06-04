@@ -3,6 +3,7 @@ title: Как создавать iOS приложения - собственна
 description: Полный курс по разработке iOS приложений от нуля с использованием SwiftUI, Xcode и AI
 ---
 
+
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/ios-app.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/ios-app.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/ios-app/index.md)
 

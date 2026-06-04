@@ -5,6 +5,7 @@
 <!-- nav -->
 **📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/lovart-assets.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-2/frontend/lovart-assets.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/lovart-assets/index.md)
 
+
 ## О чём урок
 Урок ведёт от генерации первой картинки до построения собственного агента для производства дизайн-ассетов. Сначала показано прямое обращение к модели NanoBanana через API, затем работа с агентным инструментом Lovart, и наконец — самостоятельная сборка упрощённого «умного» агента для автоматической иллюстрации статей.
 
