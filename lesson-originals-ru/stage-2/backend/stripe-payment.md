@@ -3,6 +3,9 @@ title: Как интегрировать системы оплаты, такие
 description: Изучите полный процесс интеграции Stripe для приема платежей в вашем приложении
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/stripe-payment.md) · [Расширенно](../../../lesson-summaries-full/stage-2/backend/stripe-payment.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/stripe-payment/index.md)
+
 # Как интегрировать системы оплаты, такие как Stripe
 
 Когда у вашего продукта уже есть страницы, вход, база данных и базовый бэкэнд, следующий практический вопрос: **как брать деньги**.

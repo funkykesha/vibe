@@ -1,5 +1,8 @@
 # Дизайн страниц и кнопок на основе стандартов UI дизайна
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/multi-product-ui.md) · [Расширенно](../../../lesson-summaries-full/stage-2/frontend/multi-product-ui.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/multi-product-ui/index.md)
+
 Многие говорят: "Хочу, чтобы страница была более похожа на Apple" или "Хочу, чтобы кнопки выглядели более продвинуто", но когда начинают реально работать, часто зацикливаются на одном вопросе:
 
 **На что именно ориентироваться?**

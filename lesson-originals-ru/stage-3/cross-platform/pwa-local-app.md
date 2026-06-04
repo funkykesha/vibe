@@ -3,6 +3,9 @@ title: Как разработать PWA локальное приложение
 description: Полный гайд по разработке Progressive Web App приложения с использованием React и TypeScript
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/pwa-local-app.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/pwa-local-app.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/pwa-local-app/index.md)
+
 # Как разработать PWA локальное приложение — превратите веб-страницу в настоящее приложение
 
 # 1 Что такое PWA и разработка PWA

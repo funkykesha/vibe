@@ -1,5 +1,8 @@
 # Полное руководство по Claude Agent Teams
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/agent-teams.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/agent-teams.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/agent-teams/index.md)
+
 ## Введение в Agent Teams
 
 **Agent Teams** — это революционная функция Claude Code, которая позволяет **нескольким независимым экземплярам AI работать вместе как настоящая команда разработчиков**.

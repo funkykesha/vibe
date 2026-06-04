@@ -3,6 +3,9 @@ title: От базы данных к Supabase
 description: Полное руководство по освоению Supabase - от базовых концепций БД до применения в реальных приложениях
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/backend/database-supabase.md) · [Расширенно](../../../lesson-summaries-full/stage-2/backend/database-supabase.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/database-supabase/index.md)
+
 # От базы данных к Supabase
 
 В предыдущем уроке мы изучили основы UI-дизайна в Mastergo и Figma, научились использовать GitHub для управления кодом и версиями, а также развернули веб-сайт через Zeabur, чтобы поделиться своим приложением с большей аудиторией.

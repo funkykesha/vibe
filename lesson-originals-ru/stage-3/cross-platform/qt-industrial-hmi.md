@@ -3,6 +3,9 @@ title: Как разработать промышленное приложени
 description: Создание промышленной системы мониторинга на Qt с поддержкой Modbus TCP, реальными трендами и системой оповещений
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/qt-industrial-hmi.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/qt-industrial-hmi.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/qt-industrial-hmi/index.md)
+
 # Как разработать промышленное приложение Qt — мониторинг воды в HMI системе
 
 # Глава 1: Что такое промышленная HMI и разработка на Qt

@@ -3,6 +3,9 @@ title: Как разработать кроссплатформенную Electr
 description: Полный гайд по разработке речь-в-текст приложения на Electron с облачным API и локальными моделями
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/electron-voice-to-text.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/electron-voice-to-text.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/electron-voice-to-text/index.md)
+
 # Как разработать кроссплатформенную Electron приложение — приложение голос в текст
 
 # Глава 1: Что такое Electron и разработка приложений для рабочего стола

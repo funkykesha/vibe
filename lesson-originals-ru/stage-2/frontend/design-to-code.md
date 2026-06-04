@@ -2,6 +2,9 @@
 
 > **Как превратить прототип из инструмента дизайна в реально работающий фронтенд-код?**
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/design-to-code.md) · [Расширенно](../../../lesson-summaries-full/stage-2/frontend/design-to-code.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/design-to-code/index.md)
+
 ---
 
 ## 1. Три пути от прототипа к коду

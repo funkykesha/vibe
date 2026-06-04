@@ -3,6 +3,9 @@ title: 企业级客服Agent实战：用LangGraph搭建可升级、可审计的�
 description: 从业务设计到技术落地，构建真正的企业级智能客服系统
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/ai-advanced/langgraph-advanced-rag.md) · [Расширенно](../../../lesson-summaries-full/stage-3/ai-advanced/langgraph-advanced-rag.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/langgraph-advanced-rag/index.md)
+
 # 企业级客服Agent实战：用LangGraph搭建可升级、可审计的客服系统
 
 如果你已经做过知识库问答，下一步最值得学习的，不是再堆更多提示词，而是开始理解：一个真正进入企业客服流程的Agent，到底应该怎样设计。

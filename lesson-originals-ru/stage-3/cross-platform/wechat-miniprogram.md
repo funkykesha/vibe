@@ -3,6 +3,9 @@ title: Как построить самую простую WeChat мини-пр�
 description: Полное руководство по разработке WeChat мини-программы от нулевых знаний до публикации в реальности - включает настройку среды, Vibe Coding разработку, отладку и выпуск.
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/wechat-miniprogram.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/wechat-miniprogram.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/wechat-miniprogram/index.md)
+
 # Как построить самую простую WeChat мини-программу
 
 # 1. Что такое WeChat мини-программа и разработка WeChat мини-программы

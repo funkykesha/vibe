@@ -3,6 +3,9 @@ title: Как выбрать платформу для разработки ва
 description: Полное руководство по выбору оптимальной платформы - от микропрограмм до нативных приложений, с примерами и матрицей сравнения
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/choose-platform.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/choose-platform.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/choose-platform/index.md)
+
 # Как выбрать платформу для разработки вашего приложения
 
 У вас есть идея, и вы хотите превратить её в реальный продукт. Но перед вами так много платформ — микропрограммы WeChat, iOS приложения, Android приложения, веб-сайты, расширения браузера, десктопные программы... С чего вам начать?

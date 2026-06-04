@@ -3,6 +3,9 @@ title: Полное руководство Claude Code Skills
 description: Узнайте, как использовать Skills для стандартизации рабочих процессов и повышения эффективности командной работы
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/skills.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/skills.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/skills/index.md)
+
 # Полное руководство Claude Code Skills
 
 ## Введение в Skills

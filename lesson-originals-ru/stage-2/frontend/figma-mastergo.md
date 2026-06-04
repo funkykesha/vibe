@@ -2,6 +2,9 @@
 
 > **Как с нуля начать создавать веб-прототипы с помощью современных инструментов дизайна?**
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/frontend/figma-mastergo.md) · [Расширенно](../../../lesson-summaries-full/stage-2/frontend/figma-mastergo.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/frontend/figma-mastergo/index.md)
+
 ---
 
 ## 1. Зачем учиться инструментам дизайна для фронтенда?

@@ -3,6 +3,9 @@ title: Dify入门与知识库集成
 description: 学习如何使用Dify平台构建知识库问答机器人、智能体和AI工作流
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-2/ai-capabilities/dify-knowledge-base.md) · [Расширенно](../../../lesson-summaries-full/stage-2/ai-capabilities/dify-knowledge-base.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/ai-capabilities/dify-knowledge-base/index.md)
+
 # Dify入门与知识库集成
 
 # Повтор предыдущего урока
@@ -215,7 +218,7 @@ Dify — это платформа открытого источника для 
 
 Этот раздел был первоначально запланирован для подробного введения позже, но учитывая, что некоторые ученики могут быть не в состоянии получить доступ к официальному веб-сайту Dify или облачным сервисам из-за ограничений сети, мы решили предоставить эту дополнительную учебную программу заранее, чтобы помочь вам успешно продвигаться вперед в учебе.
 
-Вам нужно обратиться к этому руководству, чтобы освоить базовое использование платформы веб-развертывания: [Как развернуть веб-приложение](/zh-cn/stage-2/backend/zeabur-deployment/)
+Вам нужно обратиться к этому руководству, чтобы освоить базовое использование платформы веб-развертывания: [Как развернуть веб-приложение](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-2/backend/zeabur-deployment/index.md)
 
 ![](https://raw.githubusercontent.com/datawhalechina/easy-vibe/main/docs/zh-cn/stage-2/ai-capabilities/dify-knowledge-base/images/image13.png)
 

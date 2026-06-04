@@ -3,6 +3,9 @@ title: Как разработать расширение браузера AI п
 description: Полный гайд по разработке Chrome расширения, которое использует AI для суммирования веб-страниц
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/cross-platform/browser-ai-extension.md) · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/browser-ai-extension.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/browser-ai-extension/index.md)
+
 # Как разработать расширение браузера AI помощник — одна кнопка для суммирования любой веб-страницы
 
 # Глава 1: Что такое расширение браузера и разработка Chrome расширения
@@ -424,7 +427,6 @@ async function summarizeWithBuiltinAI(text) {
 | Получить не到页面内容 | Content Script не внедрён | Обновить страница потом повторить, проверить manifest в matches конфигурировать |
 | API вызовите ошибка | API Key ошибка или过期 | В параметры страница переввести API Key |
 | боковая панель пусто | sidepanel.html путь ошибка | Проверить manifest в side_panel.default_path |
-
 
 # Глава 6: опубликовать в Chrome Web Store (опционально)
 

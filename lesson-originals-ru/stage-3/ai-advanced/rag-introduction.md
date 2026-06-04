@@ -3,6 +3,9 @@ title: RAG 介绍 - 从基础到企业级
 description: 完整了解检索增强生成技术，从核心原理到实践应用
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/ai-advanced/rag-introduction.md) · [Расширенно](../../../lesson-summaries-full/stage-3/ai-advanced/rag-introduction.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/rag-introduction/index.md)
+
 # RAG 介绍 - 从基础到企业级
 
 随着大型语言模型（LLM）的广泛应用，企业面临一个现实问题：如何让模型准确回答基于内部文档、实时数据或专业知识的问题？毕竟，模型的训练数据有限且存在时效性，无法覆盖企业特有的业务知识和不断更新的信息。

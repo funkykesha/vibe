@@ -3,6 +3,9 @@ title: Полный гайд Claude Agent SDK
 description: Как использовать Agent SDK для автономного выполнения задач разработки
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/claude-agent-sdk.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/claude-agent-sdk.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/claude-agent-sdk/index.md)
+
 # Claude Agent SDK Полный гайд
 
 ## Введение
@@ -63,7 +66,7 @@ async for message in query(
 
 На рынке много фреймворков Agent — LangChain, LlamaIndex, CrewAI, AutoGPT… Claude Agent SDK сравнить с ними что уникального?
 
-> 📚 **Подробное сравнение см. в приложении**: [Сравнение основных фреймворков Agent](/zh-cn/appendix/8-artificial-intelligence/ai-agents.html#_7-主流框架对比)
+> 📚 **Подробное сравнение см. в приложении**: [Сравнение основных фреймворков Agent](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/appendix/8-artificial-intelligence/ai-agents/index.md)
 
 Просто говоря:
 

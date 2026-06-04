@@ -3,6 +3,9 @@ title: 'Найдите хорошую идею - от потребностей �
 description: 'Научитесь находить коммерческие возможности в повседневных проблемах, освойте систематическую методологию анализа потребностей, превратите обычные идеи в концепции продуктов, за которые готовы платить пользователи.'
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../lesson-summaries/stage-1/finding-great-idea.md) · [Расширенно](../../lesson-summaries-full/stage-1/finding-great-idea.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-1/finding-great-idea/index.md)
+
 # Этап 1: Найдите хорошую идею
 
 ## Введение в главу

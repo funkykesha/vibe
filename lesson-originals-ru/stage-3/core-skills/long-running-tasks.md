@@ -3,6 +3,9 @@ title: Как позволить Claude Code длительное время р�
 description: Методы длительной работы AI для автоматизации сложных задач разработки
 ---
 
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/long-running-tasks.md) · [Расширенно](../../../lesson-summaries-full/stage-3/core-skills/long-running-tasks.md) · **Полный перевод** · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/long-running-tasks/index.md)
+
 # Как позволить Claude Code длительное время работать
 
 ## Введение
