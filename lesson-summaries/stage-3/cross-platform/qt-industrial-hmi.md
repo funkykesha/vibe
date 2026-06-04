@@ -2,6 +2,10 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/qt-industrial-hmi.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/qt-industrial-hmi.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/qt-industrial-hmi/index.md)
+
+
 Полный цикл создания промышленной HMI-системы мониторинга насоса на Qt: данные датчиков, график давления, оповещения и журнал аварий через симулятор Modbus.
 
 - Связь HMI с PLC/датчиками по протоколу Modbus (в уроке Modbus TCP на localhost).

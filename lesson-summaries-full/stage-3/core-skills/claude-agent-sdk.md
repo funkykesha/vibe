@@ -1,0 +1,29 @@
+# Полное руководство по Claude Agent SDK
+
+> Этап 3 · Ключевые навыки
+
+<!-- nav -->
+**📚 Версии:** [Кратко](../../../lesson-summaries/stage-3/core-skills/claude-agent-sdk.md) · **Расширенно** · [Полный перевод](../../../lesson-originals-ru/stage-3/core-skills/claude-agent-sdk.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/core-skills/claude-agent-sdk/index.md)
+
+
+## О чём урок
+Claude Agent SDK превращает все возможности Claude Code (чтение/запись файлов, выполнение команд, поиск кода, работа с веб) в программируемую библиотеку. В отличие от базового API («ты спросил — он ответил»), Agent SDK даёт автономное выполнение: Claude сам вызывает инструменты, итерирует и проверяет результат, пока задача не будет выполнена. Урок объясняет отличия, настройку, ключевые концепции и реальные сценарии.
+
+## Ключевые темы
+- Agent SDK vs базовый anthropic SDK: встроенный agent loop, готовые инструменты, автоматическое управление контекстом вместо ручного написания цикла обработки tool use.
+- Установка и аутентификация: Python 3.10+ / Node.js 18+, `ANTHROPIC_API_KEY`, поддержка AWS Bedrock, Google Vertex, Azure, кастомный `ANTHROPIC_BASE_URL` через `env`.
+- Ключевая концепция: цикл «сбор контекста → действие → проверка результата → повтор»; режимы `query()` (без состояния) и `ClaudeSDKClient` (многораундовый).
+- Встроенные инструменты: Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, Task; управление доступом через `allowed_tools` и `permission_mode`.
+- Продвинутые возможности: Hooks (PreToolUse/PostToolUse/Stop), субагенты (`AgentDefinition`), интеграция MCP (Playwright, БД, Slack, GitHub).
+- Реальные сценарии: авто-исправление багов, код-ревью, CI/CD, исследовательский агент, и корпоративный конвейер контроля качества PR.
+
+## Главные выводы
+- Базовый SDK — для «вопрос-ответ»; Agent SDK — когда Claude должен «сам делать работу» (читать, менять код, запускать команды).
+- Корпоративный дизайн строится на принципах: минимальные права, аудируемость через Hooks, последовательная передача результатов между агентами, контроль стоимости через `max_turns`.
+- Философия Anthropic: «дайте агенту компьютер, чтобы он работал как человек».
+- Хорошее приложение-агент = чёткий дизайн инструментов + ясные границы задачи + разумный человеческий надзор.
+
+## Инструменты и технологии
+- Claude Agent SDK (Python / TypeScript), `query()`, `ClaudeSDKClient`, `ClaudeAgentOptions`
+- Встроенные инструменты (Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, Task)
+- Hooks, AgentDefinition (субагенты), MCP (Playwright и др.), интеграция с GitHub Actions / GitLab CI

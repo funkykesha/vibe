@@ -2,6 +2,10 @@
 
 > Этап 3 · Кроссплатформенная разработка
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/cross-platform/vscode-extension.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/cross-platform/vscode-extension.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/cross-platform/vscode-extension/index.md)
+
+
 Полный цикл создания расширения VS Code «AI Project Bot» — генерация проектов, чат с AI и анализ кода прямо в редакторе.
 
 - package.json через contribution points описывает вклад в редактор, extension.ts — поведение.

@@ -2,6 +2,10 @@
 
 > Этап 3 · Продвинутый AI
 
+<!-- nav -->
+**📚 Версии:** **Кратко** · [Расширенно](../../../lesson-summaries-full/stage-3/ai-advanced/langgraph-advanced-rag.md) · [Полный перевод](../../../lesson-originals-ru/stage-3/ai-advanced/langgraph-advanced-rag.md) · [Оригинал 中文](https://github.com/datawhalechina/easy-vibe/blob/main/docs/zh-cn/stage-3/ai-advanced/langgraph-advanced-rag/index.md)
+
+
 Поддержка на LangGraph — это задача смены состояний, а не чат-бот: автоматизировать где можно, переспросить при неопределённости, передать оператору при риске.
 
 - Многоуровневая маршрутизация: интент, извлечение полей, база знаний, бизнес-система, эскалация.
