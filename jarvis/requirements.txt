@@ -1,0 +1,6 @@
+# macOS only. Provides AppKit / Foundation bindings for the overlay.
+pyobjc-core>=10.0
+pyobjc-framework-Cocoa>=10.0
+
+# Dev/test
+pytest>=8.0

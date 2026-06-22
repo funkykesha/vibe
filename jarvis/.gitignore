@@ -1,0 +1,10 @@
+# Secrets (future voice-provider API keys)
+.env
+
+# Local envs and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
